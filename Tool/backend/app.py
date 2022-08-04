@@ -83,5 +83,5 @@ def protected():
 
 
 if __name__ == '__main__':
-    setup_db()
+    #setup_db()
     app.run()
