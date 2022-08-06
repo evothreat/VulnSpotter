@@ -12,7 +12,7 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
-import axios from "axios";
+import {login} from "../apis/auth";
 import {useNavigate} from "react-router-dom";
 
 function Copyright(props) {
@@ -38,15 +38,16 @@ export default function Login() {
 
         const data = new FormData(event.currentTarget);
 
-        axios.post('/api/login', {
-            username: data.get('username'),
-            password: data.get('password'),
-        })
+        login(data.get('username'), data.get('password'))
             .then(function () {
-                navigate('/');      // TODO: redirect to home page
+                navigate('/');                  // TODO: redirect to home page
             })
             .catch(function (err) {
-                console.log(err);
+                if (err.status === 401) {
+                    navigate('/login');
+                } else {
+                    console.log(err);
+                }
             });
     };
 
