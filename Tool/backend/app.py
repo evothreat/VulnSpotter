@@ -48,7 +48,7 @@ def refresh_expiring_token(response):
         return response
 
 
-@app.route('/login', methods=['POST'])
+@app.route('/api/login', methods=['POST'])
 def login():
     username = request.json.get('username')
     password = request.json.get('password')
@@ -69,14 +69,14 @@ def login():
     return resp
 
 
-@app.route('/logout', methods=['POST'])
+@app.route('/api/logout', methods=['POST'])
 def logout():
     resp = jsonify({'msg': 'logout successful'})
     unset_access_cookies(resp)
     return resp
 
 
-@app.route('/protected', methods=['GET'])
+@app.route('/api/protected', methods=['GET'])
 @jwt_required()
 def protected():
     return {'logged_in_as': get_jwt_identity()}
