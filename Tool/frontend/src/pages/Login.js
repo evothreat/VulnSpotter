@@ -3,8 +3,6 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
 import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
@@ -12,8 +10,8 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
-import {login} from "../apis/auth";
 import {useNavigate} from "react-router-dom";
+import AuthHelper from "../helpers/auth";
 
 function Copyright(props) {
     return (
@@ -37,12 +35,13 @@ export default function Login() {
         event.preventDefault();
 
         const data = new FormData(event.currentTarget);
+        const from = window.location.state?.from?.pathname || "/";      // TODO: redirect to previous location or home page
 
-        login(data.get('username'), data.get('password'))
-            .then(function () {
-                navigate('/');                  // TODO: redirect to home page
+        AuthHelper.login(data.get('username'), data.get('password'))
+            .then(() => {
+                navigate(from, { replace: true });
             })
-            .catch(function (err) {
+            .catch((err) => {
                 if (err.status === 401) {
                     navigate('/login');
                 } else {
@@ -89,10 +88,6 @@ export default function Login() {
                             type="password"
                             id="password"
                             autoComplete="current-password"
-                        />
-                        <FormControlLabel
-                            control={<Checkbox value="remember" color="primary"/>}
-                            label="Remember me"
                         />
                         <Button
                             type="submit"
