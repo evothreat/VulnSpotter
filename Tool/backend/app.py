@@ -15,6 +15,7 @@ jwt = JWTManager(app)
 app.config['JWT_TOKEN_LOCATION'] = ['cookies']
 app.config['JWT_SECRET_KEY'] = JWT_SECRET_KEY
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = JWT_ACCESS_TOKEN_EXPIRES
+app.config['JWT_SESSION_COOKIE'] = False
 
 db_conn = sqlite3.connect(DB_PATH, check_same_thread=False)
 
@@ -79,7 +80,7 @@ def logout():
 @app.route('/api/protected', methods=['GET'])
 @jwt_required()
 def protected():
-    return {'logged_in_as': get_jwt_identity()}
+    return {'msg': 'you are authenticated'}
 
 
 if __name__ == '__main__':
