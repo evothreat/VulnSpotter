@@ -1,7 +1,8 @@
 import {BrowserRouter, Route, Routes} from "react-router-dom";
-import Login from "./Login";
-import {NotFound} from "./NotFound";
+import Login from "./pages/Login";
+import {NotFound} from "./pages/NotFound";
 import RequireAuth from "./RequireAuth";
+import {Repositories} from "./pages/Repositories";
 
 
 
@@ -10,7 +11,7 @@ export default function Router() {
         <BrowserRouter>
             <Routes>
                 <Route element={<RequireAuth/>}>
-                    <Route path="/" element={<h1>Accessing protected resource</h1>}/>
+                    <Route path="/repos" element={<Repositories/>}/>
                 </Route>
                 <Route path="/login" element={<Login/>}/>
                 <Route path="*" element={<NotFound/>}/>
