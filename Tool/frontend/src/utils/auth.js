@@ -3,7 +3,7 @@ import AuthAPI from "../apis/auth";
 // TODO: make every n-minutes api request to verify authentication
 // TODO: set isLoggedIn=false if any api request finishes with error code 401
 
-export default class AuthHelper {
+export default class AuthUtil {
     static login(username, password) {
         return AuthAPI.login(username, password)
             .then((resp) => {

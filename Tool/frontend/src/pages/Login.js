@@ -11,7 +11,7 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import {useNavigate} from "react-router-dom";
-import AuthHelper from "../helpers/auth";
+import AuthUtil from "../utils/auth";
 
 function Copyright(props) {
     return (
@@ -37,7 +37,7 @@ export default function Login() {
         const data = new FormData(event.currentTarget);
         const from = window.location.state?.from?.pathname || "/";      // TODO: redirect to previous location or home page
 
-        AuthHelper.login(data.get('username'), data.get('password'))
+        AuthUtil.login(data.get('username'), data.get('password'))
             .then(() => {
                 navigate(from, { replace: true });
             })
