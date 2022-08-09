@@ -8,7 +8,7 @@ import Tab from '@mui/material/Tab';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
-import BasicTable from "./Table";
+import RepositoryTable from "./RepositoryTable";
 
 
 export function Repositories() {
@@ -39,7 +39,7 @@ export function Repositories() {
                     </Button>
                 </Box>
 
-                <Box sx={{ mt: '25px', typography: 'body1' }}>
+                <Box sx={{ mt: '24px', typography: 'body1' }}>
                     <TabContext value={currentTab}>
                         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                             <TabList onChange={handleTabChange}>
@@ -48,7 +48,7 @@ export function Repositories() {
                                 <Tab label={`Favorites (${repos.filter(r => r.favorite).length})`} value="3" />
                             </TabList>
                         </Box>
-                        <TabPanel sx={{pr: 0, pl: 0}} value="1">Item One</TabPanel>
+                        <TabPanel sx={{pr: 0, pl: 0}} value="1"><RepositoryTable/></TabPanel>
                         <TabPanel sx={{pr: 0, pl: 0}} value="2">Item Two</TabPanel>
                         <TabPanel sx={{pr: 0, pl: 0}} value="3">Item Three</TabPanel>
                     </TabContext>
