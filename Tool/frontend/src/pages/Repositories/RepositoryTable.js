@@ -7,9 +7,11 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import IconButton from "@mui/material/IconButton";
+import {TableSortLabel} from "@mui/material";
+import {useState} from "react";
 
 function createData(name, owner, accessed) {
-    return { name, owner, accessed };
+    return {name, owner, accessed};
 }
 
 const rows = [
@@ -28,15 +30,25 @@ const rows = [
 ];
 
 export default function RepositoryTable() {
+
+    const [order, setOrder] = useState('');             // TODO: add default sort by access time
+    const [orderBy, setOrderBy] = useState('');
+
     return (
-        <TableContainer sx={{ maxHeight: 500 }}>
+        <TableContainer sx={{maxHeight: 500}}>
             <Table size='small' stickyHeader>
                 <TableHead>
                     <TableRow>
-                        <TableCell sx={{fontWeight: 'bold', width: '36%'}}>Name</TableCell>
-                        <TableCell sx={{fontWeight: 'bold', width: '36%'}}>Owner</TableCell>
-                        <TableCell sx={{fontWeight: 'bold', width: '23%'}}>Accessed</TableCell>
-                        <TableCell sx={{width: '5%'}}/>
+                        <TableCell sx={{fontWeight: 'bold', width: '37%'}}>
+                            <TableSortLabel>Name</TableSortLabel>
+                        </TableCell>
+                        <TableCell sx={{fontWeight: 'bold', width: '37%'}}>
+                            <TableSortLabel>Owner</TableSortLabel>
+                        </TableCell>
+                        <TableCell sx={{fontWeight: 'bold', width: '20%'}}>
+                            <TableSortLabel>Accessed</TableSortLabel>
+                        </TableCell>
+                        <TableCell sx={{width: '6%'}}/>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -49,7 +61,7 @@ export default function RepositoryTable() {
                             <TableCell>{row.accessed}</TableCell>
                             <TableCell>
                                 <IconButton>
-                                    <MoreVertIcon />
+                                    <MoreVertIcon/>
                                 </IconButton>
                             </TableCell>
                         </TableRow>
