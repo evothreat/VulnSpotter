@@ -17,12 +17,13 @@ export function Repositories() {
 
     const handleGroupChange = (event) => {
         setGroup(event.target.value);
+        // refresh table
     };
 
     return (
         <Fragment>
             <Header/>
-            <Box sx={{mr: '20%', ml: '20%'}}>
+            <Box sx={{mr: '15%', ml: '15%'}}>
                 <Box sx={{
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -40,17 +41,14 @@ export function Repositories() {
 
                 <Box sx={{mt: '24px', mb: '24px'}}>
                     <FormControl sx={{minWidth: 130}} size="small">
-                        <Select
-                            value={group}
-                            onChange={handleGroupChange}
-                        >
+                        <Select value={group} onChange={handleGroupChange}>
                             <MenuItem value="all">All</MenuItem>
                             <MenuItem value="personal">Personal</MenuItem>
                             <MenuItem value="favorites">Favorites</MenuItem>
                         </Select>
                     </FormControl>
                 </Box>
-                <RepositoryTable/>
+                <RepositoryTable group={group}/>
             </Box>
         </Fragment>
     )
