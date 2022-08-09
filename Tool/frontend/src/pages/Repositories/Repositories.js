@@ -4,32 +4,31 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import AddIcon from '@mui/icons-material/Add';
 import Button from "@mui/material/Button";
-import Tab from '@mui/material/Tab';
-import TabContext from '@mui/lab/TabContext';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
 import RepositoryTable from "./RepositoryTable";
+import {FormControl, Select} from "@mui/material";
+import MenuItem from "@mui/material/MenuItem";
 
 
 export function Repositories() {
-    const [currentTab, setCurrentTab] = useState('1');
 
-    const handleTabChange = (event, val) => {
-        setCurrentTab(val);
+    //const [repos, setRepos] = useState([]);
+
+    const [group, setGroup] = useState('all');
+
+    const handleGroupChange = (event) => {
+        setGroup(event.target.value);
     };
-
-    const [repos, setRepos] = useState([]);
 
     return (
         <Fragment>
             <Header/>
             <Box sx={{mr: '20%', ml: '20%'}}>
                 <Box sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'flex-end',
-                        mt: 6
-                    }}
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-end',
+                    mt: 6
+                }}
                 >
                     <Typography variant="h5">
                         Repositories
@@ -39,20 +38,19 @@ export function Repositories() {
                     </Button>
                 </Box>
 
-                <Box sx={{ mt: '24px', typography: 'body1' }}>
-                    <TabContext value={currentTab}>
-                        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                            <TabList onChange={handleTabChange}>
-                                <Tab label={`All (${repos.length})`} value="1" />
-                                <Tab label={`Personal (${repos.filter(r => r.personal).length})`} value="2" />
-                                <Tab label={`Favorites (${repos.filter(r => r.favorite).length})`} value="3" />
-                            </TabList>
-                        </Box>
-                        <TabPanel sx={{pr: 0, pl: 0}} value="1"><RepositoryTable/></TabPanel>
-                        <TabPanel sx={{pr: 0, pl: 0}} value="2">Item Two</TabPanel>
-                        <TabPanel sx={{pr: 0, pl: 0}} value="3">Item Three</TabPanel>
-                    </TabContext>
+                <Box sx={{mt: '24px', mb: '24px'}}>
+                    <FormControl sx={{minWidth: 130}} size="small">
+                        <Select
+                            value={group}
+                            onChange={handleGroupChange}
+                        >
+                            <MenuItem value="all">All</MenuItem>
+                            <MenuItem value="personal">Personal</MenuItem>
+                            <MenuItem value="favorites">Favorites</MenuItem>
+                        </Select>
+                    </FormControl>
                 </Box>
+                <RepositoryTable/>
             </Box>
         </Fragment>
     )
