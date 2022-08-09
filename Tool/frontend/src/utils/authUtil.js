@@ -1,4 +1,4 @@
-import AuthAPI from "../apis/auth";
+import AuthAPI from "../apis/authApi";
 
 // TODO: make every n-minutes api request to verify authentication
 // TODO: set isLoggedIn=false if any api request finishes with error code 401

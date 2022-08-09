@@ -11,7 +11,7 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import {useNavigate} from "react-router-dom";
-import AuthUtil from "../../utils/auth";
+import AuthUtil from "../../utils/authUtil";
 import Copyright from "./Copyright";
 
 
