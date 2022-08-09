@@ -23,7 +23,7 @@ export function Repositories() {
     return (
         <Fragment>
             <Header/>
-            <Box sx={{mr: '16%', ml: '16%'}}>
+            <Box sx={{mr: '18%', ml: '18%'}}>
                 <Box sx={{
                     display: 'flex',
                     justifyContent: 'space-between',
