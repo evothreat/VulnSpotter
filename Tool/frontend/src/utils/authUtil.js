@@ -1,13 +1,13 @@
 import AuthAPI from "../apis/authApi";
 
 // TODO: make every n-minutes api request to verify authentication
-// TODO: set isLoggedIn=false if any api request finishes with error code 401
+// TODO: also remove user item if any api request fails
 
 export default class AuthUtil {
     static login(username, password) {
         return AuthAPI.login(username, password)
             .then((resp) => {
-                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('user', JSON.stringify(resp.data));
                 return resp;
             })
     }
@@ -15,12 +15,16 @@ export default class AuthUtil {
     static logout() {
         return AuthAPI.logout()
             .then((resp) => {
-                localStorage.setItem('isLoggedIn', 'false');
+                localStorage.removeItem('user');
                 return resp;
             })
     }
 
     static isLoggedIn() {
-        return localStorage.getItem('isLoggedIn') === 'true';
+        return localStorage.getItem('user') === null;
+    }
+
+    static getIdentity() {
+        return JSON.parse(localStorage.getItem('user'));
     }
 }
