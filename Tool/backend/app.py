@@ -20,6 +20,15 @@ app.config['JWT_SESSION_COOKIE'] = False
 db_conn = sqlite3.connect(DB_PATH, check_same_thread=False)
 
 
+# time utils
+def utc_iso8601(dtime):
+    return dtime.replace(microsecond=0).isoformat()
+
+
+def time_before(**kwargs):
+    return utc_iso8601(datetime.now(timezone.utc) - timedelta(**kwargs))
+
+
 def setup_db():
     cur = db_conn.cursor()
 
@@ -48,18 +57,18 @@ def setup_db():
     # projects
     cur.executemany('INSERT INTO projects(name, owner, updated) VALUES (?, ?, ?)',
                     [
-                        ('camino', 1, datetime.now() - timedelta(hours=3)),  # TODO: convert time to ISO + timezone
-                        ('chatzilla', 2, datetime.now() - timedelta(minutes=1)),
-                        ('penelope', 3, datetime.now() - timedelta(seconds=45)),
-                        ('mobile-browser', 1, datetime.now() - timedelta(days=24)),
-                        ('graphs', 1, datetime.now() - timedelta(hours=16)),
-                        ('dom-inspector', 4, datetime.now() - timedelta(days=14)),
-                        ('cvs-trunk-mirror', 5, datetime.now() - timedelta(seconds=47)),
-                        ('comm-central', 6, datetime.now() - timedelta(days=29)),
-                        ('pyxpcom', 1, datetime.now() - timedelta(minutes=28)),
-                        ('schema-validation', 7, datetime.now() - timedelta(minutes=59)),
-                        ('tamarin-redux', 8, datetime.now() - timedelta(hours=13)),
-                        ('venkman', 9, datetime.now() - timedelta(seconds=41)),
+                        ('camino', 1, time_before(hours=3)),
+                        ('chatzilla', 2, time_before(minutes=1)),
+                        ('penelope', 3, time_before(seconds=45)),
+                        ('mobile-browser', 1, time_before(days=24)),
+                        ('graphs', 1, time_before(hours=16)),
+                        ('dom-inspector', 4, time_before(days=14)),
+                        ('cvs-trunk-mirror', 5, time_before(seconds=47)),
+                        ('comm-central', 6, time_before(days=29)),
+                        ('pyxpcom', 1, time_before(minutes=28)),
+                        ('schema-validation', 7, time_before(minutes=59)),
+                        ('tamarin-redux', 8, time_before(hours=13)),
+                        ('venkman', 9, time_before(seconds=41)),
                     ])
     # members
     cur.executemany('INSERT INTO members VALUES (?, ?, ?)',
