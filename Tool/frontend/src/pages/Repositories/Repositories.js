@@ -11,8 +11,6 @@ import MenuItem from "@mui/material/MenuItem";
 
 export function Repositories() {
 
-    //const [repos, setRepos] = useState([]);
-
     const [group, setGroup] = useState('all');
 
     const handleGroupChange = (event) => {
@@ -22,7 +20,7 @@ export function Repositories() {
     return (
         <Fragment>
             <Header/>
-            <Box sx={{mr: '20%', ml: '20%'}}>
+            <Box sx={{mr: '17%', ml: '17%'}}>
                 <Box sx={{
                     display: 'flex',
                     justifyContent: 'space-between',
