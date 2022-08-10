@@ -50,10 +50,10 @@ def setup_db():
                         ('camino', 1, datetime.now() - timedelta(hours=3)),
                         ('chatzilla', 2, datetime.now() - timedelta(minutes=1)),
                         ('penelope', 3, datetime.now() - timedelta(seconds=45)),
-                        ('mobile-browser', 1,  datetime.now() - timedelta(days=24)),
-                        ('graphs', 1,  datetime.now() - timedelta(hours=16)),
-                        ('dom-inspector', 4,  datetime.now() - timedelta(days=14)),
-                        ('cvs-trunk-mirror', 5,  datetime.now() - timedelta(seconds=47)),
+                        ('mobile-browser', 1, datetime.now() - timedelta(days=24)),
+                        ('graphs', 1, datetime.now() - timedelta(hours=16)),
+                        ('dom-inspector', 4, datetime.now() - timedelta(days=14)),
+                        ('cvs-trunk-mirror', 5, datetime.now() - timedelta(seconds=47)),
                         ('comm-central', 6, datetime.now() - timedelta(days=29)),
                         ('pyxpcom', 1, datetime.now() - timedelta(minutes=28)),
                         ('schema-validation', 7, datetime.now() - timedelta(minutes=59)),
@@ -114,6 +114,21 @@ def protected():
     return {'msg': 'you are authenticated'}
 
 
+@app.route('/api/users/me', methods=['GET'])
+@jwt_required()
+def current_user():
+    user_id = get_jwt_identity()
+    cur = db_conn.execute('SELECT username,full_name,email FROM users WHERE id=?', (user_id,))
+    data = cur.fetchone()
+    cur.close()
+    return {
+        'id': user_id,
+        'username': data[0],
+        'full_name': data[1],
+        'email': data[2]
+    }
+
+
 if __name__ == '__main__':
-    #setup_db()
+    # setup_db()
     app.run()
