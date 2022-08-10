@@ -17,13 +17,12 @@ export function Repositories() {
 
     const handleGroupChange = (event) => {
         setGroup(event.target.value);
-        // refresh table
     };
 
     return (
         <Fragment>
             <Header/>
-            <Box sx={{mr: '18%', ml: '18%'}}>
+            <Box sx={{mr: '20%', ml: '20%'}}>
                 <Box sx={{
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -32,7 +31,7 @@ export function Repositories() {
                 }}
                 >
                     <Typography variant="h5">
-                        Repositories
+                        Projects
                     </Typography>
                     <Button variant="contained" startIcon={<AddIcon/>}>
                         New

@@ -24,7 +24,7 @@ const rows = [
     createData('cvs-trunk-mirror', 'Christopher Nolan', '5 weeks ago'),
     createData('comm-central', 'Jackie Chan', '7 months ago'),
     createData('pyxpcom', 'Me', '9 months ago'),
-    createData('schema-validation', 'Jean Claude Van Damm', '2 years ago'),
+    createData('schema-validation', 'Jean Claude Van Damme', '2 years ago'),
     createData('tamarin-redux', 'Nicolas Cage', '35 minutes ago'),
     createData('venkman', 'Leonardo Di Caprio', '2 hours ago'),
 ];
@@ -39,16 +39,16 @@ export default function RepositoryTable() {
             <Table size='small' stickyHeader>
                 <TableHead>
                     <TableRow>
-                        <TableCell sx={{fontWeight: 'bold', width: '37%'}}>
+                        <TableCell sx={{fontWeight: 'bold', width: '40%'}}>
                             <TableSortLabel>Name</TableSortLabel>
                         </TableCell>
-                        <TableCell sx={{fontWeight: 'bold', width: '37%'}}>
+                        <TableCell sx={{fontWeight: 'bold', width: '35%'}}>
                             <TableSortLabel>Owner</TableSortLabel>
                         </TableCell>
                         <TableCell sx={{fontWeight: 'bold', width: '20%'}}>
                             <TableSortLabel>Accessed</TableSortLabel>
                         </TableCell>
-                        <TableCell sx={{width: '6%'}}/>
+                        <TableCell sx={{width: '5%'}}/>
                     </TableRow>
                 </TableHead>
                 <TableBody>
