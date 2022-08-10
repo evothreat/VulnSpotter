@@ -109,15 +109,19 @@ def login():
     if not (username and password):
         return {'msg': 'missing username or password'}, 401
 
-    cur = db_conn.execute('SELECT id,password FROM users WHERE username=?', (username,))
+    cur = db_conn.execute('SELECT id,full_name,email,password FROM users WHERE username=?', (username,))
     creds = cur.fetchone()
     cur.close()
 
-    if not (creds and check_password_hash(creds[1], password)):
+    if not (creds and check_password_hash(creds[3], password)):
         return {'msg': 'bad username or password'}, 401
 
     token = create_access_token(identity=creds[0])
-    resp = jsonify({'msg': 'login successful'})
+    resp = jsonify({
+        'id': creds[0],
+        'full_name': creds[1],
+        'email': creds[2]
+    })
     set_access_cookies(resp, token)
     return resp
 
