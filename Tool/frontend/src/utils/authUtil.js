@@ -27,4 +27,8 @@ export default class AuthUtil {
     static getIdentity() {
         return JSON.parse(localStorage.getItem('user'));
     }
+
+    static invalidate() {
+        localStorage.removeItem('user');
+    }
 }
