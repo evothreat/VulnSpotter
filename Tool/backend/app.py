@@ -26,6 +26,7 @@ def setup_db():
     # tables
     cur.execute(db.USERS_SCHEMA)
     cur.execute(db.PROJECTS_SCHEMA)
+    cur.execute(db.MEMBERS_SCHEMA)
 
     # TEST DATA
     # users
@@ -34,20 +35,20 @@ def setup_db():
 
     cur.executemany('INSERT INTO users(username, full_name) VALUES (?, ?)',
                     [
-                        ('rambo', 'John Rambo'),                # 2
-                        ('campbell', 'Bruce Campbell'),         # 3
-                        ('williams', 'Ash Williams'),           # 4
-                        ('nolan', 'Christopher Nolan'),         # 5
-                        ('chan', 'Jackie Chan'),                # 6
+                        ('rambo', 'John Rambo'),  # 2
+                        ('campbell', 'Bruce Campbell'),  # 3
+                        ('williams', 'Ash Williams'),  # 4
+                        ('nolan', 'Christopher Nolan'),  # 5
+                        ('chan', 'Jackie Chan'),  # 6
                         ('vandamme', 'Jean Claude Van Damme'),  # 7
-                        ('cage', 'Nicolas Cage'),               # 8
-                        ('dicaprio', 'Leonardo Di Caprio')      # 9
+                        ('cage', 'Nicolas Cage'),  # 8
+                        ('dicaprio', 'Leonardo Di Caprio')  # 9
                     ])
 
     # projects
-    cur.executemany('INSERT INTO projects(name, owner, accessed) VALUES (?, ?, ?)',
+    cur.executemany('INSERT INTO projects(name, owner, updated) VALUES (?, ?, ?)',
                     [
-                        ('camino', 1, datetime.now() - timedelta(hours=3)),
+                        ('camino', 1, datetime.now() - timedelta(hours=3)),  # TODO: convert time to ISO + timezone
                         ('chatzilla', 2, datetime.now() - timedelta(minutes=1)),
                         ('penelope', 3, datetime.now() - timedelta(seconds=45)),
                         ('mobile-browser', 1, datetime.now() - timedelta(days=24)),
@@ -59,6 +60,17 @@ def setup_db():
                         ('schema-validation', 7, datetime.now() - timedelta(minutes=59)),
                         ('tamarin-redux', 8, datetime.now() - timedelta(hours=13)),
                         ('venkman', 9, datetime.now() - timedelta(seconds=41)),
+                    ])
+    # members
+    cur.executemany('INSERT INTO members VALUES (?, ?, ?)',
+                    [
+                        (1, 1, 'owner'),
+                        (1, 4, 'owner'),
+                        (1, 5, 'owner'),
+                        (1, 9, 'owner'),
+                        (1, 3, 'member'),
+                        (1, 7, 'member'),
+                        (1, 6, 'member')
                     ])
 
     db_conn.commit()
@@ -119,16 +131,42 @@ def protected():
 def current_user():
     user_id = get_jwt_identity()
     cur = db_conn.execute('SELECT username,full_name,email FROM users WHERE id=?', (user_id,))
-    data = cur.fetchone()
+    row = cur.fetchone()
     cur.close()
     return {
         'id': user_id,
-        'username': data[0],
-        'full_name': data[1],
-        'email': data[2]
+        'username': row[0],
+        'full_name': row[1],
+        'email': row[2]
     }
 
 
+@app.route('/api/users/me/projects', methods=['GET'])
+@jwt_required()
+def get_projects():
+    user_id = get_jwt_identity()
+    cur = db_conn.execute('SELECT p.id, p.name, p.updated, u.id, u.username, u.full_name, u.email FROM members m '
+                          'JOIN projects p ON m.user_id=? AND m.project_id=p.id '
+                          'JOIN users u ON p.owner=u.id', (user_id,))
+    rows = cur.fetchall()
+    cur.close()
+
+    data = []
+    for r in rows:
+        data.append({
+            'id': r[0],
+            'name': r[1],
+            'updated': r[2],
+            'owner': {
+                'id': r[3],
+                'username': r[4],
+                'full_name': r[5],
+                'email': r[6]
+            }
+        })
+    return data
+
+
 if __name__ == '__main__':
-    # setup_db()
+    #setup_db()
     app.run()
