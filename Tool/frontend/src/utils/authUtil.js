@@ -21,7 +21,7 @@ export default class AuthUtil {
     }
 
     static isLoggedIn() {
-        return localStorage.getItem('user') === null;
+        return localStorage.getItem('user') !== null;
     }
 
     static getIdentity() {
