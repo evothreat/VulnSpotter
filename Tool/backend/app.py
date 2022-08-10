@@ -25,10 +25,41 @@ def setup_db():
 
     # tables
     cur.execute(db.USERS_SCHEMA)
+    cur.execute(db.PROJECTS_SCHEMA)
 
-    # test data
-    cur.execute('INSERT INTO users(username, password, full_name) VALUES (?, ?, ?)',
-                ('admin', generate_password_hash('admin'), 'John Rambo'))
+    # TEST DATA
+    # users
+    cur.execute('INSERT INTO users(username, full_name, password) VALUES (?, ?, ?)',
+                ('admin', 'Johnny Cash', generate_password_hash('admin')))
+
+    cur.executemany('INSERT INTO users(username, full_name) VALUES (?, ?)',
+                    [
+                        ('rambo', 'John Rambo'),                # 2
+                        ('campbell', 'Bruce Campbell'),         # 3
+                        ('williams', 'Ash Williams'),           # 4
+                        ('nolan', 'Christopher Nolan'),         # 5
+                        ('chan', 'Jackie Chan'),                # 6
+                        ('vandamme', 'Jean Claude Van Damme'),  # 7
+                        ('cage', 'Nicolas Cage'),               # 8
+                        ('dicaprio', 'Leonardo Di Caprio')      # 9
+                    ])
+
+    # projects
+    cur.executemany('INSERT INTO projects(name, owner, accessed) VALUES (?, ?, ?)',
+                    [
+                        ('camino', 1, datetime.now() - timedelta(hours=3)),
+                        ('chatzilla', 2, datetime.now() - timedelta(minutes=1)),
+                        ('penelope', 3, datetime.now() - timedelta(seconds=45)),
+                        ('mobile-browser', 1,  datetime.now() - timedelta(days=24)),
+                        ('graphs', 1,  datetime.now() - timedelta(hours=16)),
+                        ('dom-inspector', 4,  datetime.now() - timedelta(days=14)),
+                        ('cvs-trunk-mirror', 5,  datetime.now() - timedelta(seconds=47)),
+                        ('comm-central', 6, datetime.now() - timedelta(days=29)),
+                        ('pyxpcom', 1, datetime.now() - timedelta(minutes=28)),
+                        ('schema-validation', 7, datetime.now() - timedelta(minutes=59)),
+                        ('tamarin-redux', 8, datetime.now() - timedelta(hours=13)),
+                        ('venkman', 9, datetime.now() - timedelta(seconds=41)),
+                    ])
 
     db_conn.commit()
     cur.close()
