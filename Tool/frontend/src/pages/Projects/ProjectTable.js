@@ -27,7 +27,7 @@ export default function ProjectTable() {
                 setLoading(false);
             })
             .catch((err) => {
-                if (err.response.status < 500) AuthUtil.invalidate();
+                AuthUtil.logout();
                 console.log(err);
             });
     }, []);

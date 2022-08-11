@@ -10,7 +10,6 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
-import {useNavigate} from "react-router-dom";
 import AuthUtil from "../../utils/authUtil";
 import Copyright from "./Copyright";
 
@@ -18,21 +17,15 @@ import Copyright from "./Copyright";
 const theme = createTheme();
 
 export default function Login() {
-    const navigate = useNavigate();
 
     const handleSubmit = (event) => {
         event.preventDefault();
 
         const data = new FormData(event.currentTarget);
-        const from = window.location.state?.from?.pathname || "/";      // TODO: redirect to previous location or home page
-
         AuthUtil.login(data.get('username'), data.get('password'))
-            .then(() => {
-                navigate(from, { replace: true });
-            })
             .catch((err) => {
-                if (err.status === 401) {
-                    navigate('/login');
+                if (err.response.status === 401) {
+                    window.location.reload();       // to clear forms
                 } else {
                     console.log(err);
                 }

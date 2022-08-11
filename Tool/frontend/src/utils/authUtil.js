@@ -1,23 +1,23 @@
 import AuthAPI from "../apis/authApi";
 
-// TODO: make every n-minutes api request to verify authentication
-// TODO: also remove user item if any api request fails
+// TODO: make every n-minutes api request to update jwt token
 
 export default class AuthUtil {
+
     static login(username, password) {
         return AuthAPI.login(username, password)
             .then((resp) => {
                 localStorage.setItem('user', JSON.stringify(resp.data));
-                return resp;
+                window.location.replace('/projects');                   // home page
             })
     }
 
     static logout() {
-        return AuthAPI.logout()
-            .then((resp) => {
-                localStorage.removeItem('user');
-                return resp;
-            })
+        const finish = () => {
+            localStorage.removeItem('user');
+            window.location.replace('/login');
+        }
+        AuthAPI.logout().then(finish, finish);
     }
 
     static isLoggedIn() {
@@ -28,7 +28,7 @@ export default class AuthUtil {
         return JSON.parse(localStorage.getItem('user'));
     }
 
-    static invalidate() {
+    /*static invalidate() {
         localStorage.removeItem('user');
-    }
+    }*/
 }
