@@ -27,8 +27,8 @@ export default function ProjectTable() {
                 setLoading(false);
             })
             .catch((err) => {
-                AuthUtil.logout();
                 console.log(err);
+                AuthUtil.logout();
             });
     }, []);
 
