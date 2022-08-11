@@ -4,12 +4,12 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import AddIcon from '@mui/icons-material/Add';
 import Button from "@mui/material/Button";
-import RepositoryTable from "./RepositoryTable";
+import ProjectTable from "./ProjectTable";
 import {FormControl, Select} from "@mui/material";
 import MenuItem from "@mui/material/MenuItem";
 
 
-export function Repositories() {
+export function Projects() {
 
     const [group, setGroup] = useState('all');
 
@@ -45,7 +45,7 @@ export function Repositories() {
                         </Select>
                     </FormControl>
                 </Box>
-                <RepositoryTable group={group}/>
+                <ProjectTable group={group}/>
             </Box>
         </Fragment>
     )

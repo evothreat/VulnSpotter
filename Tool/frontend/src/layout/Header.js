@@ -41,7 +41,7 @@ export default function Header() {
                         variant="h6"
                         noWrap
                         component="a"
-                        href="/repos"                                       // TODO: introduce path constants
+                        href="/projects"                                       // TODO: introduce path constants
                         sx={{
                             fontFamily: 'monospace',
                             fontWeight: 'bolder',

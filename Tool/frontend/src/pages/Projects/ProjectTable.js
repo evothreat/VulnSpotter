@@ -15,8 +15,7 @@ import TimeUtil from "../../utils/timeUtil";
 
 
 
-// TODO: rename everything with 'Repository' to 'Project'
-export default function RepositoryTable() {
+export default function ProjectTable() {
 
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);

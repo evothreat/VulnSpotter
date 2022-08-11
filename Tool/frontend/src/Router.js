@@ -2,7 +2,7 @@ import {BrowserRouter, Route, Routes} from "react-router-dom";
 import Login from "./pages/Login/Login";
 import {NotFound} from "./pages/NotFound";
 import RequireAuth from "./RequireAuth";
-import {Repositories} from "./pages/Repositories/Repositories";
+import {Projects} from "./pages/Projects/Projects";
 
 
 
@@ -11,7 +11,7 @@ export default function Router() {
         <BrowserRouter>
             <Routes>
                 <Route element={<RequireAuth/>}>
-                    <Route path="/repos" element={<Repositories/>}/>
+                    <Route path="/projects" element={<Projects/>}/>
                 </Route>
                 <Route path="/login" element={<Login/>}/>
                 <Route path="*" element={<NotFound/>}/>
