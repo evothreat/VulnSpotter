@@ -12,11 +12,15 @@ import Container from '@mui/material/Container';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import AuthUtil from "../../utils/authUtil";
 import Copyright from "./Copyright";
+import {Alert} from "@mui/lab";
+import {useState} from "react";
 
 
 const theme = createTheme();
 
 export default function Login() {
+
+    const [isError, setIsError] = useState(false);
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -25,7 +29,7 @@ export default function Login() {
         AuthUtil.login(data.get('username'), data.get('password'))
             .catch((err) => {
                 if (err.response.status === 401) {
-                    window.location.reload();       // to clear forms
+                    setIsError(true);
                 } else {
                     console.log(err);
                 }
@@ -71,11 +75,12 @@ export default function Login() {
                             id="password"
                             autoComplete="current-password"
                         />
+                        { isError && <Alert severity="error">Wrong username or password!</Alert> }
                         <Button
                             type="submit"
                             fullWidth
                             variant="contained"
-                            sx={{mt: 3, mb: 2}}
+                            sx={{mt: 2, mb: 2}}
                         >
                             Sign In
                         </Button>
