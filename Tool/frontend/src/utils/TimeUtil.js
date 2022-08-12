@@ -1,5 +1,6 @@
 
 export default class TimeUtil {
+
     static since(date) {
         const seconds = Math.floor((new Date() - date) / 1000);
         let interval = seconds / 31536000;
