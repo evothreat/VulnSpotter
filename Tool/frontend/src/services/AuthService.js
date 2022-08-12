@@ -8,11 +8,12 @@ class AuthService {
             username: username,
             password: password,
         }).then((resp) => {
-            if (resp.data.user) {
-                TokenService.setRefreshToken(resp.data.refresh_token);
-                TokenService.setAccessToken(resp.data.access_token);
-                TokenService.setIdentity(resp.data.user);
-                return resp.data;
+            const data = resp.data;
+            if (data.user) {
+                TokenService.setRefreshToken(data.refresh_token);
+                TokenService.setAccessToken(data.access_token);
+                TokenService.setIdentity(data.user);
+                return data;
             }
         });
     }
