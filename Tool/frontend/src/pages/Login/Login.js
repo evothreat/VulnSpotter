@@ -10,32 +10,32 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
-import AuthUtil from "../../utils/authUtil";
 import Copyright from "./Copyright";
-import {Alert} from "@mui/lab";
+import {Alert} from "@mui/material";
 import {useState} from "react";
+import AuthService from "../../services/AuthService";
 
 
 const theme = createTheme();
 
 export default function Login() {
 
-    const [isError, setIsError] = useState(false);
+    const [showError, setShowError] = useState(false);
 
     const handleSubmit = (event) => {
         event.preventDefault();
-
         const data = new FormData(event.currentTarget);
-        AuthUtil.login(data.get('username'), data.get('password'))
-            .catch((err) => {
-                if (err.response.status === 401) {
-                    setIsError(true);
-                } else {
-                    console.log(err);
-                }
-            });
-    };
 
+        AuthService.login(data.get('username'), data.get('password'))
+            .then(() => window.location.replace('/projects'))
+            .catch((err) => {
+                if (err.response?.status === 401) {
+                    setShowError(true);
+                } else {
+                    console.log('AuthService.login:', err);
+                }
+            })
+    };
     return (
         <ThemeProvider theme={theme}>
             <Container component="main" maxWidth="xs">
@@ -75,7 +75,7 @@ export default function Login() {
                             id="password"
                             autoComplete="current-password"
                         />
-                        { isError && <Alert severity="error">Wrong username or password!</Alert> }
+                        { showError ? <Alert severity="error">Wrong username or password!</Alert> : null }
                         <Button
                             type="submit"
                             fullWidth

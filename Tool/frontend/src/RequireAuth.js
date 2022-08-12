@@ -1,8 +1,9 @@
 import {Navigate, Outlet} from "react-router-dom";
-import AuthUtil from "./utils/authUtil";
+import AuthService from "./services/AuthService";
 
 export default function RequireAuth() {
-    if (!AuthUtil.isLoggedIn()) {
+
+    if (!AuthService.isLoggedIn()) {
         return <Navigate to="/login"/>;
     }
     return <Outlet />;

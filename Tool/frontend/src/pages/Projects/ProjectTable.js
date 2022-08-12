@@ -9,26 +9,26 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import IconButton from "@mui/material/IconButton";
 import {CircularProgress, TableSortLabel} from "@mui/material";
 import {useEffect, useState} from "react";
-import ProjectsApi from "../../apis/projectsApi";
-import AuthUtil from "../../utils/authUtil";
-import TimeUtil from "../../utils/timeUtil";
-
+import ProjectsService from "../../services/ProjectsService";
+import TokenService from "../../services/TokenService";
+import TimeUtil from "../../utils/TimeUtil";
 
 
 export default function ProjectTable() {
 
     const [projects, setProjects] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        ProjectsApi.getProjects()
+        ProjectsService.getProjects()
             .then((resp) => {
                 setProjects(resp.data);
-                setLoading(false);
+                setIsLoading(false);
             })
             .catch((err) => {
-                console.log(err);
-                AuthUtil.logout();
+                console.log('ProjectsService.getProjects:', err);
+                TokenService.invalidate();
+                window.location.replace('/login');
             });
     }, []);
 
@@ -49,24 +49,26 @@ export default function ProjectTable() {
                         <TableCell sx={{width: '5%'}}/>
                     </TableRow>
                 </TableHead>
-                {loading ? <CircularProgress/> :
-                    <TableBody> {
-                        projects.map((p) => (
-                            <TableRow key={p.id}>
-                                <TableCell>
-                                    {p.name}
-                                </TableCell>
-                                <TableCell>{p.owner.full_name}</TableCell>
-                                <TableCell>{TimeUtil.since(new Date(p.updated)) + ' ago'}</TableCell>
-                                <TableCell>
-                                    <IconButton>
-                                        <MoreVertIcon/>
-                                    </IconButton>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                }
+                <TableBody>
+                    {isLoading ? <CircularProgress/> :
+                        (
+                            projects.map((p) => (
+                                <TableRow key={p.id}>
+                                    <TableCell>
+                                        {p.name}
+                                    </TableCell>
+                                    <TableCell>{p.owner.full_name}</TableCell>
+                                    <TableCell>{TimeUtil.since(new Date(p.updated)) + ' ago'}</TableCell>
+                                    <TableCell>
+                                        <IconButton>
+                                            <MoreVertIcon/>
+                                        </IconButton>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )
+                    }
+                </TableBody>
             </Table>
         </TableContainer>
     );
