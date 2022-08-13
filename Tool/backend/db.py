@@ -12,19 +12,20 @@ USERS_SCHEMA = '''
 
 PROJECTS_SCHEMA = '''
     CREATE TABLE projects (
-        id      INTEGER PRIMARY KEY,
-        name    TEXT,
-        owner   INTEGER,
-        updated DATETIME,
-        FOREIGN KEY(owner) REFERENCES users(id)
+        id          INTEGER PRIMARY KEY,
+        name        TEXT,
+        last_update DATETIME,
+        owner_id    INTEGER,
+        FOREIGN KEY(owner_id) REFERENCES users(id)
     )
 '''
 
-MEMBERS_SCHEMA = '''
-    CREATE TABLE members (
+MEMBERSHIP_SCHEMA = '''
+    CREATE TABLE membership (
         user_id     INTEGER,
         project_id  INTEGER,
         role        TEXT,
+        starred     BOOLEAN,
         FOREIGN KEY(user_id) REFERENCES users(id),
         FOREIGN KEY(project_id) REFERENCES projects(id),
         PRIMARY KEY(user_id, project_id)

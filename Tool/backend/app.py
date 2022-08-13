@@ -34,7 +34,7 @@ def setup_db():
     # tables
     cur.execute(db.USERS_SCHEMA)
     cur.execute(db.PROJECTS_SCHEMA)
-    cur.execute(db.MEMBERS_SCHEMA)
+    cur.execute(db.MEMBERSHIP_SCHEMA)
 
     # TEST DATA
     # users
@@ -54,7 +54,7 @@ def setup_db():
                     ])
 
     # projects
-    cur.executemany('INSERT INTO projects(name, owner, updated) VALUES (?, ?, ?)',
+    cur.executemany('INSERT INTO projects(name, owner_id, last_update) VALUES (?, ?, ?)',
                     [
                         ('camino', 1, time_before(hours=3)),
                         ('chatzilla', 2, time_before(minutes=1)),
@@ -70,15 +70,15 @@ def setup_db():
                         ('venkman', 9, time_before(seconds=41)),
                     ])
     # members
-    cur.executemany('INSERT INTO members VALUES (?, ?, ?)',
+    cur.executemany('INSERT INTO membership VALUES (?, ?, ?, ?)',
                     [
-                        (1, 1, 'owner'),
-                        (1, 4, 'owner'),
-                        (1, 5, 'owner'),
-                        (1, 9, 'owner'),
-                        (1, 3, 'member'),
-                        (1, 7, 'member'),
-                        (1, 6, 'member')
+                        (1, 1, 'owner', False),
+                        (1, 4, 'owner', False),
+                        (1, 5, 'owner', False),
+                        (1, 9, 'owner', False),
+                        (1, 3, 'member', False),
+                        (1, 7, 'member', False),
+                        (1, 6, 'member', False)
                     ])
 
     db_conn.commit()
@@ -144,9 +144,10 @@ def current_user():
 @jwt_required()
 def get_projects():
     user_id = get_jwt_identity()
-    cur = db_conn.execute('SELECT p.id, p.name, p.updated, u.id, u.username, u.full_name, u.email FROM members m '
+    cur = db_conn.execute('SELECT p.id, p.name, p.last_update, m.starred, u.id, u.username, u.full_name, u.email '
+                          'FROM membership m '
                           'JOIN projects p ON m.user_id=? AND m.project_id=p.id '
-                          'JOIN users u ON p.owner=u.id', (user_id,))
+                          'JOIN users u ON p.owner_id=u.id', (user_id,))
     rows = cur.fetchall()
     cur.close()
 
@@ -155,12 +156,13 @@ def get_projects():
         data.append({
             'id': r[0],
             'name': r[1],
-            'updated': r[2],
+            'last_update': r[2],
+            'starred': r[3],
             'owner': {
-                'id': r[3],
-                'username': r[4],
-                'full_name': r[5],
-                'email': r[6]
+                'id': r[4],
+                'username': r[5],
+                'full_name': r[6],
+                'email': r[7]
             }
         })
     return data
