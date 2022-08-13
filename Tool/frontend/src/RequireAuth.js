@@ -6,5 +6,5 @@ export default function RequireAuth() {
     if (!AuthService.isLoggedIn()) {
         return <Navigate to="/login"/>;
     }
-    return <Outlet />;
+    return <Outlet/>;
 }

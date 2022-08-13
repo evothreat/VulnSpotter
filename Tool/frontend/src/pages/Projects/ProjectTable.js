@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {useEffect, useState} from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -7,33 +8,69 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import IconButton from "@mui/material/IconButton";
-import {CircularProgress, TableSortLabel} from "@mui/material";
-import {useEffect, useState} from "react";
+import {TableSortLabel} from "@mui/material";
 import ProjectsService from "../../services/ProjectsService";
-import TokenService from "../../services/TokenService";
 import TimeUtil from "../../utils/TimeUtil";
+import AuthService from "../../services/AuthService";
 
 
-export default function ProjectTable() {
+function applyGroupFilter(items, group) {
+    const userId = AuthService.getCurrentUser().id;
 
-    const [projects, setProjects] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    return items.map((p) => {
+        p.visible = group === 'all' || (group === 'personal' && p.owner.id === userId) || (group === 'starred' && p.starred);
+        return p;
+    });
+}
+
+export default function ProjectTable(props) {
+
+    const [items, setItems] = useState([]);
+    const [itemsLoaded, setItemsLoaded] = useState(false);
 
     useEffect(() => {
         ProjectsService.getProjects()
             .then((resp) => {
-                setProjects(resp.data);
-                setIsLoading(false);
+                setItems(resp.data);
+                setItemsLoaded(true);
             })
             .catch((err) => {
                 console.log('ProjectsService.getProjects:', err);
-                TokenService.invalidate();
+                AuthService.logout();
                 window.location.replace('/login');
             });
     }, []);
 
-    return (
-        <TableContainer sx={{maxHeight: 500}}>
+    useEffect(() => {
+        if (items !== null) {
+            setItems(applyGroupFilter(items, props.group));
+        }
+    }, [props.group, itemsLoaded]);
+
+    const listItems = () => {
+        const rows = [];
+        for (const p of items) {
+            if (p.visible) {
+                rows.push(
+                    <TableRow key={p.id}>
+                        <TableCell>{p.name}</TableCell>
+                        <TableCell>{p.owner.full_name}</TableCell>
+                        <TableCell>{TimeUtil.since(new Date(p.last_update)) + ' ago'}</TableCell>
+                        <TableCell>
+                            <IconButton>
+                                <MoreVertIcon/>
+                            </IconButton>
+                        </TableCell>
+                    </TableRow>
+                );
+            }
+        }
+        return rows.length > 0 ?
+            <TableBody>{rows}</TableBody> :
+            <caption>There are no items to display.</caption>;
+    };
+
+    return (<TableContainer sx={{maxHeight: 500}}>
             <Table size="small" stickyHeader>
                 <TableHead>
                     <TableRow>
@@ -49,27 +86,7 @@ export default function ProjectTable() {
                         <TableCell sx={{width: '5%'}}/>
                     </TableRow>
                 </TableHead>
-                <TableBody>
-                    {isLoading ? <CircularProgress/> :
-                        (
-                            projects.map((p) => (
-                                <TableRow key={p.id}>
-                                    <TableCell>
-                                        {p.name}
-                                    </TableCell>
-                                    <TableCell>{p.owner.full_name}</TableCell>
-                                    <TableCell>{TimeUtil.since(new Date(p.updated)) + ' ago'}</TableCell>
-                                    <TableCell>
-                                        <IconButton>
-                                            <MoreVertIcon/>
-                                        </IconButton>
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )
-                    }
-                </TableBody>
+                {itemsLoaded ? listItems() : <caption>Loading...</caption>}
             </Table>
-        </TableContainer>
-    );
+        </TableContainer>);
 }

@@ -41,7 +41,7 @@ export function Projects() {
                         <Select value={group} onChange={handleGroupChange}>
                             <MenuItem value="all">All</MenuItem>
                             <MenuItem value="personal">Personal</MenuItem>
-                            <MenuItem value="favorites">Favorites</MenuItem>
+                            <MenuItem value="starred">Starred</MenuItem>
                         </Select>
                     </FormControl>
                 </Box>
