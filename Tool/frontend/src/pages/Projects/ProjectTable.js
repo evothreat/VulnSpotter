@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useState} from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -14,6 +14,34 @@ import TimeUtil from "../../utils/TimeUtil";
 import AuthService from "../../services/AuthService";
 
 
+const headCells = [
+    {
+        label: 'Name',
+        key: 'name',
+        sortable: true,
+        width: '40%'
+    },
+    {
+        label: 'Owner',
+        key: 'owner_name',
+        sortable: true,
+        width: '35%'
+    },
+    {
+        label: 'Updated',
+        key: 'last_update',
+        sortable: true,
+        width: '20%'
+    },
+    {
+        label: '',
+        key: 'action',
+        sortable: false,
+        width: '5%'
+    }
+];
+
+
 function createComparator(key, order) {
     if (order === 'asc') {
         return (a, b) => a[key] > b[key] ? 1 : -1;
@@ -24,10 +52,58 @@ function createComparator(key, order) {
 function applyGroupFilter(items, group) {
     const userId = AuthService.getCurrentUser().id;
 
-    return items.map((p) => {
-        p.visible = group === 'all' || (group === 'personal' && p.owner.id === userId) || (group === 'starred' && p.starred);
-        return p;
+    return items.map((it) => {
+        it.visible = group === 'all' || (group === 'personal' && it.owner.id === userId) || (group === 'starred' && it.starred);
+        return it;
     });
+}
+
+function ProjectTableHead({order, orderBy, sortReqHandler}) {
+    const handleClick = (e) => {
+        sortReqHandler(e.currentTarget.dataset.key);
+    };
+    return (
+        <TableHead>
+            <TableRow key="head">
+                {headCells.map((hc) =>
+                    <TableCell
+                        key={hc.key}
+                        sx={{fontWeight: 'bold', width: hc.width}}
+                        sortDirection={orderBy === hc.key ? order : false}
+                    >
+                        {hc.sortable ?
+                            <TableSortLabel
+                                active={hc.key === orderBy}
+                                direction={hc.key === orderBy ? order : 'asc'}
+                                data-key={hc.key}
+                                onClick={handleClick}
+                            >
+                                {hc.label}
+                            </TableSortLabel>
+                            : hc.label}
+                    </TableCell>)}
+            </TableRow>
+        </TableHead>
+    )
+}
+
+function ProjectTableList({items}) {
+    if (items.length === 0) {
+        return <caption>There are no items to display.</caption>;
+    }
+    return <TableBody>
+        {items.map((p) =>
+            <TableRow key={p.id}>
+                <TableCell>{p.name}</TableCell>
+                <TableCell>{p.owner_name}</TableCell>
+                <TableCell>{TimeUtil.since(new Date(p.last_update)) + ' ago'}</TableCell>
+                <TableCell>
+                    <IconButton>
+                        <MoreVertIcon/>
+                    </IconButton>
+                </TableCell>
+            </TableRow>)}
+    </TableBody>
 }
 
 export default function ProjectTable(props) {
@@ -35,8 +111,7 @@ export default function ProjectTable(props) {
     const [items, setItems] = useState([]);
     const [itemsLoaded, setItemsLoaded] = useState(false);
 
-    const sorterRef = useRef({key: '', order: ''});
-    const sorter = sorterRef.current;
+    const [sorter, setSorter] = useState({order: '', orderBy: ''});
 
     useEffect(() => {
         ProjectsService.getProjects()
@@ -60,66 +135,29 @@ export default function ProjectTable(props) {
         }
     }, [props.group, itemsLoaded]);
 
-    const listItems = () => {
-        const rows = [];
-        for (const p of items) {
-            if (p.visible) {
-                rows.push(
-                    <TableRow key={p.id}>
-                        <TableCell>{p.name}</TableCell>
-                        <TableCell>{p.owner_name}</TableCell>
-                        <TableCell>{TimeUtil.since(new Date(p.last_update)) + ' ago'}</TableCell>
-                        <TableCell>
-                            <IconButton>
-                                <MoreVertIcon/>
-                            </IconButton>
-                        </TableCell>
-                    </TableRow>
-                );
-            }
-        }
-        return rows.length > 0 ?
-            <TableBody>{rows}</TableBody> :
-            <caption>There are no items to display.</caption>;
+    const sortReqHandler = (key) => {
+        const isAsc = sorter.orderBy === key && sorter.order === 'asc';
+
+        setSorter({
+            order: isAsc ? 'desc' : 'asc',
+            orderBy: key
+        });
+    }
+
+    const getItems = () => {
+        return items.sort(createComparator(sorter.orderBy, sorter.order))           // sorting all items
+                    .filter((it) => it.visible);
     };
 
-    const createHeadCell = (key, name, width) => {
-        return (
-            <TableCell
-                sx={{ fontWeight: 'bold', width: width }}
-                sortDirection={sorter.key === key ? sorter.order : false}
-            >
-                <TableSortLabel
-                    active={sorter.key === key}
-                    direction={sorter.key === key ? sorter.order : 'asc'}
-                    data-key={key}
-                    onClick={reorderItems}
-                >
-                    {name}
-                </TableSortLabel>
-            </TableCell>
-        );
-    }
-
-    const reorderItems = (e) => {
-        sorter.key = e.currentTarget.dataset.key;
-        sorter.order = sorter.order === 'asc' ? 'desc' : 'asc'
-
-        const ordered = items.slice().sort(createComparator(sorter.key, sorter.order));
-        setItems(ordered);
-    }
-
-    return (<TableContainer sx={{maxHeight: 500}}>
+    return (
+        <TableContainer sx={{maxHeight: 500}}>
             <Table size="small" stickyHeader>
-                <TableHead>
-                    <TableRow>
-                        {createHeadCell('name', 'Name', '40%')}
-                        {createHeadCell('owner_name', 'Owner', '35%')}
-                        {createHeadCell('last_update', 'Updated', '20%')}
-                        <TableCell sx={{width: '5%'}}/>
-                    </TableRow>
-                </TableHead>
-                {itemsLoaded ? listItems() : <caption>Loading...</caption>}
+                <ProjectTableHead
+                    order={sorter.order}
+                    orderBy={sorter.orderBy}
+                    sortReqHandler={sortReqHandler}/>
+                {itemsLoaded ? <ProjectTableList items={getItems()}/> : <caption>Loading...</caption>}
             </Table>
-        </TableContainer>);
+        </TableContainer>
+    );
 }
