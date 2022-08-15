@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -9,9 +9,7 @@ import TableRow from '@mui/material/TableRow';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import IconButton from "@mui/material/IconButton";
 import {TableSortLabel} from "@mui/material";
-import ProjectsService from "../../services/ProjectsService";
 import TimeUtil from "../../utils/TimeUtil";
-import AuthService from "../../services/AuthService";
 
 
 const headCells = [
@@ -47,15 +45,6 @@ function createComparator(key, order) {
         return (a, b) => a[key] > b[key] ? 1 : -1;
     }
     return (a, b) => a[key] < b[key] ? 1 : -1;
-}
-
-function applyGroupFilter(items, group) {
-    const userId = AuthService.getCurrentUser().id;
-
-    return items.map((it) => {
-        it.visible = group === 'all' || (group === 'personal' && it.owner.id === userId) || (group === 'starred' && it.starred);
-        return it;
-    });
 }
 
 function ProjectTableHead({order, orderBy, sortReqHandler}) {
@@ -107,36 +96,12 @@ function ProjectTableList({items}) {
 }
 
 export default function ProjectTable(props) {
-
-    const [items, setItems] = useState([]);
-    const [itemsLoaded, setItemsLoaded] = useState(false);
+    const items = props.items;
 
     const [sorter, setSorter] = useState({
         order: 'desc',
         orderBy: 'last_update'
     });
-
-    useEffect(() => {
-        ProjectsService.getProjects()
-            .then((resp) => {
-                resp.data.forEach((p) => {
-                    p.owner_name = p.owner.full_name;
-                });
-                setItems(resp.data);
-                setItemsLoaded(true);
-            })
-            .catch((err) => {
-                console.log('ProjectsService.getProjects:', err);
-                AuthService.logout();
-                window.location.replace('/login');
-            });
-    }, []);
-
-    useEffect(() => {
-        if (items !== null) {
-            setItems(applyGroupFilter(items, props.group));
-        }
-    }, [props.group, itemsLoaded]);
 
     const sortReqHandler = (key) => {
         const isAsc = sorter.orderBy === key && sorter.order === 'asc';
@@ -148,8 +113,7 @@ export default function ProjectTable(props) {
     }
 
     const getItems = () => {
-        return items.sort(createComparator(sorter.orderBy, sorter.order))           // sorting all items
-                    .filter((it) => it.visible);
+        return items.sort(createComparator(sorter.orderBy, sorter.order));
     };
 
     return (
@@ -159,7 +123,7 @@ export default function ProjectTable(props) {
                     order={sorter.order}
                     orderBy={sorter.orderBy}
                     sortReqHandler={sortReqHandler}/>
-                {itemsLoaded ? <ProjectTableList items={getItems()}/> : <caption>Loading...</caption>}
+                <ProjectTableList items={getItems()}/>
             </Table>
         </TableContainer>
     );

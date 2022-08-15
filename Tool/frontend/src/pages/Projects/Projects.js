@@ -1,4 +1,4 @@
-import {Fragment, useState} from "react";
+import {Fragment, useEffect, useState} from "react";
 import Header from "../../layout/Header";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
@@ -7,14 +7,39 @@ import Button from "@mui/material/Button";
 import ProjectTable from "./ProjectTable";
 import {FormControl, Select} from "@mui/material";
 import MenuItem from "@mui/material/MenuItem";
+import AuthService from "../../services/AuthService";
+import ProjectsService from "../../services/ProjectsService";
 
 
 export function Projects() {
+    const userId = AuthService.getCurrentUser().id;
 
     const [group, setGroup] = useState('all');
+    const [projects, setProjects] = useState(null);
 
-    const handleGroupChange = (event) => {
+    useEffect(() => {
+        ProjectsService.getProjects()
+            .then((resp) => {
+                resp.data.forEach((p) => {
+                    p.owner_name = p.owner.full_name;
+                });
+                setProjects(resp.data);
+            })
+            .catch((err) => {
+                console.log('Projects.getProjects:', err);
+                AuthService.logout();
+                window.location.replace('/login');
+            });
+    }, []);
+
+    const groupChangeHandler = (event) => {
         setGroup(event.target.value);
+    };
+
+    const getProjects = () => {
+        return projects.filter((p) => group === 'all' ||
+                                     (group === 'personal' && p.owner.id === userId) ||
+                                     (group === 'starred' && p.starred));
     };
 
     return (
@@ -38,14 +63,14 @@ export function Projects() {
 
                 <Box sx={{mt: '24px', mb: '24px'}}>
                     <FormControl sx={{minWidth: 130}} size="small">
-                        <Select value={group} onChange={handleGroupChange}>
+                        <Select value={group} onChange={groupChangeHandler}>
                             <MenuItem value="all">All</MenuItem>
                             <MenuItem value="personal">Personal</MenuItem>
                             <MenuItem value="starred">Starred</MenuItem>
                         </Select>
                     </FormControl>
                 </Box>
-                <ProjectTable group={group}/>
+                {projects !== null ? <ProjectTable items={getProjects()}/> : <p>Loading projects...</p>}
             </Box>
         </Fragment>
     )
