@@ -111,7 +111,10 @@ export default function ProjectTable(props) {
     const [items, setItems] = useState([]);
     const [itemsLoaded, setItemsLoaded] = useState(false);
 
-    const [sorter, setSorter] = useState({order: '', orderBy: ''});
+    const [sorter, setSorter] = useState({
+        order: 'desc',
+        orderBy: 'last_update'
+    });
 
     useEffect(() => {
         ProjectsService.getProjects()
