@@ -27,8 +27,6 @@ export function Projects() {
             })
             .catch((err) => {
                 console.log('Projects.getProjects:', err);
-                AuthService.logout();
-                window.location.replace('/login');
             });
     }, []);
 
