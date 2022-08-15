@@ -20,10 +20,11 @@ class AuthService {
 
     logout() {
         TokenService.invalidate();
+        window.location.replace('/login');
     }
 
     register(username, email, password) {
-        return api.post("/register", {
+        return api.post('/register', {
             username,
             email,
             password
