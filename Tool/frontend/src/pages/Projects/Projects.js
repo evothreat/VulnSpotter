@@ -5,7 +5,7 @@ import Box from "@mui/material/Box";
 import AddIcon from '@mui/icons-material/Add';
 import Button from "@mui/material/Button";
 import ProjectTable from "./ProjectTable";
-import {FormControl, Select} from "@mui/material";
+import {Divider, FormControl, Select} from "@mui/material";
 import MenuItem from "@mui/material/MenuItem";
 import AuthService from "../../services/AuthService";
 import ProjectsService from "../../services/ProjectsService";
@@ -48,7 +48,8 @@ export function Projects() {
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'flex-end',
-                    mt: 6
+                    mt: 6,
+                    mb: 2
                 }}
                 >
                     <Typography variant="h5">
@@ -58,8 +59,8 @@ export function Projects() {
                         New
                     </Button>
                 </Box>
-
-                <Box sx={{mt: '24px', mb: '24px'}}>
+                <Divider/>
+                <Box sx={{mt: '16px', mb: '24px'}}>
                     <FormControl sx={{minWidth: 130}} size="small">
                         <Select value={group} onChange={groupChangeHandler}>
                             <MenuItem value="all">All</MenuItem>
