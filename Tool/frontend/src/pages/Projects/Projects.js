@@ -5,10 +5,11 @@ import Box from "@mui/material/Box";
 import AddIcon from '@mui/icons-material/Add';
 import Button from "@mui/material/Button";
 import ProjectTable from "./ProjectTable";
-import {Divider, FormControl, Select} from "@mui/material";
-import MenuItem from "@mui/material/MenuItem";
+import {ToggleButtonGroup} from "@mui/material";
 import AuthService from "../../services/AuthService";
 import ProjectsService from "../../services/ProjectsService";
+import {ToggleButton} from "@mui/lab";
+import {SearchBar} from "./SearchBar";
 
 
 export function Projects() {
@@ -48,10 +49,9 @@ export function Projects() {
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'flex-end',
-                    mt: 6,
-                    mb: 2
-                }}
-                >
+                    mt: '56px',
+                    mb: '24px'
+                }}>
                     <Typography variant="h5">
                         Projects
                     </Typography>
@@ -59,15 +59,18 @@ export function Projects() {
                         New
                     </Button>
                 </Box>
-                <Divider/>
-                <Box sx={{mt: '16px', mb: '24px'}}>
-                    <FormControl sx={{minWidth: 130}} size="small">
-                        <Select value={group} onChange={groupChangeHandler}>
-                            <MenuItem value="all">All</MenuItem>
-                            <MenuItem value="personal">Personal</MenuItem>
-                            <MenuItem value="starred">Starred</MenuItem>
-                        </Select>
-                    </FormControl>
+
+                <Box sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    mb: '12px'
+                }}>
+                    <ToggleButtonGroup color="primary" value={group} exclusive size="small" onChange={groupChangeHandler}>
+                        <ToggleButton value="all">All</ToggleButton>
+                        <ToggleButton value="personal">Personal</ToggleButton>
+                        <ToggleButton value="starred">Starred</ToggleButton>
+                    </ToggleButtonGroup>
+                    <SearchBar width="260px" placeholder="Search by name"/>
                 </Box>
                 {projects !== null ? <ProjectTable items={getProjects()}/> : <p>Loading projects...</p>}
             </Box>
