@@ -36,25 +36,26 @@ export default function Login() {
                 }
             })
     };
+
     return (
         <ThemeProvider theme={theme}>
             <Container component="main" maxWidth="xs">
                 <CssBaseline/>
                 <Box
                     sx={{
-                        marginTop: 8,
+                        mt: '25%',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
                     }}
                 >
-                    <Avatar sx={{m: 1, bgcolor: 'secondary.main'}}>
+                    <Avatar sx={{m: '8px', bgcolor: 'secondary.main'}}>
                         <LockOutlinedIcon/>
                     </Avatar>
                     <Typography component="h1" variant="h5">
                         Sign in
                     </Typography>
-                    <Box component="form" onSubmit={handleSubmit} noValidate sx={{mt: 1}}>
+                    <Box component="form" onSubmit={handleSubmit} noValidate sx={{mt: '8px'}}>
                         <TextField
                             margin="normal"
                             required
@@ -80,7 +81,7 @@ export default function Login() {
                             type="submit"
                             fullWidth
                             variant="contained"
-                            sx={{mt: 2, mb: 2}}
+                            sx={{mt: '16px', mb: '16px'}}
                         >
                             Sign In
                         </Button>
@@ -98,7 +99,7 @@ export default function Login() {
                         </Grid>
                     </Box>
                 </Box>
-                <Copyright sx={{mt: 8, mb: 4}}/>
+                <Copyright sx={{mt: '64px', mb: '32px'}}/>
             </Container>
         </ThemeProvider>
     );

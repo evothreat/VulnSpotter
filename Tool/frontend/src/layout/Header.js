@@ -36,7 +36,7 @@ export default function Header() {
         <AppBar position="static">
             <Toolbar style={toolbarStyle}>
                 <Box sx={{display: "flex"}}>
-                    <PolicyIcon sx={{height: 32, width: 32, mr: 1}}/>
+                    <PolicyIcon sx={{height: '32px', width: '32px', mr: '8px'}}/>
                     <Typography
                         variant="h6"
                         noWrap
@@ -45,7 +45,7 @@ export default function Header() {
                         sx={{
                             fontFamily: 'monospace',
                             fontWeight: 'bolder',
-                            letterSpacing: '.25rem',
+                            letterSpacing: '.24rem',
                             color: 'inherit',
                             textDecoration: 'none',
                         }}
@@ -57,12 +57,12 @@ export default function Header() {
                     <IconButton color="inherit">
                         <EmailIcon/>
                     </IconButton>
-                    <IconButton color="inherit" sx={{mr: 1}}>
+                    <IconButton color="inherit" sx={{mr: '8px'}}>
                         <NotificationsIcon/>
                     </IconButton>
                     <Tooltip title="Open settings">
                         <IconButton onClick={handleOpenUserMenu} sx={{p: 0}}>
-                            <Avatar alt="Remy Sharp" sx={{height: 32, width: 32}}/>
+                            <Avatar alt="Remy Sharp" sx={{height: '32px', width: '32px'}}/>
                         </IconButton>
                     </Tooltip>
                     <Menu

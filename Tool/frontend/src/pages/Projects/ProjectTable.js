@@ -117,7 +117,7 @@ export default function ProjectTable(props) {
     };
 
     return (
-        <TableContainer sx={{maxHeight: 500}}>
+        <TableContainer sx={{maxHeight: '440px'}}>
             <Table size="small" stickyHeader>
                 <ProjectTableHead
                     order={sorter.order}
