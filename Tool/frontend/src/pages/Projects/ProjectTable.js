@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useState} from 'react';
+import {Fragment, useState} from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -8,8 +8,11 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import IconButton from "@mui/material/IconButton";
-import {TableSortLabel} from "@mui/material";
+import {TableSortLabel, ToggleButtonGroup} from "@mui/material";
 import TimeUtil from "../../utils/TimeUtil";
+import {ToggleButton} from "@mui/lab";
+import {SearchBar} from "./SearchBar";
+import Box from "@mui/material/Box";
 
 
 const headCells = [
@@ -95,36 +98,63 @@ function ProjectTableList({items}) {
     </TableBody>
 }
 
-export default function ProjectTable(props) {
-    const items = props.items;
-
+export default function ProjectTable({items, userId}) {
+    const [group, setGroup] = useState('all');
     const [sorter, setSorter] = useState({
         order: 'desc',
         orderBy: 'last_update'
     });
+    const [searchKw, setSearchKw] = useState('');
 
-    const sortReqHandler = (key) => {
+    const handleGroupChg = (event, val) => {
+        setGroup(val);
+    };
+
+    const handleSortReq = (key) => {
         const isAsc = sorter.orderBy === key && sorter.order === 'asc';
 
         setSorter({
             order: isAsc ? 'desc' : 'asc',
             orderBy: key
         });
-    }
+    };
+
+    const handleSearch = (kw) => {
+        setSearchKw(kw);
+    };
 
     const getItems = () => {
-        return items.sort(createComparator(sorter.orderBy, sorter.order));
+        return items.filter((p) => (group === 'all' ||
+                                    (group === 'personal' && p.owner.id === userId) ||
+                                    (group === 'starred' && p.starred)) &&
+                                   p.name.toLowerCase().includes(searchKw.toLowerCase()))
+                    .sort(createComparator(sorter.orderBy, sorter.order));
     };
 
     return (
-        <TableContainer sx={{maxHeight: '440px'}}>
-            <Table size="small" stickyHeader>
-                <ProjectTableHead
-                    order={sorter.order}
-                    orderBy={sorter.orderBy}
-                    sortReqHandler={sortReqHandler}/>
-                <ProjectTableList items={getItems()}/>
-            </Table>
-        </TableContainer>
+        <Fragment>
+            <Box sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                mb: '12px'
+            }}>
+                <ToggleButtonGroup color="primary" value={group} exclusive size="small" onChange={handleGroupChg}>
+                    <ToggleButton value="all">All</ToggleButton>
+                    <ToggleButton value="personal">Personal</ToggleButton>
+                    <ToggleButton value="starred">Starred</ToggleButton>
+                </ToggleButtonGroup>
+                <SearchBar width="260px" placeholder="Search by name" changeHandler={handleSearch}/>
+            </Box>
+
+            <TableContainer sx={{maxHeight: '440px'}}>
+                <Table size="small" stickyHeader>
+                    <ProjectTableHead
+                        order={sorter.order}
+                        orderBy={sorter.orderBy}
+                        sortReqHandler={handleSortReq}/>
+                    <ProjectTableList items={getItems()}/>
+                </Table>
+            </TableContainer>
+        </Fragment>
     );
 }

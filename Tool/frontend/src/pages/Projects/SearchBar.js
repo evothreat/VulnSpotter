@@ -10,13 +10,12 @@ export function SearchBar({width, placeholder, changeHandler}) {
     const inputRef = useRef();
 
     const handleChange = () => {
-        if (changeHandler != null) {
-            changeHandler(inputRef.current.value);
-        }
+        changeHandler(inputRef.current.value);
     };
 
     const handleClear = () => {
         inputRef.current.value = '';
+        changeHandler('');
     };
 
     return (
