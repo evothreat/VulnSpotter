@@ -20,7 +20,7 @@ const headCells = [
         label: 'Name',
         key: 'name',
         sortable: true,
-        width: '40%'
+        width: '37%'
     },
     {
         label: 'Owner',
@@ -38,7 +38,7 @@ const headCells = [
         label: '',
         key: 'action',
         sortable: false,
-        width: '5%'
+        width: '8%'
     }
 ];
 
@@ -89,7 +89,7 @@ function ProjectTableList({items}) {
                 <TableCell>{p.name}</TableCell>
                 <TableCell>{p.owner_name}</TableCell>
                 <TableCell>{TimeUtil.since(new Date(p.last_update)) + ' ago'}</TableCell>
-                <TableCell>
+                <TableCell align="right">
                     <IconButton>
                         <MoreVertIcon/>
                     </IconButton>
