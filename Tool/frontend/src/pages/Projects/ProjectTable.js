@@ -10,7 +10,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import IconButton from "@mui/material/IconButton";
 import {TableSortLabel, ToggleButtonGroup} from "@mui/material";
 import TimeUtil from "../../utils/TimeUtil";
-import {ToggleButton} from "@mui/lab";
+import {ToggleButton} from "@mui/material";
 import {SearchBar} from "./SearchBar";
 import Box from "@mui/material/Box";
 
