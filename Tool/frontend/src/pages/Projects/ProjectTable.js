@@ -61,18 +61,13 @@ function ProjectTableHead({order, orderBy, sortReqHandler}) {
                     <TableCell
                         key={hc.key}
                         sx={{fontWeight: 'bold', width: hc.width}}
-                        sortDirection={orderBy === hc.key ? order : false}
-                    >
+                        sortDirection={orderBy === hc.key ? order : false}>
                         {hc.sortable ?
                             <TableSortLabel
                                 active={hc.key === orderBy}
                                 direction={hc.key === orderBy ? order : 'asc'}
                                 data-key={hc.key}
-                                onClick={handleClick}
-                            >
-                                {hc.label}
-                            </TableSortLabel>
-                            : hc.label}
+                                onClick={handleClick}> {hc.label} </TableSortLabel> : hc.label}
                     </TableCell>)}
             </TableRow>
         </TableHead>
@@ -81,21 +76,29 @@ function ProjectTableHead({order, orderBy, sortReqHandler}) {
 
 function ProjectTableList({items}) {
     if (items.length === 0) {
-        return <caption>There are no items to display.</caption>;
+        return (
+            <TableBody>
+                <TableRow>
+                    <TableCell colSpan="100%" sx={{border: 0}}>There are no items to display.</TableCell>
+                </TableRow>
+            </TableBody>
+        );
     }
-    return <TableBody>
-        {items.map((p) =>
-            <TableRow key={p.id}>
-                <TableCell>{p.name}</TableCell>
-                <TableCell>{p.owner_name}</TableCell>
-                <TableCell>{TimeUtil.since(new Date(p.last_update)) + ' ago'}</TableCell>
-                <TableCell align="right">
-                    <IconButton>
-                        <MoreVertIcon/>
-                    </IconButton>
-                </TableCell>
-            </TableRow>)}
-    </TableBody>
+    return (
+        <TableBody>
+            {items.map((p) =>
+                <TableRow key={p.id}>
+                    <TableCell>{p.name}</TableCell>
+                    <TableCell>{p.owner_name}</TableCell>
+                    <TableCell>{TimeUtil.since(new Date(p.last_update)) + ' ago'}</TableCell>
+                    <TableCell align="right">
+                        <IconButton>
+                            <MoreVertIcon/>
+                        </IconButton>
+                    </TableCell>
+                </TableRow>)}
+        </TableBody>
+    );
 }
 
 export default function ProjectTable({items, userId}) {
@@ -146,6 +149,7 @@ export default function ProjectTable({items, userId}) {
                     <ToggleButton value="personal">Personal</ToggleButton>
                     <ToggleButton value="starred">Starred</ToggleButton>
                 </ToggleButtonGroup>
+
                 <SearchBar width="260px" placeholder="Search by name" changeHandler={handleSearch}/>
             </Box>
 
