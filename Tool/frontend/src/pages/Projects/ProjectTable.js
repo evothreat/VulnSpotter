@@ -107,7 +107,10 @@ export default function ProjectTable({items, userId}) {
     const [searchKw, setSearchKw] = useState('');
 
     const handleGroupChg = (event, val) => {
-        setGroup(val);
+        // If the user presses the same button twice (i.e. deselects option), do nothing (replace later with radio buttons).
+        if (val) {
+            setGroup(val);
+        }
     };
 
     const handleSortReq = (key) => {
