@@ -90,7 +90,7 @@ function ProjectTableList({items}) {
                 <TableRow key={p.id}>
                     <TableCell>{p.name}</TableCell>
                     <TableCell>{p.owner_name}</TableCell>
-                    <TableCell>{TimeUtil.since(new Date(p.updated_at)) + ' ago'}</TableCell>
+                    <TableCell>{TimeUtil.sinceTimestamp(p.updated_at) + ' ago'}</TableCell>
                     <TableCell align="right">
                         <IconButton>
                             <MoreVertIcon/>
