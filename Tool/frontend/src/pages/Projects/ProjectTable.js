@@ -30,7 +30,7 @@ const headCells = [
     },
     {
         label: 'Updated',
-        key: 'last_update',
+        key: 'updated_at',
         sortable: true,
         width: '20%'
     },
@@ -90,7 +90,7 @@ function ProjectTableList({items}) {
                 <TableRow key={p.id}>
                     <TableCell>{p.name}</TableCell>
                     <TableCell>{p.owner_name}</TableCell>
-                    <TableCell>{TimeUtil.since(new Date(p.last_update)) + ' ago'}</TableCell>
+                    <TableCell>{TimeUtil.since(new Date(p.updated_at)) + ' ago'}</TableCell>
                     <TableCell align="right">
                         <IconButton>
                             <MoreVertIcon/>
@@ -105,7 +105,7 @@ export default function ProjectTable({items, userId}) {
     const [group, setGroup] = useState('all');
     const [sorter, setSorter] = useState({
         order: 'desc',
-        orderBy: 'last_update'
+        orderBy: 'updated_at'
     });
     const [searchKw, setSearchKw] = useState('');
 
