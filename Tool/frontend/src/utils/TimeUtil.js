@@ -1,7 +1,8 @@
 
 export default class TimeUtil {
 
-    static sinceDate(date) {
+    static since(time) {
+        const date = typeof time === 'number' ? new Date(time * 1000) : time;
         const seconds = Math.floor((new Date() - date) / 1000);
         let interval = seconds / 31536000;
 
@@ -25,10 +26,6 @@ export default class TimeUtil {
             return Math.floor(interval) + ' minutes';
         }
         return Math.floor(seconds) + ' seconds';
-    }
-
-    static sinceTimestamp(ts) {
-        return TimeUtil.sinceDate(new Date(ts * 1000));
     }
 
 }
