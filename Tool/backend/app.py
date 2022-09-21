@@ -1,13 +1,21 @@
+import logging
 import sqlite3
-from datetime import timedelta, datetime, timezone
+from contextlib import contextmanager
+from os import makedirs
+from os.path import join as path_join, isdir
+from secrets import token_urlsafe
+from threading import Thread
+from urllib.parse import urlparse
 
-from flask import Flask, request
-from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, \
-    create_refresh_token
+from flask import Flask, request, Response, url_for
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, create_refresh_token
+from git import Repo
+from git_vuln_finder import find as find_vulns
 from werkzeug.security import generate_password_hash, check_password_hash
 
 import config
-import db
+import tables
+from utils import time_before
 
 app = Flask(__name__)
 jwt = JWTManager(app)
@@ -16,32 +24,40 @@ app.config['JWT_SECRET_KEY'] = config.JWT_SECRET_KEY
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = config.JWT_ACCESS_TOKEN_EXPIRES
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = config.JWT_REFRESH_TOKEN_EXPIRES
 
-db_conn = sqlite3.connect(config.DB_PATH, check_same_thread=False)
+db_conn = sqlite3.connect(config.DB_PATH, check_same_thread=False, isolation_level=None)
+
+creation_status = {}
 
 
-# time utils
-def utc_iso8601(dtime):
-    return dtime.replace(microsecond=0).isoformat()
-
-
-def time_before(**kwargs):
-    return utc_iso8601(datetime.now(timezone.utc) - timedelta(**kwargs))
+@contextmanager
+def transaction(conn):
+    conn.execute('BEGIN')
+    try:
+        yield
+    except:
+        conn.rollback()
+        raise
+    else:
+        conn.commit()
 
 
 def setup_db():
+    db_conn.execute('PRAGMA journal_mode=wal;')
+
     cur = db_conn.cursor()
 
     # tables
-    cur.execute(db.USERS_SCHEMA)
-    cur.execute(db.PROJECTS_SCHEMA)
-    cur.execute(db.MEMBERSHIP_SCHEMA)
+    cur.execute(tables.USERS_SCHEMA)
+    cur.execute(tables.PROJECTS_SCHEMA)
+    cur.execute(tables.COMMITS_SCHEMA)
+    cur.execute(tables.MEMBERSHIP_SCHEMA)
 
     # TEST DATA
     # users
-    cur.execute('INSERT INTO users(username, full_name, password) VALUES (?, ?, ?)',
+    cur.execute('INSERT INTO users(username,full_name,password) VALUES (?,?,?)',
                 ('admin', 'Johnny Cash', generate_password_hash('admin')))
 
-    cur.executemany('INSERT INTO users(username, full_name) VALUES (?, ?)',
+    cur.executemany('INSERT INTO users(username,full_name) VALUES (?,?)',
                     [
                         ('rambo', 'John Rambo'),  # 2
                         ('campbell', 'Bruce Campbell'),  # 3
@@ -54,7 +70,7 @@ def setup_db():
                     ])
 
     # projects
-    cur.executemany('INSERT INTO projects(name, owner_id, last_update) VALUES (?, ?, ?)',
+    cur.executemany('INSERT INTO projects(name,owner_id,updated_at) VALUES (?,?,?)',
                     [
                         ('camino', 1, time_before(hours=3)),
                         ('chatzilla', 2, time_before(minutes=1)),
@@ -70,7 +86,7 @@ def setup_db():
                         ('venkman', 9, time_before(seconds=41)),
                     ])
     # members
-    cur.executemany('INSERT INTO membership VALUES (?, ?, ?, ?)',
+    cur.executemany('INSERT INTO membership VALUES (?,?,?,?)',
                     [
                         (1, 1, 'owner', False),
                         (1, 4, 'owner', False),
@@ -108,7 +124,7 @@ def login():
             'full_name': creds[1],
             'email': creds[2]
         }
-    }, 200
+    }
 
 
 @app.route('/api/refresh', methods=['POST'])
@@ -140,11 +156,13 @@ def current_user():
     }
 
 
+# add query parameter 'group'
 @app.route('/api/users/me/projects', methods=['GET'])
 @jwt_required()
 def get_projects():
     user_id = get_jwt_identity()
-    cur = db_conn.execute('SELECT p.id, p.name, p.last_update, m.starred, u.id, u.username, u.full_name, u.email '
+    # also count number of commits
+    cur = db_conn.execute('SELECT p.id,p.name,p.updated_at,m.starred,u.id,u.username,u.full_name,u.email '
                           'FROM membership m '
                           'JOIN projects p ON m.user_id=? AND m.project_id=p.id '
                           'JOIN users u ON p.owner_id=u.id', (user_id,))
@@ -156,7 +174,7 @@ def get_projects():
         data.append({
             'id': r[0],
             'name': r[1],
-            'last_update': r[2],
+            'updated_at': r[2],
             'starred': r[3],
             'owner': {
                 'id': r[4],
@@ -168,6 +186,96 @@ def get_projects():
     return data
 
 
+def clone_n_parse_repo(user_id, repo_url, proj_name, status_id):
+    parts = urlparse(repo_url)
+
+    repo_dir = path_join(config.REPOS_DIR, parts.netloc, parts.path.rstrip('.git'))
+    if not isdir(repo_dir):
+        makedirs(repo_dir)
+        Repo.clone_from(repo_url, repo_dir)
+
+    vulns, _, _ = find_vulns(repo_dir)
+    with transaction(db_conn):
+        try:
+            cur = db_conn.execute('INSERT INTO projects(name,repository,owner_id,updated_at) VALUES (?,?,?,?)',
+                                  (proj_name, repo_dir, user_id, time_before()))
+            proj_id = cur.lastrowid
+
+            commits = [(proj_id, v['commit-id'], v['authored_date'], v['message']) for v in vulns.values()]
+            db_conn.executemany('INSERT INTO commits(project_id,hash,created_at,message) VALUES (?,?,?,?)',
+                                commits)
+        except Exception as e:
+            logging.error(e)
+        else:
+            creation_status[status_id]['proj_id'] = proj_id
+
+    creation_status[status_id]['finished'] = True
+
+
+@app.route('/api/users/me/projects', methods=['POST'])
+@jwt_required()
+def create_project():
+    user_id = get_jwt_identity()
+    repo_url = request.json.get('repo_url')
+    proj_name = request.json.get('proj_name')
+
+    status_id = token_urlsafe(nbytes=8)
+    creation_status[status_id] = {'finished': False}
+
+    Thread(target=clone_n_parse_repo, args=(user_id, repo_url, proj_name, status_id)).start()
+
+    return Response(
+        status=202,
+        headers={
+            'Location': url_for('get_creation_status', status_id=status_id, _external=True)
+        }
+    )
+
+
+@app.route('/api/users/me/projects/<proj_id>', methods=['GET'])
+@jwt_required()
+def get_project(proj_id):
+    # RETURNS ONLY PERSONAL PROJECTS!
+    # DON'T FORGET ABOUT NOF FOUND 404
+    user_id = get_jwt_identity()
+    cur = db_conn.execute('SELECT name,repository,updated_at FROM projects WHERE id=? AND owner_id=?',
+                          (proj_id, user_id))
+    row = cur.fetchone()
+    cur.close()
+    return {
+        'name': row[0],
+        'repository': row[1],
+        'updated_at': row[2]
+    }
+
+
+@app.route('/api/users/me/status/<status_id>')
+@jwt_required()
+def get_creation_status(status_id):
+    status = creation_status.get(status_id)
+    if not status:
+        return '', 404
+    if status['finished']:
+        del creation_status[status_id]
+        proj_id = status.get('proj_id')
+        if proj_id:
+            return Response(
+                status=302,
+                headers={
+                    'Location': url_for('get_project', proj_id=proj_id, _external=True)
+                }
+            )
+        else:
+            return '', 500
+    return '', 204
+
+
 if __name__ == '__main__':
-    #setup_db()
+    setup_db()
     app.run()
+
+# TODO: implement registration endpoint
+# TODO: need to differentiate between own and foreign projects, when getting project!
+# TODO: add delete creation status, then stop processing
+# TODO: change datetime to timestamp of updated_at (projects)
+# TODO: return only token, not user
