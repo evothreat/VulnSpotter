@@ -27,7 +27,7 @@ PROJECTS_SCHEMA = '''
         id          INTEGER PRIMARY KEY,
         name        TEXT,
         repository  TEXT,
-        updated_at DATETIME,
+        updated_at  INTEGER,
         owner_id    INTEGER,
         FOREIGN KEY(owner_id) REFERENCES users(id)
     )

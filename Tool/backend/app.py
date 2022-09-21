@@ -277,5 +277,4 @@ if __name__ == '__main__':
 # TODO: implement registration endpoint
 # TODO: need to differentiate between own and foreign projects, when getting project!
 # TODO: add delete creation status, then stop processing
-# TODO: change datetime to timestamp of updated_at (projects)
 # TODO: return only token, not user
