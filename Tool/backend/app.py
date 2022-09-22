@@ -179,10 +179,12 @@ def get_projects():
     return data
 
 
+# validate parameters in parent function and response
+# check if repository already parsed!?
 def clone_n_parse_repo(user_id, repo_url, proj_name, status_id):
     parts = urlparse(repo_url)
-    # catch exceptions...
-    repo_dir = path_join(config.REPOS_DIR, parts.netloc, parts.path.rstrip('.git'))
+    repo_loc = parts.netloc + parts.path.rstrip('.git')
+    repo_dir = path_join(config.REPOS_DIR, repo_loc)
     if not isdir(repo_dir):
         makedirs(repo_dir)
         Repo.clone_from(repo_url, repo_dir)
@@ -191,7 +193,7 @@ def clone_n_parse_repo(user_id, repo_url, proj_name, status_id):
     with transaction(db_conn):
         try:
             proj_id = db_conn.execute('INSERT INTO projects(name,repository,owner_id,updated_at) VALUES (?,?,?,?)',
-                                      (proj_name, repo_dir, user_id, time_before())).lastrowid
+                                      (proj_name, repo_loc, user_id, time_before())).lastrowid
 
             db_conn.execute('INSERT INTO membership(user_id,project_id,role,starred) VALUES (?,?,?,?)',
                             (user_id, proj_id, 'owner', False))
@@ -263,7 +265,7 @@ def get_creation_status(status_id):
 
 
 if __name__ == '__main__':
-    # setup_db()
+    setup_db()
     app.run()
 
 # TODO: implement registration endpoint
