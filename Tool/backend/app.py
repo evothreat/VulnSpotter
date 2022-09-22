@@ -107,21 +107,16 @@ def login():
     password = request.json.get('password')
 
     if not (username and password):
-        return {'msg': 'missing username or password'}, 401
+        return '', 401
 
-    creds = db_conn.execute('SELECT id,full_name,email,password FROM users WHERE username=?', (username,)).fetchone()
+    creds = db_conn.execute('SELECT id,password FROM users WHERE username=?', (username,)).fetchone()
 
-    if not (creds and check_password_hash(creds[3], password)):
-        return {'msg': 'bad username or password'}, 401
+    if not (creds and check_password_hash(creds[1], password)):
+        return '', 401
 
     return {
         'refresh_token': create_refresh_token(identity=creds[0]),
         'access_token': create_access_token(identity=creds[0]),
-        'user': {
-            'id': creds[0],
-            'full_name': creds[1],
-            'email': creds[2]
-        }
     }
 
 
