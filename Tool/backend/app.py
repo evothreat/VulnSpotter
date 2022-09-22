@@ -109,9 +109,7 @@ def login():
     if not (username and password):
         return {'msg': 'missing username or password'}, 401
 
-    cur = db_conn.execute('SELECT id,full_name,email,password FROM users WHERE username=?', (username,))
-    creds = cur.fetchone()
-    cur.close()
+    creds = db_conn.execute('SELECT id,full_name,email,password FROM users WHERE username=?', (username,)).fetchone()
 
     if not (creds and check_password_hash(creds[3], password)):
         return {'msg': 'bad username or password'}, 401
@@ -145,9 +143,7 @@ def protected():
 @jwt_required()
 def current_user():
     user_id = get_jwt_identity()
-    cur = db_conn.execute('SELECT username,full_name,email FROM users WHERE id=?', (user_id,))
-    row = cur.fetchone()
-    cur.close()
+    row = db_conn.execute('SELECT username,full_name,email FROM users WHERE id=?', (user_id,)).fetchone()
     return {
         'id': user_id,
         'username': row[0],
@@ -162,13 +158,10 @@ def current_user():
 def get_projects():
     user_id = get_jwt_identity()
     # also count number of commits
-    cur = db_conn.execute('SELECT p.id,p.name,p.updated_at,m.starred,u.id,u.username,u.full_name,u.email '
-                          'FROM membership m '
-                          'JOIN projects p ON m.user_id=? AND m.project_id=p.id '
-                          'JOIN users u ON p.owner_id=u.id', (user_id,))
-    rows = cur.fetchall()
-    cur.close()
-
+    rows = db_conn.execute('SELECT p.id,p.name,p.updated_at,m.starred,u.id,u.username,u.full_name,u.email '
+                           'FROM membership m '
+                           'JOIN projects p ON m.user_id=? AND m.project_id=p.id '
+                           'JOIN users u ON p.owner_id=u.id', (user_id,)).fetchall()
     data = []
     for r in rows:
         data.append({
@@ -188,7 +181,7 @@ def get_projects():
 
 def clone_n_parse_repo(user_id, repo_url, proj_name, status_id):
     parts = urlparse(repo_url)
-
+    # catch exceptions...
     repo_dir = path_join(config.REPOS_DIR, parts.netloc, parts.path.rstrip('.git'))
     if not isdir(repo_dir):
         makedirs(repo_dir)
@@ -239,10 +232,8 @@ def get_project(proj_id):
     # RETURNS ONLY PERSONAL PROJECTS!
     # DON'T FORGET ABOUT NOF FOUND 404
     user_id = get_jwt_identity()
-    cur = db_conn.execute('SELECT name,repository,updated_at FROM projects WHERE id=? AND owner_id=?',
-                          (proj_id, user_id))
-    row = cur.fetchone()
-    cur.close()
+    row = db_conn.execute('SELECT name,repository,updated_at FROM projects WHERE id=? AND owner_id=?',
+                          (proj_id, user_id)).fetchone()
     return {
         'name': row[0],
         'repository': row[1],
@@ -272,7 +263,7 @@ def get_creation_status(status_id):
 
 
 if __name__ == '__main__':
-    setup_db()
+    # setup_db()
     app.run()
 
 # TODO: implement registration endpoint
