@@ -231,15 +231,25 @@ def create_project():
 @app.route('/api/users/me/projects/<proj_id>', methods=['GET'])
 @jwt_required()
 def get_project(proj_id):
-    # RETURNS ONLY PERSONAL PROJECTS!
-    # DON'T FORGET ABOUT NOF FOUND 404
     user_id = get_jwt_identity()
-    row = db_conn.execute('SELECT name,repository,updated_at FROM projects WHERE id=? AND owner_id=?',
-                          (proj_id, user_id)).fetchone()
+    row = db_conn.execute('SELECT p.id,p.name,p.updated_at,m.starred,u.id,u.username,u.full_name,u.email '
+                          'FROM membership m '
+                          'JOIN projects p ON m.user_id=? AND m.project_id=? AND m.project_id=p.id '
+                          'JOIN users u ON p.owner_id=u.id', (user_id, proj_id)).fetchone()
+    if not row:
+        return '', 404
+
     return {
-        'name': row[0],
-        'repository': row[1],
-        'updated_at': row[2]
+        'id': row[0],
+        'name': row[1],
+        'updated_at': row[2],
+        'starred': row[3],
+        'owner': {
+            'id': row[4],
+            'username': row[5],
+            'full_name': row[6],
+            'email': row[7]
+        }
     }
 
 
@@ -265,7 +275,7 @@ def get_creation_status(status_id):
 
 
 if __name__ == '__main__':
-    setup_db()
+    # setup_db()
     app.run()
 
 # TODO: implement registration endpoint
