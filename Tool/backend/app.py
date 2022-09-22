@@ -86,7 +86,7 @@ def setup_db():
                         ('venkman', 9, time_before(seconds=41)),
                     ])
     # members
-    cur.executemany('INSERT INTO membership VALUES (?,?,?,?)',
+    cur.executemany('INSERT INTO membership(user_id,project_id,role,starred) VALUES (?,?,?,?)',
                     [
                         (1, 1, 'owner', False),
                         (1, 4, 'owner', False),
@@ -197,13 +197,14 @@ def clone_n_parse_repo(user_id, repo_url, proj_name, status_id):
     vulns, _, _ = find_vulns(repo_dir)
     with transaction(db_conn):
         try:
-            cur = db_conn.execute('INSERT INTO projects(name,repository,owner_id,updated_at) VALUES (?,?,?,?)',
-                                  (proj_name, repo_dir, user_id, time_before()))
-            proj_id = cur.lastrowid
+            proj_id = db_conn.execute('INSERT INTO projects(name,repository,owner_id,updated_at) VALUES (?,?,?,?)',
+                                      (proj_name, repo_dir, user_id, time_before())).lastrowid
+
+            db_conn.execute('INSERT INTO membership(user_id,project_id,role,starred) VALUES (?,?,?,?)',
+                            (user_id, proj_id, 'owner', False))
 
             commits = [(proj_id, v['commit-id'], v['authored_date'], v['message']) for v in vulns.values()]
-            db_conn.executemany('INSERT INTO commits(project_id,hash,created_at,message) VALUES (?,?,?,?)',
-                                commits)
+            db_conn.executemany('INSERT INTO commits(project_id,hash,created_at,message) VALUES (?,?,?,?)', commits)
         except Exception as e:
             logging.error(e)
         else:
