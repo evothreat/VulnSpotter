@@ -274,6 +274,4 @@ if __name__ == '__main__':
     app.run()
 
 # TODO: implement registration endpoint
-# TODO: need to differentiate between own and foreign projects, when getting project!
 # TODO: add delete creation status, then stop processing
-# TODO: return only token, not user
