@@ -22,10 +22,10 @@ function NewProjectDialog({open, closeHandler}) {
                 <Box sx={{
                     display: 'flex',
                     flexDirection: 'column',
-                    mt: '25px'
+                    mt: '16px'
                 }}>
-                    <TextField sx={{mb: '20px'}} label="Repository URL" fullWidth/>
-                    <TextField label="Project name" fullWidth/>
+                    <TextField margin="dense" label="Repository URL" fullWidth/>
+                    <TextField margin="dense" label="Project name" fullWidth/>
                 </Box>
             </DialogContent>
             <DialogActions>
