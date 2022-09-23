@@ -2,7 +2,8 @@ import logging
 import sqlite3
 from contextlib import contextmanager
 from os import makedirs
-from os.path import join as path_join, isdir
+from os.path import join as concat, isdir
+from shutil import rmtree as rmdir
 from secrets import token_urlsafe
 from threading import Thread
 from urllib.parse import urlparse
@@ -179,14 +180,14 @@ def get_projects():
 def clone_n_parse_repo(user_id, repo_url, proj_name, status_id):
     parts = urlparse(repo_url)
     repo_loc = parts.netloc + parts.path.rstrip('.git')
-    repo_dir = path_join(config.REPOS_DIR, repo_loc)
-    if not isdir(repo_dir):
-        makedirs(repo_dir)
-        Repo.clone_from(repo_url, repo_dir)
+    repo_dir = concat(config.REPOS_DIR, repo_loc)
+    try:
+        if not isdir(repo_dir):
+            makedirs(repo_dir)
+            Repo.clone_from(repo_url, repo_dir)
 
-    vulns, _, _ = find_vulns(repo_dir)
-    with transaction(db_conn):
-        try:
+        vulns, _, _ = find_vulns(repo_dir)
+        with transaction(db_conn):
             proj_id = db_conn.execute('INSERT INTO projects(name,repository,owner_id,updated_at) VALUES (?,?,?,?)',
                                       (proj_name, repo_loc, user_id, time_before())).lastrowid
 
@@ -195,12 +196,13 @@ def clone_n_parse_repo(user_id, repo_url, proj_name, status_id):
 
             commits = [(proj_id, v['commit-id'], v['authored_date'], v['message']) for v in vulns.values()]
             db_conn.executemany('INSERT INTO commits(project_id,hash,created_at,message) VALUES (?,?,?,?)', commits)
-        except Exception as e:
-            logging.error(e)
-        else:
-            creation_status[status_id]['proj_id'] = proj_id
-
-    creation_status[status_id]['finished'] = True
+    except Exception as e:
+        rmdir(repo_dir, ignore_errors=True)
+        logging.error(e)
+    else:
+        creation_status[status_id]['proj_id'] = proj_id
+    finally:
+        creation_status[status_id]['finished'] = True
 
 
 @app.route('/api/users/me/projects', methods=['POST'])
