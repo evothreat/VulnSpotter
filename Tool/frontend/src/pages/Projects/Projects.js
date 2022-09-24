@@ -7,31 +7,35 @@ import Button from "@mui/material/Button";
 import ProjectTable from "./ProjectTable";
 import AuthService from "../../services/AuthService";
 import ProjectsService from "../../services/ProjectsService";
-import {Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from "@mui/material";
+import {Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Snackbar} from "@mui/material";
 import TextField from "@mui/material/TextField";
+import IconButton from "@mui/material/IconButton";
+import CloseIcon from '@mui/icons-material/Close';
 
 
-function NewProjectDialog({open, closeHandler}) {
+function NewProjectDialog({open, closeDlgHandler, createProjHandler}) {
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        createProjHandler(e.target.repoUrl.value, e.target.projName.value);
+    };
+
     return (
-        <Dialog open={open} onClose={closeHandler} maxWidth="xs" fullWidth>
-            <DialogTitle>New Project</DialogTitle>
-            <DialogContent>
-                <DialogContentText>
-                    Specify the Git repository to parse.
-                </DialogContentText>
-                <Box sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    mt: '16px'
-                }}>
-                    <TextField margin="dense" label="Repository URL" fullWidth/>
-                    <TextField margin="dense" label="Project name" fullWidth/>
-                </Box>
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={closeHandler} variant="outlined">Cancel</Button>
-                <Button onClick={closeHandler} variant="contained">Create</Button>
-            </DialogActions>
+        <Dialog open={open} onClose={closeDlgHandler} maxWidth="xs" fullWidth>
+            <form onSubmit={handleSubmit}>
+                <DialogTitle>New Project</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Specify the Git repository to parse.
+                    </DialogContentText>
+                    <TextField sx={{mt: '20px'}} name="repoUrl" margin="dense" label="Repository URL" fullWidth required/>
+                    <TextField name="projName" margin="dense" label="Project name" fullWidth required/>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={closeDlgHandler} variant="outlined">Cancel</Button>
+                    <Button type="submit" variant="contained">Create</Button>
+                </DialogActions>
+            </form>
         </Dialog>
     );
 }
@@ -52,13 +56,38 @@ export function Projects() {
     }, []);
 
     const [projects, setProjects] = useState(null);
-    const [openNewProjDlg, setOpenNewProjDlg] = useState(false);
+    const [newProjDlgVisible, setNewProjDlgVisible] = useState(false);
+    const [alert, setAlert] = useState({
+        visible: false,
+        msg: ''
+    });
 
-    const handleNewProjOpen = () => {
-        setOpenNewProjDlg(true);
+    const showNewProjDlg = () => {
+        setNewProjDlgVisible(true);
     };
-    const handleNewProjClose = () => {
-        setOpenNewProjDlg(false);
+    const hideNewProjDlg = () => {
+        setNewProjDlgVisible(false);
+    };
+
+    const showAlert = (msg) => {
+        setAlert({
+            visible: true,
+            msg: msg
+        });
+    };
+    const hideAlert = () => {
+        setAlert({
+            visible: false,
+            msg: ''
+        });
+    };
+
+    const handleCreateProj = (repoUrl, projName) => {
+        hideNewProjDlg();
+
+        // run service
+
+        showAlert('Once the project is created, you will be notified');
     };
 
     return (
@@ -76,7 +105,7 @@ export function Projects() {
                     <Typography variant="h5">
                         Projects
                     </Typography>
-                    <Button variant="contained" startIcon={<AddIcon/>} onClick={handleNewProjOpen}>
+                    <Button variant="contained" startIcon={<AddIcon/>} onClick={showNewProjDlg}>
                         New
                     </Button>
                 </Box>
@@ -86,7 +115,20 @@ export function Projects() {
                     <p>Loading projects...</p>}
             </Box>
 
-            <NewProjectDialog open={openNewProjDlg} closeHandler={handleNewProjClose}/>
+            <NewProjectDialog open={newProjDlgVisible}
+                              closeDlgHandler={hideNewProjDlg}
+                              createProjHandler={handleCreateProj}/>
+            <Snackbar
+                open={alert.visible}
+                autoHideDuration={5000}
+                onClose={hideAlert}
+                message={alert.msg}
+                action={
+                    <IconButton size="small" color="inherit" onClick={hideAlert}>
+                        <CloseIcon fontSize="small"/>
+                    </IconButton>
+                }
+            />
         </Fragment>
     )
 }
