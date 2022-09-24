@@ -1,4 +1,4 @@
-import {useRef} from "react";
+import {useState} from "react";
 import TextField from "@mui/material/TextField";
 import {InputAdornment} from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
@@ -7,14 +7,15 @@ import ClearIcon from "@mui/icons-material/Clear";
 
 export function SearchBar({width, placeholder, changeHandler}) {
 
-    const inputRef = useRef();
+    const [input, setInput] = useState('');
 
-    const handleChange = () => {
-        changeHandler(inputRef.current.value);
+    const handleChange = (e) => {
+        setInput(e.target.value);
+        changeHandler(e.target.value);
     };
 
     const handleClear = () => {
-        inputRef.current.value = '';
+        setInput('');
         changeHandler('');
     };
 
@@ -41,7 +42,7 @@ export function SearchBar({width, placeholder, changeHandler}) {
             }}
             size="small"
             placeholder={placeholder}
-            inputRef={inputRef}
+            value={input}
             onChange={handleChange}
         />
     )
