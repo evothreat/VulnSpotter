@@ -7,10 +7,8 @@ import Button from "@mui/material/Button";
 import ProjectTable from "./ProjectTable";
 import AuthService from "../../services/AuthService";
 import ProjectsService from "../../services/ProjectsService";
-import {Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Snackbar} from "@mui/material";
+import {Alert, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Snackbar} from "@mui/material";
 import TextField from "@mui/material/TextField";
-import IconButton from "@mui/material/IconButton";
-import CloseIcon from '@mui/icons-material/Close';
 
 
 function NewProjectDialog({open, closeDlgHandler, createProjHandler}) {
@@ -118,17 +116,12 @@ export function Projects() {
             <NewProjectDialog open={newProjDlgVisible}
                               closeDlgHandler={hideNewProjDlg}
                               createProjHandler={handleCreateProj}/>
-            <Snackbar
-                open={alert.visible}
-                autoHideDuration={5000}
-                onClose={hideAlert}
-                message={alert.msg}
-                action={
-                    <IconButton size="small" color="inherit" onClick={hideAlert}>
-                        <CloseIcon fontSize="small"/>
-                    </IconButton>
-                }
-            />
+
+            <Snackbar open={alert.visible} autoHideDuration={5000} onClose={hideAlert}>
+                <Alert onClose={hideAlert} severity="info">
+                    {alert.msg}
+                </Alert>
+            </Snackbar>
         </Fragment>
     )
 }
