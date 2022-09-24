@@ -181,9 +181,11 @@ def clone_n_parse_repo(user_id, repo_url, proj_name, status_id):
     parts = urlparse(repo_url)
     repo_loc = parts.netloc + parts.path.rstrip('.git')
     repo_dir = concat(config.REPOS_DIR, repo_loc)
+    dir_created = False
     try:
         if not isdir(repo_dir):
             makedirs(repo_dir)
+            dir_created = True
             Repo.clone_from(repo_url, repo_dir)
 
         vulns, _, _ = find_vulns(repo_dir)
@@ -197,7 +199,8 @@ def clone_n_parse_repo(user_id, repo_url, proj_name, status_id):
             commits = [(proj_id, v['commit-id'], v['authored_date'], v['message']) for v in vulns.values()]
             db_conn.executemany('INSERT INTO commits(project_id,hash,created_at,message) VALUES (?,?,?,?)', commits)
     except Exception as e:
-        rmdir(repo_dir, ignore_errors=True)
+        if dir_created:
+            rmdir(repo_dir, ignore_errors=True)
         logging.error(e)
     else:
         creation_status[status_id]['proj_id'] = proj_id
@@ -257,6 +260,7 @@ def get_creation_status(status_id):
     if not status:
         return '', 404
     if status['finished']:
+        # TODO: add separate delete-endpoint! Otherwise, if connection on client-side fails, status may be lost...
         del creation_status[status_id]
         proj_id = status.get('proj_id')
         if proj_id:
