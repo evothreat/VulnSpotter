@@ -116,7 +116,7 @@ export default function ProjectTable({items, userId}) {
         }
     };
 
-    const handleSortReq = (key) => {
+    const sortItems = (key) => {
         const isAsc = sorter.orderBy === key && sorter.order === 'asc';
 
         setSorter({
@@ -125,7 +125,7 @@ export default function ProjectTable({items, userId}) {
         });
     };
 
-    const handleSearch = (kw) => {
+    const searchItems = (kw) => {
         setSearchKw(kw);
     };
 
@@ -150,7 +150,7 @@ export default function ProjectTable({items, userId}) {
                     <ToggleButton value="starred">Starred</ToggleButton>
                 </ToggleButtonGroup>
 
-                <SearchBar width="260px" placeholder="Search by name" changeHandler={handleSearch}/>
+                <SearchBar width="260px" placeholder="Search by name" changeHandler={searchItems}/>
             </Box>
 
             <TableContainer sx={{maxHeight: '440px'}}>
@@ -158,7 +158,7 @@ export default function ProjectTable({items, userId}) {
                     <ProjectTableHead
                         order={sorter.order}
                         orderBy={sorter.orderBy}
-                        sortReqHandler={handleSortReq}/>
+                        sortReqHandler={sortItems}/>
                     <ProjectTableList items={getItems()}/>
                 </Table>
             </TableContainer>
