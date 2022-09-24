@@ -189,3 +189,5 @@ cython_debug/
 
 # database
 *.db
+/data.db-shm
+/data.db-wal
