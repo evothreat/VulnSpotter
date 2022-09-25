@@ -9,10 +9,11 @@ import TableRow from '@mui/material/TableRow';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import IconButton from "@mui/material/IconButton";
 import {TableSortLabel, ToggleButtonGroup} from "@mui/material";
-import TimeUtil from "../../utils/TimeUtil";
 import {ToggleButton} from "@mui/material";
 import {SearchBar} from "./SearchBar";
 import Box from "@mui/material/Box";
+import * as TimeUtil from "../../utils/TimeUtil";
+import * as SortUtil from "../../utils/SortUtil";
 
 
 const headCells = [
@@ -42,13 +43,6 @@ const headCells = [
     }
 ];
 
-
-function createComparator(key, order) {
-    if (order === 'asc') {
-        return (a, b) => a[key] > b[key] ? 1 : -1;
-    }
-    return (a, b) => a[key] < b[key] ? 1 : -1;
-}
 
 function ProjectTableHead({order, orderBy, sortReqHandler}) {
     const handleClick = (e) => {
@@ -90,7 +84,7 @@ function ProjectTableList({items}) {
                 <TableRow key={p.id}>
                     <TableCell>{p.name}</TableCell>
                     <TableCell>{p.owner_name}</TableCell>
-                    <TableCell>{TimeUtil.since(p.updated_at) + ' ago'}</TableCell>
+                    <TableCell>{TimeUtil.fmtTimeSince(p.updated_at) + ' ago'}</TableCell>
                     <TableCell align="right">
                         <IconButton>
                             <MoreVertIcon/>
@@ -134,7 +128,7 @@ export default function ProjectTable({items, userId}) {
                                     (group === 'personal' && p.owner.id === userId) ||
                                     (group === 'starred' && p.starred)) &&
                                    p.name.toLowerCase().includes(searchKw.toLowerCase()))
-                    .sort(createComparator(sorter.orderBy, sorter.order));
+                    .sort(SortUtil.createComparator(sorter.orderBy, sorter.order));
     };
 
     return (
