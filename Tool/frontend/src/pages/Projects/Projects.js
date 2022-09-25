@@ -19,6 +19,9 @@ import {
 import TextField from "@mui/material/TextField";
 
 
+const FakeComponent = ({ children }) => children;
+
+
 function NewProjectDialog({open, closeDlgHandler, createProjHandler}) {
 
     const handleSubmit = (e) => {
@@ -125,7 +128,7 @@ export function Projects() {
                               closeDlgHandler={hideNewProjDlg}
                               createProjHandler={handleCreateProj}/>
 
-            <Snackbar open={alert.visible} autoHideDuration={5000} onClose={hideAlert} TransitionComponent={Fragment}>
+            <Snackbar open={alert.visible} autoHideDuration={5000} onClose={hideAlert} TransitionComponent={FakeComponent}>
                 <Alert onClose={hideAlert} severity="info">
                     {alert.msg}
                 </Alert>
