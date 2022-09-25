@@ -7,7 +7,15 @@ import Button from "@mui/material/Button";
 import ProjectTable from "./ProjectTable";
 import AuthService from "../../services/AuthService";
 import ProjectsService from "../../services/ProjectsService";
-import {Alert, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Snackbar} from "@mui/material";
+import {
+    Alert,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    Snackbar
+} from "@mui/material";
 import TextField from "@mui/material/TextField";
 
 
@@ -117,7 +125,7 @@ export function Projects() {
                               closeDlgHandler={hideNewProjDlg}
                               createProjHandler={handleCreateProj}/>
 
-            <Snackbar open={alert.visible} autoHideDuration={5000} onClose={hideAlert}>
+            <Snackbar open={alert.visible} autoHideDuration={5000} onClose={hideAlert} TransitionComponent={Fragment}>
                 <Alert onClose={hideAlert} severity="info">
                     {alert.msg}
                 </Alert>
