@@ -2,7 +2,7 @@ import logging
 import sqlite3
 from contextlib import contextmanager
 from os import makedirs
-from os.path import join as concat, isdir
+from os.path import join as concat, isdir, normpath
 from shutil import rmtree as rmdir
 from secrets import token_urlsafe
 from threading import Thread
@@ -179,7 +179,7 @@ def get_projects():
 # check if repository already parsed!?
 def clone_n_parse_repo(user_id, repo_url, proj_name, status_id):
     parts = urlparse(repo_url)
-    repo_loc = parts.netloc + parts.path.rstrip('.git')
+    repo_loc = parts.netloc + normpath(parts.path.rstrip('.git')).replace('\\', '/').lstrip('../')
     repo_dir = concat(config.REPOS_DIR, repo_loc)
     dir_created = False
     try:
@@ -260,7 +260,6 @@ def get_creation_status(status_id):
     if not status:
         return '', 404
     if status['finished']:
-        # TODO: add separate delete-endpoint! Otherwise, if connection on client-side fails, status may be lost...
         del creation_status[status_id]
         proj_id = status.get('proj_id')
         if proj_id:
@@ -280,4 +279,3 @@ if __name__ == '__main__':
     app.run()
 
 # TODO: implement registration endpoint
-# TODO: add delete creation status, then stop processing
