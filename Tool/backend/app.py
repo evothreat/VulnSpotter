@@ -2,9 +2,9 @@ import logging
 import sqlite3
 from contextlib import contextmanager
 from os import makedirs
-from os.path import join as concat, isdir, normpath
-from shutil import rmtree as rmdir
+from os.path import isdir
 from secrets import token_urlsafe
+from shutil import rmtree as rmdir
 from threading import Thread
 from urllib.parse import urlparse
 
@@ -16,7 +16,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 import config
 import tables
-from utils import time_before
+from utils import time_before, pathjoin
 
 app = Flask(__name__)
 jwt = JWTManager(app)
@@ -176,11 +176,10 @@ def get_projects():
 
 
 # validate parameters in parent function and response
-# check if repository already parsed!?
 def clone_n_parse_repo(user_id, repo_url, proj_name, status_id):
     parts = urlparse(repo_url)
-    repo_loc = parts.netloc + normpath(parts.path.rstrip('.git')).replace('\\', '/').lstrip('../')
-    repo_dir = concat(config.REPOS_DIR, repo_loc)
+    repo_loc = (parts.netloc + parts.path.rstrip('.git')).replace('..', '')
+    repo_dir = pathjoin(config.REPOS_DIR, repo_loc)
     dir_created = False
     try:
         if not isdir(repo_dir):
