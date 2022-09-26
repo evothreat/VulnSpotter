@@ -43,7 +43,7 @@ def transaction(conn):
 
 
 def setup_db():
-    db_conn.execute('PRAGMA journal_mode=wal;')
+    # db_conn.execute('PRAGMA journal_mode=wal;')
 
     cur = db_conn.cursor()
 
@@ -52,6 +52,8 @@ def setup_db():
     cur.execute(tables.PROJECTS_SCHEMA)
     cur.execute(tables.COMMITS_SCHEMA)
     cur.execute(tables.MEMBERSHIP_SCHEMA)
+    cur.execute(tables.NOTIFICATIONS_SCHEMA)
+    cur.execute(tables.USER_NOTIFICATIONS_SCHEMA)
 
     # TEST DATA
     # users
@@ -189,14 +191,14 @@ def clone_n_parse_repo(user_id, repo_url, proj_name, status_id):
 
         vulns, _, _ = find_vulns(repo_dir)
         with transaction(db_conn):
-            proj_id = db_conn.execute('INSERT INTO projects(name,repository,owner_id,updated_at) VALUES (?,?,?,?)',
-                                      (proj_name, repo_loc, user_id, time_before())).lastrowid
+            proj_id = db_conn.execute('INSERT INTO projects(owner_id,name,repository,updated_at) VALUES (?,?,?,?)',
+                                      (user_id, proj_name, repo_loc, time_before())).lastrowid
 
             db_conn.execute('INSERT INTO membership(user_id,project_id,role,starred) VALUES (?,?,?,?)',
                             (user_id, proj_id, 'owner', False))
 
-            commits = [(proj_id, v['commit-id'], v['authored_date'], v['message']) for v in vulns.values()]
-            db_conn.executemany('INSERT INTO commits(project_id,hash,created_at,message) VALUES (?,?,?,?)', commits)
+            commits = [(proj_id, v['commit-id'], v['message'], v['authored_date']) for v in vulns.values()]
+            db_conn.executemany('INSERT INTO commits(project_id,hash,message,created_at) VALUES (?,?,?,?)', commits)
     except Exception as e:
         if dir_created:
             rmdir(repo_dir, ignore_errors=True)
@@ -278,3 +280,5 @@ if __name__ == '__main__':
     app.run()
 
 # TODO: implement registration endpoint
+
+# notify(users, activity, actor_id, object_id...)

@@ -25,10 +25,10 @@ MEMBERSHIP_SCHEMA = '''
 PROJECTS_SCHEMA = '''
     CREATE TABLE projects (
         id          INTEGER PRIMARY KEY,
+        owner_id    INTEGER,
         name        TEXT,
         repository  TEXT,
         updated_at  INTEGER,
-        owner_id    INTEGER,
         FOREIGN KEY(owner_id) REFERENCES users(id)
     )
 '''
@@ -38,8 +38,35 @@ COMMITS_SCHEMA = '''
         id          INTEGER PRIMARY KEY,
         project_id  INTEGER,
         hash        TEXT,
-        created_at  INTEGER,
         message     TEXT,
+        created_at  INTEGER,
         FOREIGN KEY(project_id) REFERENCES projects(id)
     )
 '''
+
+NOTIFICATIONS_SCHEMA = '''
+    CREATE TABLE notifications (
+        id          INTEGER PRIMARY KEY,
+        actor_id    INTEGER,
+        activity    TEXT,
+        object_type TEXT,
+        object_id   INTEGER,
+        failure     BOOLEAN,
+        created_at  INTEGER,
+        FOREIGN KEY(actor_id) REFERENCES users(id)
+    )
+'''
+
+USER_NOTIFICATIONS_SCHEMA = '''
+    CREATE TABLE user_notifications (
+        id          INTEGER PRIMARY KEY,
+        user_id     INTEGER,
+        notif_id    INTEGER,
+        is_seen     BOOLEAN,     
+        FOREIGN KEY(user_id) REFERENCES users(id),
+        FOREIGN KEY(notif_id) REFERENCES notifications(id)
+    )
+'''
+
+# user can delete notifications only from user_notifications
+# after everyone saw the notification - delete it automatically
