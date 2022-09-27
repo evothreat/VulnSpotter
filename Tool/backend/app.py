@@ -1,10 +1,8 @@
 import logging
 import sqlite3
 from contextlib import contextmanager
-from os import makedirs
 from os.path import isdir
 from secrets import token_urlsafe
-from shutil import rmtree as rmdir
 from threading import Thread
 from urllib.parse import urlparse
 
@@ -16,7 +14,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 import config
 import tables
-from utils import time_before, pathjoin
+from utils import time_before, pathjoin, unix_time
 
 app = Flask(__name__)
 jwt = JWTManager(app)
@@ -35,7 +33,7 @@ def transaction(conn):
     conn.execute('BEGIN')
     try:
         yield
-    except:
+    except BaseException:
         conn.rollback()
         raise
     else:
@@ -182,17 +180,14 @@ def clone_n_parse_repo(user_id, repo_url, proj_name, status_id):
     parts = urlparse(repo_url)
     repo_loc = (parts.netloc + parts.path.rstrip('.git')).replace('..', '')
     repo_dir = pathjoin(config.REPOS_DIR, repo_loc)
-    dir_created = False
     try:
         if not isdir(repo_dir):
-            makedirs(repo_dir)
-            dir_created = True
-            Repo.clone_from(repo_url, repo_dir)
+            Repo.clone_from(f'{parts.scheme}:@{parts.netloc}{parts.path}', repo_dir)
 
         vulns, _, _ = find_vulns(repo_dir)
         with transaction(db_conn):
             proj_id = db_conn.execute('INSERT INTO projects(owner_id,name,repository,updated_at) VALUES (?,?,?,?)',
-                                      (user_id, proj_name, repo_loc, time_before())).lastrowid
+                                      (user_id, proj_name, repo_loc, unix_time())).lastrowid
 
             db_conn.execute('INSERT INTO membership(user_id,project_id,role,starred) VALUES (?,?,?,?)',
                             (user_id, proj_id, 'owner', False))
@@ -200,8 +195,6 @@ def clone_n_parse_repo(user_id, repo_url, proj_name, status_id):
             commits = [(proj_id, v['commit-id'], v['message'], v['authored_date']) for v in vulns.values()]
             db_conn.executemany('INSERT INTO commits(project_id,hash,message,created_at) VALUES (?,?,?,?)', commits)
     except Exception as e:
-        if dir_created:
-            rmdir(repo_dir, ignore_errors=True)
         logging.error(e)
     else:
         creation_status[status_id]['proj_id'] = proj_id

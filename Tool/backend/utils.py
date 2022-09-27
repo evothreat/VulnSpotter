@@ -1,5 +1,10 @@
 from datetime import timedelta, datetime
 from itertools import pairwise
+from time import time
+
+
+def unix_time():
+    return int(time())
 
 
 def time_before(**kwargs):
