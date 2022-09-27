@@ -14,6 +14,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 import config
 import tables
+from enums import Role
 from utils import time_before, pathjoin, unix_time
 
 app = Flask(__name__)
@@ -89,13 +90,13 @@ def setup_db():
     # members
     cur.executemany('INSERT INTO membership(user_id,project_id,role,starred) VALUES (?,?,?,?)',
                     [
-                        (1, 1, 'owner', False),
-                        (1, 4, 'owner', False),
-                        (1, 5, 'owner', False),
-                        (1, 9, 'owner', False),
-                        (1, 3, 'member', False),
-                        (1, 7, 'member', False),
-                        (1, 6, 'member', False)
+                        (1, 1, Role.OWNER, False),
+                        (1, 4, Role.OWNER, False),
+                        (1, 5, Role.OWNER, False),
+                        (1, 9, Role.OWNER, False),
+                        (1, 3, Role.MEMBER, False),
+                        (1, 7, Role.MEMBER, False),
+                        (1, 6, Role.MEMBER, False)
                     ])
 
     db_conn.commit()
@@ -178,11 +179,11 @@ def get_projects():
 # validate parameters in parent function and response
 def clone_n_parse_repo(user_id, repo_url, proj_name, status_id):
     parts = urlparse(repo_url)
-    repo_loc = (parts.netloc + parts.path.rstrip('.git')).replace('..', '')
+    repo_loc = parts.netloc + parts.path.rstrip('.git')
     repo_dir = pathjoin(config.REPOS_DIR, repo_loc)
     try:
         if not isdir(repo_dir):
-            Repo.clone_from(f'{parts.scheme}:@{parts.netloc}{parts.path}', repo_dir)
+            Repo.clone_from(f'{parts.scheme}:@{repo_loc}', repo_dir)
 
         vulns, _, _ = find_vulns(repo_dir)
         with transaction(db_conn):
@@ -190,7 +191,7 @@ def clone_n_parse_repo(user_id, repo_url, proj_name, status_id):
                                       (user_id, proj_name, repo_loc, unix_time())).lastrowid
 
             db_conn.execute('INSERT INTO membership(user_id,project_id,role,starred) VALUES (?,?,?,?)',
-                            (user_id, proj_id, 'owner', False))
+                            (user_id, proj_id, Role.OWNER, False))
 
             commits = [(proj_id, v['commit-id'], v['message'], v['authored_date']) for v in vulns.values()]
             db_conn.executemany('INSERT INTO commits(project_id,hash,message,created_at) VALUES (?,?,?,?)', commits)
@@ -205,14 +206,15 @@ def clone_n_parse_repo(user_id, repo_url, proj_name, status_id):
 @app.route('/api/users/me/projects', methods=['POST'])
 @jwt_required()
 def create_project():
-    user_id = get_jwt_identity()
     repo_url = request.json.get('repo_url')
     proj_name = request.json.get('proj_name')
+    if not (repo_url and proj_name):
+        return '', 400
 
     status_id = token_urlsafe(nbytes=8)
     creation_status[status_id] = {'finished': False}
 
-    Thread(target=clone_n_parse_repo, args=(user_id, repo_url, proj_name, status_id)).start()
+    Thread(target=clone_n_parse_repo, args=(get_jwt_identity(), repo_url, proj_name, status_id)).start()
 
     return Response(
         status=202,
@@ -273,5 +275,3 @@ if __name__ == '__main__':
     app.run()
 
 # TODO: implement registration endpoint
-
-# notify(users, activity, actor_id, object_id...)
