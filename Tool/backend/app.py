@@ -15,7 +15,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import config
 import tables
 from enums import Role
-from utils import time_before, pathjoin, unix_time
+from utils import time_before, pathjoin, unix_time, normpath
 
 app = Flask(__name__)
 jwt = JWTManager(app)
@@ -179,7 +179,7 @@ def get_projects():
 # validate parameters in parent function and response
 def clone_n_parse_repo(user_id, repo_url, proj_name, status_id):
     parts = urlparse(repo_url)
-    repo_loc = parts.netloc + parts.path.rstrip('.git')
+    repo_loc = normpath(parts.netloc + parts.path.rstrip('.git'))
     repo_dir = pathjoin(config.REPOS_DIR, repo_loc)
     try:
         if not isdir(repo_dir):

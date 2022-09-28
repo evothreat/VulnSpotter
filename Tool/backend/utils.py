@@ -19,3 +19,17 @@ def pathjoin(*args, sep='/'):
         else:
             res += sep + s
     return res
+
+
+def normpath(s):
+    s2 = s.replace('\\', '/').replace('..', '').replace('./', '/').replace('/.', '/').strip('/')
+    res = ''
+    begin = 0
+    for i, ch in enumerate(s2):
+        if begin != -1:
+            if ch == '/':
+                res += s2[begin:i + 1]
+                begin = -1
+        else:
+            begin = i
+    return res + s2[begin:len(s2)]
