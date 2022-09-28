@@ -22,14 +22,26 @@ def pathjoin(*args, sep='/'):
 
 
 def normpath(s):
-    s2 = s.replace('\\', '/').replace('..', '').replace('./', '/').replace('/.', '/').strip('/')
     res = ''
+    dirty = False
+    turn = False
     begin = 0
-    for i, ch in enumerate(s2):
-        if ch == '/':
-            if begin != -1:
-                res += s2[begin:i+1]
-                begin = -1
-        elif begin == -1:
+    for i, ch in enumerate(s):
+        if ch == '/' or ch == '\\' or ch == '.':
+            if not turn:
+                res += s[begin:i]
+                turn = True
+                begin = i
+            if ch != '.' and not dirty:
+                dirty = True
+        elif turn:
+            if dirty:
+                res += '/'
+                dirty = False
+            else:
+                res += s[begin:i]
+            turn = False
             begin = i
-    return res + s2[begin:len(s2)]
+    if not dirty:
+        res += s[begin:len(s)]
+    return res.lstrip('/')
