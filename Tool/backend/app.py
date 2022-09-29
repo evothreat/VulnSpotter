@@ -123,7 +123,7 @@ def project(d):
     }
 
 
-def project_notif(d):
+def notification(d):
     return {
         'href': url_for('get_notification', notif_id=d['id'], _external=True),
         'id': d['id'],
@@ -134,13 +134,19 @@ def project_notif(d):
         },
         'activity': d['activity'],
         'object_type': d['object_type'],
-        'project': {
-            'href': url_for('get_project', proj_id=d['proj_id'], _external=True),
-            'id': d['proj_id'],
-            'name': d['name']
-        } if d['proj_id'] else None,
+        'object': None,
         'is_seen': d['is_seen']
     }
+
+
+def project_notif(d):
+    notif = notification(d)
+    notif['object'] = {
+        'href': url_for('get_project', proj_id=d['proj_id'], _external=True),
+        'id': d['proj_id'],
+        'name': d['name']
+    } if d['proj_id'] else None
+    return notif
 
 
 @app.route('/api/login', methods=['POST'])
