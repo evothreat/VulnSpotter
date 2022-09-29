@@ -2,11 +2,10 @@ import logging
 import sqlite3
 from contextlib import contextmanager
 from os.path import isdir
-from secrets import token_urlsafe
 from threading import Thread
 from urllib.parse import urlparse
 
-from flask import Flask, request, Response, url_for
+from flask import Flask, request, url_for
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, create_refresh_token
 from git import Repo
 from git_vuln_finder import find as find_vulns
@@ -14,7 +13,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 import config
 import tables
-from enums import Role
+from enums import Role, Action, Model
 from utils import time_before, pathjoin, unix_time, normpath
 
 app = Flask(__name__)
@@ -56,19 +55,19 @@ def setup_db():
 
     # TEST DATA
     # users
-    cur.execute('INSERT INTO users(username,full_name,password) VALUES (?,?,?)',
-                ('admin', 'Johnny Cash', generate_password_hash('admin')))
+    cur.execute('INSERT INTO users(username,full_name,email,password) VALUES (?,?,?,?)',
+                ('admin', 'Johnny Cash', 'admin@vuln.com', generate_password_hash('admin')))
 
-    cur.executemany('INSERT INTO users(username,full_name) VALUES (?,?)',
+    cur.executemany('INSERT INTO users(username,full_name,email) VALUES (?,?,?)',
                     [
-                        ('rambo', 'John Rambo'),  # 2
-                        ('campbell', 'Bruce Campbell'),  # 3
-                        ('williams', 'Ash Williams'),  # 4
-                        ('nolan', 'Christopher Nolan'),  # 5
-                        ('chan', 'Jackie Chan'),  # 6
-                        ('vandamme', 'Jean Claude Van Damme'),  # 7
-                        ('cage', 'Nicolas Cage'),  # 8
-                        ('dicaprio', 'Leonardo Di Caprio')  # 9
+                        ('rambo', 'John Rambo', 'rambo@gmail.com'),  # 2
+                        ('campbell', 'Bruce Campbell', 'campbell@gmail.com'),  # 3
+                        ('williams', 'Ash Williams', 'williams@gmail.com'),  # 4
+                        ('nolan', 'Christopher Nolan', 'nolan@gmail.com'),  # 5
+                        ('chan', 'Jackie Chan', 'chan@gmail.com'),  # 6
+                        ('vandamme', 'Jean Claude Van Damme', 'vandamme@gmail.com'),  # 7
+                        ('cage', 'Nicolas Cage', 'cage@gmail.com'),  # 8
+                        ('dicaprio', 'Leonardo Di Caprio', 'dicaprio@gmail.com')  # 9
                     ])
 
     # projects
@@ -140,12 +139,30 @@ def protected():
 @jwt_required()
 def current_user():
     user_id = get_jwt_identity()
-    row = db_conn.execute('SELECT username,full_name,email FROM users WHERE id=?', (user_id,)).fetchone()
+    data = db_conn.execute('SELECT username,full_name,email FROM users WHERE id=?', (user_id,)).fetchone()
     return {
+        'href': url_for('current_user', _external=True),
         'id': user_id,
-        'username': row[0],
-        'full_name': row[1],
-        'email': row[2]
+        'username': data[0],
+        'full_name': data[1],
+        'email': data[2]
+    }
+
+
+@app.route('/api/users/<user_id>', methods=['GET'])
+@jwt_required()
+def get_user(user_id):
+    data = db_conn.execute('SELECT username,full_name,email FROM users WHERE id=?', (user_id,)).fetchone()
+
+    if not data:
+        return '', 404
+
+    return {
+        'href': url_for('get_user', user_id=user_id, _external=True),
+        'id': user_id,
+        'username': data[0],
+        'full_name': data[1],
+        'email': data[2]
     }
 
 
@@ -153,34 +170,35 @@ def current_user():
 @app.route('/api/users/me/projects', methods=['GET'])
 @jwt_required()
 def get_projects():
-    user_id = get_jwt_identity()
     # also count number of commits
-    rows = db_conn.execute('SELECT p.id,p.name,p.updated_at,m.starred,u.id,u.username,u.full_name,u.email '
+    data = db_conn.execute('SELECT p.id,p.name,p.updated_at,m.starred,u.id,u.username,u.full_name,u.email '
                            'FROM membership m '
                            'JOIN projects p ON m.user_id=? AND m.project_id=p.id '
-                           'JOIN users u ON p.owner_id=u.id', (user_id,)).fetchall()
-    data = []
-    for r in rows:
-        data.append({
-            'id': r[0],
-            'name': r[1],
-            'updated_at': r[2],
-            'starred': r[3],
+                           'JOIN users u ON p.owner_id=u.id', (get_jwt_identity(),)).fetchall()
+    res = []
+    for d in data:
+        res.append({
+            'href': url_for('get_project', proj_id=d[0], _external=True),
+            'id': d[0],
+            'name': d[1],
+            'updated_at': d[2],
+            'starred': d[3],
             'owner': {
-                'id': r[4],
-                'username': r[5],
-                'full_name': r[6],
-                'email': r[7]
+                'href': url_for('get_user', user_id=d[4], _external=True),
+                'id': d[4],
+                'username': d[5],
+                'full_name': d[6],
+                'email': d[7]
             }
         })
-    return data
+    return res
 
 
-# validate parameters in parent function and response
-def clone_n_parse_repo(user_id, repo_url, proj_name, status_id):
+def clone_n_parse_repo(user_id, repo_url, proj_name):
     parts = urlparse(repo_url)
     repo_loc = normpath(parts.netloc + parts.path.rstrip('.git'))
     repo_dir = pathjoin(config.REPOS_DIR, repo_loc)
+    proj_id = None
     try:
         if not isdir(repo_dir):
             Repo.clone_from(f'{parts.scheme}:@{repo_loc}', repo_dir)
@@ -197,10 +215,8 @@ def clone_n_parse_repo(user_id, repo_url, proj_name, status_id):
             db_conn.executemany('INSERT INTO commits(project_id,hash,message,created_at) VALUES (?,?,?,?)', commits)
     except Exception as e:
         logging.error(e)
-    else:
-        creation_status[status_id]['proj_id'] = proj_id
-    finally:
-        creation_status[status_id]['finished'] = True
+
+    notify((user_id,), 1, Action.CREATE, Model.PROJECT, proj_id)
 
 
 @app.route('/api/users/me/projects', methods=['POST'])
@@ -211,63 +227,82 @@ def create_project():
     if not (repo_url and proj_name):
         return '', 400
 
-    status_id = token_urlsafe(nbytes=8)
-    creation_status[status_id] = {'finished': False}
+    Thread(target=clone_n_parse_repo, args=(get_jwt_identity(), repo_url, proj_name)).start()
 
-    Thread(target=clone_n_parse_repo, args=(get_jwt_identity(), repo_url, proj_name, status_id)).start()
-
-    return Response(
-        status=202,
-        headers={
-            'Location': url_for('get_creation_status', status_id=status_id, _external=True)
-        }
-    )
+    return '', 202
 
 
 @app.route('/api/users/me/projects/<proj_id>', methods=['GET'])
 @jwt_required()
 def get_project(proj_id):
-    user_id = get_jwt_identity()
-    row = db_conn.execute('SELECT p.id,p.name,p.updated_at,m.starred,u.id,u.username,u.full_name,u.email '
-                          'FROM membership m '
-                          'JOIN projects p ON m.user_id=? AND m.project_id=? AND m.project_id=p.id '
-                          'JOIN users u ON p.owner_id=u.id', (user_id, proj_id)).fetchone()
-    if not row:
+    data = db_conn.execute('SELECT p.id,p.name,p.updated_at,m.starred,u.id,u.username,u.full_name,u.email '
+                           'FROM membership m '
+                           'JOIN projects p ON m.user_id=? AND m.project_id=? AND m.project_id=p.id '
+                           'JOIN users u ON p.owner_id=u.id', (get_jwt_identity(), proj_id)).fetchone()
+    if not data:
         return '', 404
 
     return {
-        'id': row[0],
-        'name': row[1],
-        'updated_at': row[2],
-        'starred': row[3],
+        'href': url_for('get_project', proj_id=data[0], _external=True),
+        'id': data[0],
+        'name': data[1],
+        'updated_at': data[2],
+        'starred': data[3],
         'owner': {
-            'id': row[4],
-            'username': row[5],
-            'full_name': row[6],
-            'email': row[7]
+            'href': url_for('get_user', user_id=data[4], _external=True),
+            'id': data[4],
+            'username': data[5],
+            'full_name': data[6],
+            'email': data[7]
         }
     }
 
 
-@app.route('/api/users/me/status/<status_id>')
+def notify(users, actor_id, activity, object_type, object_id):
+    with transaction(db_conn):
+        notif_id = db_conn.execute('INSERT INTO notifications(actor_id,activity,object_type,object_id,created_at) '
+                                   'VALUES (?,?,?,?,?)',
+                                   (actor_id, activity, object_type, object_id, unix_time())).lastrowid
+
+        db_conn.executemany('INSERT INTO user_notifications(user_id,notif_id,is_seen) VALUES (?,?,?)',
+                            [(u, notif_id, False) for u in users])
+
+
+@app.route('/api/users/me/notifications', methods=['GET'])
 @jwt_required()
-def get_creation_status(status_id):
-    status = creation_status.get(status_id)
-    if not status:
-        return '', 404
-    if status['finished']:
-        del creation_status[status_id]
-        proj_id = status.get('proj_id')
-        if proj_id:
-            return Response(
-                status=302,
-                headers={
-                    'Location': url_for('get_project', proj_id=proj_id, _external=True)
-                }
-            )
-        else:
-            return '', 500
-    return '', 204
+def get_notifications():
+    data = db_conn.execute('SELECT u.id,u.full_name,n.id,n.activity,n.object_type,p.id,p.name,un.is_seen '
+                           'FROM user_notifications un '
+                           'INNER JOIN notifications n ON un.user_id=? AND n.object_type=? AND n.id = un.notif_id '
+                           'INNER JOIN users u on n.actor_id=u.id '
+                           'LEFT JOIN projects p ON n.object_id=p.id', (get_jwt_identity(), Model.PROJECT)).fetchall()
+    res = []
+    for d in data:
+        res.append({
+            'href': url_for('get_notification', notif_id=d[3], _external=True),
+            'id': d[3],
+            'actor': {
+                'href': url_for('get_user', user_id=d[0], _external=True),
+                'id': d[0],
+                'full_name': d[1]
+            },
+            'activity': d[3],
+            'object_type': d[4],
+            'project': {
+                'href': url_for('get_project', proj_id=d[5], _external=True),
+                'id': d[5],
+                'name': d[6]
+            } if d[5] else None,
+            'is_seen': d[7]
+        })
+
+    return res
+
+
+@app.route('/api/users/me/notifications/<notif_id>', methods=['GET'])
+@jwt_required()
+def get_notification(notif_id):
+    pass
 
 
 if __name__ == '__main__':
@@ -275,3 +310,10 @@ if __name__ == '__main__':
     app.run()
 
 # TODO: implement registration endpoint
+
+# PROBLEMS
+# 1. some resources return child resources
+# 2. types aren't in explicit table
+# 3. HATEOAS??
+
+# why i am using links in representation? cause paths can change...

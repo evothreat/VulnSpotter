@@ -51,7 +51,6 @@ NOTIFICATIONS_SCHEMA = '''
         activity    TEXT,
         object_type TEXT,
         object_id   INTEGER,
-        failure     BOOLEAN,
         created_at  INTEGER,
         FOREIGN KEY(actor_id) REFERENCES users(id)
     )
