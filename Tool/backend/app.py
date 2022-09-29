@@ -166,13 +166,28 @@ def get_user(user_id):
     }
 
 
+@app.route('/api/users', methods=['GET'])
+@jwt_required()
+def get_users():
+    data = db_conn.execute('SELECT id,username,full_name,email FROM users').fetchall()
+    res = []
+    for d in data:
+        res.append({
+            'href': url_for('get_user', user_id=d[0], _external=True),
+            'id': d[0],
+            'username': data[1],
+            'full_name': data[2],
+            'email': data[3]
+        })
+    return res
+
+
 # add query parameter 'group'
 @app.route('/api/users/me/projects', methods=['GET'])
 @jwt_required()
 def get_projects():
     # also count number of commits
-    data = db_conn.execute('SELECT p.id,p.name,p.updated_at,m.starred,u.id,u.username,u.full_name,u.email '
-                           'FROM membership m '
+    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.updated_at,m.starred,u.id,u.full_name FROM membership m '
                            'JOIN projects p ON m.user_id=? AND m.project_id=p.id '
                            'JOIN users u ON p.owner_id=u.id', (get_jwt_identity(),)).fetchall()
     res = []
@@ -181,14 +196,13 @@ def get_projects():
             'href': url_for('get_project', proj_id=d[0], _external=True),
             'id': d[0],
             'name': d[1],
-            'updated_at': d[2],
-            'starred': d[3],
+            'repository': d[2],
+            'updated_at': d[3],
+            'starred': d[4],
             'owner': {
-                'href': url_for('get_user', user_id=d[4], _external=True),
-                'id': d[4],
-                'username': d[5],
+                'href': url_for('get_user', user_id=d[5], _external=True),
+                'id': d[5],
                 'full_name': d[6],
-                'email': d[7]
             }
         })
     return res
@@ -235,8 +249,7 @@ def create_project():
 @app.route('/api/users/me/projects/<proj_id>', methods=['GET'])
 @jwt_required()
 def get_project(proj_id):
-    data = db_conn.execute('SELECT p.id,p.name,p.updated_at,m.starred,u.id,u.username,u.full_name,u.email '
-                           'FROM membership m '
+    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.updated_at,m.starred,u.id,u.full_name FROM membership m '
                            'JOIN projects p ON m.user_id=? AND m.project_id=? AND m.project_id=p.id '
                            'JOIN users u ON p.owner_id=u.id', (get_jwt_identity(), proj_id)).fetchone()
     if not data:
@@ -246,14 +259,13 @@ def get_project(proj_id):
         'href': url_for('get_project', proj_id=data[0], _external=True),
         'id': data[0],
         'name': data[1],
-        'updated_at': data[2],
-        'starred': data[3],
+        'repository': data[2],
+        'updated_at': data[3],
+        'starred': data[4],
         'owner': {
-            'href': url_for('get_user', user_id=data[4], _external=True),
-            'id': data[4],
-            'username': data[5],
+            'href': url_for('get_user', user_id=data[5], _external=True),
+            'id': data[5],
             'full_name': data[6],
-            'email': data[7]
         }
     }
 
