@@ -175,9 +175,9 @@ def get_users():
         res.append({
             'href': url_for('get_user', user_id=d[0], _external=True),
             'id': d[0],
-            'username': data[1],
-            'full_name': data[2],
-            'email': data[3]
+            'username': d[1],
+            'full_name': d[2],
+            'email': d[3]
         })
     return res
 
@@ -328,4 +328,5 @@ if __name__ == '__main__':
 # 2. types aren't in explicit table
 # 3. HATEOAS??
 
-# why i am using links in representation? cause paths can change...
+# why I am using links in representation? cause paths can change...
+# user db_conn.row_factory to avoid index bugs in future
