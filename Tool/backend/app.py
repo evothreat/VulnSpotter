@@ -24,8 +24,7 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = config.JWT_ACCESS_TOKEN_EXPIRES
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = config.JWT_REFRESH_TOKEN_EXPIRES
 
 db_conn = sqlite3.connect(config.DB_PATH, check_same_thread=False, isolation_level=None)
-
-creation_status = {}
+db_conn.row_factory = sqlite3.Row
 
 
 @contextmanager
@@ -41,65 +40,107 @@ def transaction(conn):
 
 
 def setup_db():
-    # db_conn.execute('PRAGMA journal_mode=wal;')
-
-    cur = db_conn.cursor()
+    # db_conn.execute('PRAGMA journal_mode=wal;')   # to allow reading while someone writing
 
     # tables
-    cur.execute(tables.USERS_SCHEMA)
-    cur.execute(tables.PROJECTS_SCHEMA)
-    cur.execute(tables.COMMITS_SCHEMA)
-    cur.execute(tables.MEMBERSHIP_SCHEMA)
-    cur.execute(tables.NOTIFICATIONS_SCHEMA)
-    cur.execute(tables.USER_NOTIFICATIONS_SCHEMA)
+    db_conn.execute(tables.USERS_SCHEMA)
+    db_conn.execute(tables.PROJECTS_SCHEMA)
+    db_conn.execute(tables.COMMITS_SCHEMA)
+    db_conn.execute(tables.MEMBERSHIP_SCHEMA)
+    db_conn.execute(tables.NOTIFICATIONS_SCHEMA)
+    db_conn.execute(tables.USER_NOTIFICATIONS_SCHEMA)
 
     # TEST DATA
     # users
-    cur.execute('INSERT INTO users(username,full_name,email,password) VALUES (?,?,?,?)',
-                ('admin', 'Johnny Cash', 'admin@vuln.com', generate_password_hash('admin')))
+    db_conn.execute('INSERT INTO users(username,full_name,email,password) VALUES (?,?,?,?)',
+                    ('admin', 'Johnny Cash', 'admin@vuln.com', generate_password_hash('admin')))
 
-    cur.executemany('INSERT INTO users(username,full_name,email) VALUES (?,?,?)',
-                    [
-                        ('rambo', 'John Rambo', 'rambo@gmail.com'),  # 2
-                        ('campbell', 'Bruce Campbell', 'campbell@gmail.com'),  # 3
-                        ('williams', 'Ash Williams', 'williams@gmail.com'),  # 4
-                        ('nolan', 'Christopher Nolan', 'nolan@gmail.com'),  # 5
-                        ('chan', 'Jackie Chan', 'chan@gmail.com'),  # 6
-                        ('vandamme', 'Jean Claude Van Damme', 'vandamme@gmail.com'),  # 7
-                        ('cage', 'Nicolas Cage', 'cage@gmail.com'),  # 8
-                        ('dicaprio', 'Leonardo Di Caprio', 'dicaprio@gmail.com')  # 9
-                    ])
+    db_conn.executemany('INSERT INTO users(username,full_name,email) VALUES (?,?,?)',
+                        [
+                            ('rambo', 'John Rambo', 'rambo@gmail.com'),  # 2
+                            ('campbell', 'Bruce Campbell', 'campbell@gmail.com'),  # 3
+                            ('williams', 'Ash Williams', 'williams@gmail.com'),  # 4
+                            ('nolan', 'Christopher Nolan', 'nolan@gmail.com'),  # 5
+                            ('chan', 'Jackie Chan', 'chan@gmail.com'),  # 6
+                            ('vandamme', 'Jean Claude Van Damme', 'vandamme@gmail.com'),  # 7
+                            ('cage', 'Nicolas Cage', 'cage@gmail.com'),  # 8
+                            ('dicaprio', 'Leonardo Di Caprio', 'dicaprio@gmail.com')  # 9
+                        ])
 
     # projects
-    cur.executemany('INSERT INTO projects(name,owner_id,updated_at) VALUES (?,?,?)',
-                    [
-                        ('camino', 1, time_before(hours=3)),
-                        ('chatzilla', 2, time_before(minutes=1)),
-                        ('penelope', 3, time_before(seconds=45)),
-                        ('mobile-browser', 1, time_before(days=24)),
-                        ('graphs', 1, time_before(hours=16)),
-                        ('dom-inspector', 4, time_before(days=14)),
-                        ('cvs-trunk-mirror', 5, time_before(seconds=47)),
-                        ('comm-central', 6, time_before(days=29)),
-                        ('pyxpcom', 1, time_before(minutes=28)),
-                        ('schema-validation', 7, time_before(minutes=59)),
-                        ('tamarin-redux', 8, time_before(hours=13)),
-                        ('venkman', 9, time_before(seconds=41)),
-                    ])
+    db_conn.executemany('INSERT INTO projects(name,owner_id,updated_at) VALUES (?,?,?)',
+                        [
+                            ('camino', 1, time_before(hours=3)),
+                            ('chatzilla', 2, time_before(minutes=1)),
+                            ('penelope', 3, time_before(seconds=45)),
+                            ('mobile-browser', 1, time_before(days=24)),
+                            ('graphs', 1, time_before(hours=16)),
+                            ('dom-inspector', 4, time_before(days=14)),
+                            ('cvs-trunk-mirror', 5, time_before(seconds=47)),
+                            ('comm-central', 6, time_before(days=29)),
+                            ('pyxpcom', 1, time_before(minutes=28)),
+                            ('schema-validation', 7, time_before(minutes=59)),
+                            ('tamarin-redux', 8, time_before(hours=13)),
+                            ('venkman', 9, time_before(seconds=41)),
+                        ])
     # members
-    cur.executemany('INSERT INTO membership(user_id,project_id,role,starred) VALUES (?,?,?,?)',
-                    [
-                        (1, 1, Role.OWNER, False),
-                        (1, 4, Role.OWNER, False),
-                        (1, 5, Role.OWNER, False),
-                        (1, 9, Role.OWNER, False),
-                        (1, 3, Role.MEMBER, False),
-                        (1, 7, Role.MEMBER, False),
-                        (1, 6, Role.MEMBER, False)
-                    ])
+    db_conn.executemany('INSERT INTO membership(user_id,project_id,role,starred) VALUES (?,?,?,?)',
+                        [
+                            (1, 1, Role.OWNER, False),
+                            (1, 4, Role.OWNER, False),
+                            (1, 5, Role.OWNER, False),
+                            (1, 9, Role.OWNER, False),
+                            (1, 3, Role.MEMBER, False),
+                            (1, 7, Role.MEMBER, False),
+                            (1, 6, Role.MEMBER, False)
+                        ])
 
-    db_conn.commit()
-    cur.close()
+
+# representation format for corresponding resource
+def user(d):
+    return {
+        'href': url_for('get_user', user_id=d['id'], _external=True),
+        'id': d['id'],
+        'username': d['username'],
+        'full_name': d['full_name'],
+        'email': d['email']
+    }
+
+
+def project(d):
+    return {
+        'href': url_for('get_project', proj_id=d['id'], _external=True),
+        'id': d['id'],
+        'name': d['name'],
+        'repository': d['repository'],
+        'updated_at': d['updated_at'],
+        'starred': d['starred'],
+        'owner': {
+            'href': url_for('get_user', user_id=d['user_id'], _external=True),
+            'id': d['user_id'],
+            'full_name': d['full_name'],
+        }
+    }
+
+
+def project_notif(d):
+    return {
+        'href': url_for('get_notification', notif_id=d['id'], _external=True),
+        'id': d['id'],
+        'actor': {
+            'href': url_for('get_user', user_id=d['actor_id'], _external=True),
+            'id': d['actor_id'],
+            'full_name': d['full_name']
+        },
+        'activity': d['activity'],
+        'object_type': d['object_type'],
+        'project': {
+            'href': url_for('get_project', proj_id=d['proj_id'], _external=True),
+            'id': d['proj_id'],
+            'name': d['name']
+        } if d['proj_id'] else None,
+        'is_seen': d['is_seen']
+    }
 
 
 @app.route('/api/login', methods=['POST'])
@@ -112,12 +153,12 @@ def login():
 
     creds = db_conn.execute('SELECT id,password FROM users WHERE username=?', (username,)).fetchone()
 
-    if not (creds and check_password_hash(creds[1], password)):
+    if not (creds and check_password_hash(creds['password'], password)):
         return '', 401
 
     return {
-        'refresh_token': create_refresh_token(identity=creds[0]),
-        'access_token': create_access_token(identity=creds[0]),
+        'refresh_token': create_refresh_token(identity=creds['id']),
+        'access_token': create_access_token(identity=creds['id']),
     }
 
 
@@ -143,69 +184,41 @@ def current_user():
     return {
         'href': url_for('current_user', _external=True),
         'id': user_id,
-        'username': data[0],
-        'full_name': data[1],
-        'email': data[2]
+        'username': data['username'],
+        'full_name': data['full_name'],
+        'email': data['email']
     }
 
 
 @app.route('/api/users/<user_id>', methods=['GET'])
 @jwt_required()
 def get_user(user_id):
-    data = db_conn.execute('SELECT username,full_name,email FROM users WHERE id=?', (user_id,)).fetchone()
+    data = db_conn.execute('SELECT id,username,full_name,email FROM users WHERE id=?', (user_id,)).fetchone()
 
     if not data:
         return '', 404
 
-    return {
-        'href': url_for('get_user', user_id=user_id, _external=True),
-        'id': user_id,
-        'username': data[0],
-        'full_name': data[1],
-        'email': data[2]
-    }
+    return user(data)
 
 
 @app.route('/api/users', methods=['GET'])
 @jwt_required()
 def get_users():
     data = db_conn.execute('SELECT id,username,full_name,email FROM users').fetchall()
-    res = []
-    for d in data:
-        res.append({
-            'href': url_for('get_user', user_id=d[0], _external=True),
-            'id': d[0],
-            'username': d[1],
-            'full_name': d[2],
-            'email': d[3]
-        })
-    return res
+    return [user(d) for d in data]
 
 
 # add query parameter 'group'
 @app.route('/api/users/me/projects', methods=['GET'])
 @jwt_required()
 def get_projects():
-    # also count number of commits
-    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.updated_at,m.starred,u.id,u.full_name FROM membership m '
+    # also count number of commits?
+    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.updated_at,m.starred,u.id AS user_id,u.full_name '
+                           'FROM membership m '
                            'JOIN projects p ON m.user_id=? AND m.project_id=p.id '
                            'JOIN users u ON p.owner_id=u.id', (get_jwt_identity(),)).fetchall()
-    res = []
-    for d in data:
-        res.append({
-            'href': url_for('get_project', proj_id=d[0], _external=True),
-            'id': d[0],
-            'name': d[1],
-            'repository': d[2],
-            'updated_at': d[3],
-            'starred': d[4],
-            'owner': {
-                'href': url_for('get_user', user_id=d[5], _external=True),
-                'id': d[5],
-                'full_name': d[6],
-            }
-        })
-    return res
+
+    return [project(d) for d in data]
 
 
 def clone_n_parse_repo(user_id, repo_url, proj_name):
@@ -249,25 +262,14 @@ def create_project():
 @app.route('/api/users/me/projects/<proj_id>', methods=['GET'])
 @jwt_required()
 def get_project(proj_id):
-    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.updated_at,m.starred,u.id,u.full_name FROM membership m '
+    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.updated_at,m.starred,u.id AS user_id,u.full_name '
+                           'FROM membership m '
                            'JOIN projects p ON m.user_id=? AND m.project_id=? AND m.project_id=p.id '
                            'JOIN users u ON p.owner_id=u.id', (get_jwt_identity(), proj_id)).fetchone()
     if not data:
         return '', 404
 
-    return {
-        'href': url_for('get_project', proj_id=data[0], _external=True),
-        'id': data[0],
-        'name': data[1],
-        'repository': data[2],
-        'updated_at': data[3],
-        'starred': data[4],
-        'owner': {
-            'href': url_for('get_user', user_id=data[5], _external=True),
-            'id': data[5],
-            'full_name': data[6],
-        }
-    }
+    return project(data)
 
 
 def notify(users, actor_id, activity, object_type, object_id):
@@ -283,38 +285,31 @@ def notify(users, actor_id, activity, object_type, object_id):
 @app.route('/api/users/me/notifications', methods=['GET'])
 @jwt_required()
 def get_notifications():
-    data = db_conn.execute('SELECT u.id,u.full_name,n.id,n.activity,n.object_type,p.id,p.name,un.is_seen '
-                           'FROM user_notifications un '
-                           'INNER JOIN notifications n ON un.user_id=? AND n.object_type=? AND n.id = un.notif_id '
-                           'INNER JOIN users u on n.actor_id=u.id '
-                           'LEFT JOIN projects p ON n.object_id=p.id', (get_jwt_identity(), Model.PROJECT)).fetchall()
-    res = []
-    for d in data:
-        res.append({
-            'href': url_for('get_notification', notif_id=d[3], _external=True),
-            'id': d[3],
-            'actor': {
-                'href': url_for('get_user', user_id=d[0], _external=True),
-                'id': d[0],
-                'full_name': d[1]
-            },
-            'activity': d[3],
-            'object_type': d[4],
-            'project': {
-                'href': url_for('get_project', proj_id=d[5], _external=True),
-                'id': d[5],
-                'name': d[6]
-            } if d[5] else None,
-            'is_seen': d[7]
-        })
+    data = db_conn.execute(
+        'SELECT u.id AS actor_id,u.full_name,n.id,n.activity,n.object_type,p.id AS proj_id,p.name,un.is_seen '
+        'FROM user_notifications un '
+        'INNER JOIN notifications n ON un.user_id=? AND n.object_type=? AND n.id = un.notif_id '
+        'INNER JOIN users u on n.actor_id=u.id '
+        'LEFT JOIN projects p ON n.object_id=p.id', (get_jwt_identity(), Model.PROJECT)).fetchall()
 
+    res = [project_notif(d) for d in data]  # add later other notifications types too
     return res
 
 
 @app.route('/api/users/me/notifications/<notif_id>', methods=['GET'])
 @jwt_required()
 def get_notification(notif_id):
-    pass
+    data = db_conn.execute(
+        'SELECT u.id AS actor_id,u.full_name,n.id,n.activity,n.object_type,p.id AS proj_id,p.name,un.is_seen '
+        'FROM user_notifications un '
+        'INNER JOIN notifications n ON n.id=? AND un.user_id=? AND n.object_type=? AND n.id = un.notif_id '
+        'INNER JOIN users u on n.actor_id=u.id '
+        'LEFT JOIN projects p ON n.object_id=p.id', (notif_id, get_jwt_identity(), Model.PROJECT)).fetchone()
+
+    if data:
+        return project_notif(data)
+
+    return '', 404
 
 
 if __name__ == '__main__':
@@ -324,9 +319,6 @@ if __name__ == '__main__':
 # TODO: implement registration endpoint
 
 # PROBLEMS
-# 1. some resources return child resources
-# 2. types aren't in explicit table
-# 3. HATEOAS??
+# 1. types aren't in explicit table
 
-# why I am using links in representation? cause paths can change...
-# user db_conn.row_factory to avoid index bugs in future
+# why using links in representation? faster access & paths can change
