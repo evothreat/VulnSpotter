@@ -45,3 +45,14 @@ def normpath(s):
     if not dirty:
         res += s[begin:len(s)]
     return res.lstrip('/')
+
+
+def sql_params_args(data, allowed_map):
+    params = ''
+    args = []
+    for k, v in data.items():
+        if k in allowed_map and isinstance(v, (allowed_map[k])):
+            params += k + '=?,'
+            args.append(v)
+
+    return params.rstrip(','), args

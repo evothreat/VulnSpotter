@@ -14,7 +14,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import config
 import tables
 from enums import Role, Action, Model
-from utils import time_before, pathjoin, unix_time, normpath
+from utils import time_before, pathjoin, unix_time, normpath, sql_params_args
 
 app = Flask(__name__)
 jwt = JWTManager(app)
@@ -23,7 +23,10 @@ app.config['JWT_SECRET_KEY'] = config.JWT_SECRET_KEY
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = config.JWT_ACCESS_TOKEN_EXPIRES
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = config.JWT_REFRESH_TOKEN_EXPIRES
 
-db_conn = sqlite3.connect(config.DB_PATH, check_same_thread=False, isolation_level=None)
+sqlite3.register_adapter(bool, int)
+sqlite3.register_converter('BOOLEAN', lambda v: v == '1')
+db_conn = sqlite3.connect(config.DB_PATH, check_same_thread=False, isolation_level=None,
+                          detect_types=sqlite3.PARSE_DECLTYPES)
 db_conn.row_factory = sqlite3.Row
 
 
@@ -316,6 +319,22 @@ def get_notification(notif_id):
         return project_notif(data)
 
     return '', 404
+
+
+@app.route('/api/users/me/notifications/<notif_id>', methods=['PATCH'])
+@jwt_required()
+def update_notification(notif_id):
+    params, args = sql_params_args(
+        request.json,
+        {
+            'is_seen': bool
+        }
+    )
+    if params:
+        args.extend([get_jwt_identity(), notif_id])
+        db_conn.execute(f'UPDATE user_notifications SET {params} WHERE user_id=? AND notif_id=?', args)
+
+    return '', 204
 
 
 if __name__ == '__main__':
