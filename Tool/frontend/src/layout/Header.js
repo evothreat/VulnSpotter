@@ -6,12 +6,14 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import Menu from '@mui/material/Menu';
 import Avatar from '@mui/material/Avatar';
-import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import PolicyIcon from '@mui/icons-material/Policy';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import EmailIcon from '@mui/icons-material/Email';
+import {Fragment} from "react";
 
+// TODO: keep this component always mounted!
+// TODO: put header in the right component
 // TODO: add correct settings with icons
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 
@@ -20,18 +22,49 @@ const toolbarStyle = {
     justifyContent: "space-between"
 };
 
+
+function UserMenu() {
+    const [anchorEl, setAnchorEl] = React.useState(null);
+
+    const handleOpen = (e) => {
+        setAnchorEl(e.currentTarget);
+    };
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
+
+    return (
+        <Fragment>
+            <IconButton onClick={handleOpen} sx={{p: 0}}>
+                <Avatar sx={{height: '32px', width: '32px'}}/>
+            </IconButton>
+            <Menu
+                sx={{mt: '45px'}}
+                anchorEl={anchorEl}
+                anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                }}
+                keepMounted
+                transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                }}
+                open={Boolean(anchorEl)}
+                onClose={handleClose}
+
+            >
+                {settings.map((setting) => (
+                    <MenuItem key={setting} onClick={handleClose}>
+                        <Typography textAlign="center">{setting}</Typography>
+                    </MenuItem>
+                ))}
+            </Menu>
+        </Fragment>
+    );
+}
+
 export default function Header() {
-
-    const [anchorElUser, setAnchorElUser] = React.useState(null);
-
-    const handleOpenUserMenu = (event) => {
-        setAnchorElUser(event.currentTarget);
-    };
-
-    const handleCloseUserMenu = () => {
-        setAnchorElUser(null);
-    };
-
     return (
         <AppBar position="static">
             <Toolbar style={toolbarStyle}>
@@ -60,33 +93,7 @@ export default function Header() {
                     <IconButton color="inherit" sx={{mr: '8px'}}>
                         <NotificationsIcon/>
                     </IconButton>
-                    <Tooltip title="Open settings">
-                        <IconButton onClick={handleOpenUserMenu} sx={{p: 0}}>
-                            <Avatar alt="Remy Sharp" sx={{height: '32px', width: '32px'}}/>
-                        </IconButton>
-                    </Tooltip>
-                    <Menu
-                        sx={{mt: '45px'}}
-                        id="menu-appbar"
-                        anchorEl={anchorElUser}
-                        anchorOrigin={{
-                            vertical: 'top',
-                            horizontal: 'right',
-                        }}
-                        keepMounted
-                        transformOrigin={{
-                            vertical: 'top',
-                            horizontal: 'right',
-                        }}
-                        open={Boolean(anchorElUser)}
-                        onClose={handleCloseUserMenu}
-                    >
-                        {settings.map((setting) => (
-                            <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                                <Typography textAlign="center">{setting}</Typography>
-                            </MenuItem>
-                        ))}
-                    </Menu>
+                    <UserMenu/>
                 </Box>
             </Toolbar>
         </AppBar>
