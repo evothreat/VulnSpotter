@@ -43,7 +43,8 @@ def transaction(conn):
 
 
 def setup_db():
-    # db_conn.execute('PRAGMA journal_mode=wal;')   # to allow reading while someone writing
+    # db_conn.execute('PRAGMA foreign_keys=ON')     # to enable foreign keys constraint
+    # db_conn.execute('PRAGMA journal_mode=WAL')    # to allow reading while someone writing
 
     # tables
     db_conn.execute(tables.USERS_SCHEMA)
@@ -100,6 +101,12 @@ def setup_db():
 
 
 # representation format for corresponding resource
+def current_user(d):
+    res = user(d)
+    res['href'] = url_for('get_current_user', _external=True)
+    return res
+
+
 def user(d):
     return {
         'href': url_for('get_user', user_id=d['id'], _external=True),
@@ -143,13 +150,13 @@ def notification(d):
 
 
 def project_notif(d):
-    notif = notification(d)
-    notif['object'] = {
+    res = notification(d)
+    res['object'] = {
         'href': url_for('get_project', proj_id=d['proj_id'], _external=True),
         'id': d['proj_id'],
         'name': d['name']
     } if d['proj_id'] else None
-    return notif
+    return res
 
 
 @app.route('/api/login', methods=['POST'])
@@ -187,16 +194,9 @@ def protected():
 
 @app.route('/api/users/me', methods=['GET'])
 @jwt_required()
-def current_user():
-    user_id = get_jwt_identity()
-    data = db_conn.execute('SELECT username,full_name,email FROM users WHERE id=?', (user_id,)).fetchone()
-    return {
-        'href': url_for('current_user', _external=True),
-        'id': user_id,
-        'username': data['username'],
-        'full_name': data['full_name'],
-        'email': data['email']
-    }
+def get_current_user():
+    data = db_conn.execute('SELECT id,username,full_name,email FROM users WHERE id=?', (get_jwt_identity(),)).fetchone()
+    return current_user(data)
 
 
 @app.route('/api/users/<user_id>', methods=['GET'])
@@ -330,9 +330,41 @@ def update_notification(notif_id):
             'is_seen': bool
         }
     )
-    if params:
-        args.extend([get_jwt_identity(), notif_id])
-        db_conn.execute(f'UPDATE user_notifications SET {params} WHERE user_id=? AND notif_id=?', args)
+    if not params:
+        return '', 422
+
+    args.extend([get_jwt_identity(), notif_id])
+    updated = db_conn.execute(f'UPDATE user_notifications SET {params} WHERE user_id=? AND notif_id=?', args).rowcount
+    if updated == 0:
+        return '', 404
+
+    return '', 204
+
+
+@app.route('/api/users/me/notifications/<notif_id>', methods=['DELETE'])
+@jwt_required()
+def delete_notification(notif_id):
+    with transaction(db_conn):
+        deleted = db_conn.execute('DELETE FROM user_notifications WHERE user_id=? AND notif_id=?',
+                                  (get_jwt_identity(), notif_id)).rowcount
+        if deleted == 0:
+            return '', 404
+
+        db_conn.execute('DELETE FROM notifications '
+                        'WHERE id=? AND NOT EXISTS(SELECT * FROM user_notifications WHERE notif_id=?)',
+                        (notif_id, notif_id))
+
+    return '', 204
+
+
+@app.route('/api/users/me/notifications', methods=['DELETE'])
+@jwt_required()
+def delete_notifications():
+    with transaction(db_conn):
+        db_conn.execute('DELETE FROM user_notifications WHERE user_id=?', (get_jwt_identity(),))
+        # warning: deletes every orphaned row in notifications table (unrelated to current user)
+        db_conn.execute('DELETE FROM notifications WHERE '
+                        'NOT EXISTS(SELECT * FROM user_notifications WHERE notif_id=notifications.id)')
 
     return '', 204
 
