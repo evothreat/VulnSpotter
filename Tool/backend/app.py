@@ -126,8 +126,8 @@ def project(d):
         'updated_at': d['updated_at'],
         'starred': d['starred'],
         'owner': {
-            'href': url_for('get_user', user_id=d['user_id'], _external=True),
-            'id': d['user_id'],
+            'href': url_for('get_user', user_id=d['owner_id'], _external=True),
+            'id': d['owner_id'],
             'full_name': d['full_name'],
         }
     }
@@ -222,7 +222,7 @@ def get_users():
 @jwt_required()
 def get_projects():
     # also count number of commits?
-    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.updated_at,m.starred,u.id AS user_id,u.full_name '
+    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.updated_at,m.starred,p.owner_id,u.full_name '
                            'FROM membership m '
                            'JOIN projects p ON m.user_id=? AND m.project_id=p.id '
                            'JOIN users u ON p.owner_id=u.id', (get_jwt_identity(),)).fetchall()
@@ -271,7 +271,7 @@ def create_project():
 @app.route('/api/users/me/projects/<proj_id>', methods=['GET'])
 @jwt_required()
 def get_project(proj_id):
-    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.updated_at,m.starred,u.id AS user_id,u.full_name '
+    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.updated_at,m.starred,p.owner_id,u.full_name '
                            'FROM membership m '
                            'JOIN projects p ON m.user_id=? AND m.project_id=? AND m.project_id=p.id '
                            'JOIN users u ON p.owner_id=u.id', (get_jwt_identity(), proj_id)).fetchone()
