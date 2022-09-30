@@ -3,7 +3,8 @@ import Login from "./pages/Login/Login";
 import {NotFound} from "./pages/NotFound";
 import RequireAuth from "./RequireAuth";
 import {Projects} from "./pages/Projects/Projects";
-
+import Header from "./layout/Header";
+import {Fragment} from "react";
 
 
 export default function Router() {
@@ -11,7 +12,12 @@ export default function Router() {
         <BrowserRouter>
             <Routes>
                 <Route element={<RequireAuth/>}>
-                    <Route path="/projects" element={<Projects/>}/>
+                    <Route path="/projects" element={
+                        <Fragment>
+                            <Header/>
+                            <Projects/>
+                        </Fragment>
+                    }/>
                 </Route>
                 <Route path="/login" element={<Login/>}/>
                 <Route path="*" element={<NotFound/>}/>

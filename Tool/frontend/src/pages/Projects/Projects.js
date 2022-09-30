@@ -1,5 +1,4 @@
 import {Fragment, useEffect, useState} from "react";
-import Header from "../../layout/Header";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import AddIcon from '@mui/icons-material/Add';
@@ -101,7 +100,6 @@ export function Projects() {
 
     return (
         <Fragment>
-            <Header/>
             <Box sx={{mr: '17%', ml: '17%'}}>
 
                 <Box sx={{
