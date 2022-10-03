@@ -1,8 +1,8 @@
 import * as React from "react";
 import Typography from "@mui/material/Typography";
 import Link from "@mui/material/Link";
-import DoneIcon from '@mui/icons-material/Done';
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
+import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
 
 const messageMap = {
     'create_project': createProject,
@@ -25,7 +25,7 @@ function NotifLink({href, label}) {
 
 function NotifIcon({Icon}) {
     return (
-        <Icon sx={{width: '32px', height: '32px'}}/>
+        <Icon sx={{width: '34px', height: '34px'}}/>
     );
 }
 
@@ -42,7 +42,7 @@ function createProject(actor, obj) {
         );
         return data;
     }
-    data.icon = <NotifIcon Icon={DoneIcon}/>;
+    data.icon = <NotifIcon Icon={CreateNewFolderIcon}/>;
     data.text = (
         <NotifText>
             The {<NotifLink label={obj.name} href="#"/>} was successfully created.
