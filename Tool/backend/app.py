@@ -145,6 +145,7 @@ def notification(d):
         'activity': d['activity'],
         'object_type': d['object_type'],
         'object': None,
+        'created_at': d['created_at'],
         'is_seen': d['is_seen']
     }
 
@@ -295,7 +296,7 @@ def notify(users, actor_id, activity, object_type, object_id):
 @jwt_required()
 def get_notifications():
     data = db_conn.execute(
-        'SELECT n.actor_id,u.full_name,n.id,n.activity,n.object_type,p.id AS proj_id,p.name,un.is_seen '
+        'SELECT n.id,n.actor_id,n.created_at,u.full_name,n.activity,n.object_type,p.id AS proj_id,p.name,un.is_seen '
         'FROM user_notifications un '
         'INNER JOIN notifications n ON un.user_id=? AND n.object_type=? AND n.id = un.notif_id '
         'INNER JOIN users u on n.actor_id=u.id '
@@ -309,7 +310,7 @@ def get_notifications():
 @jwt_required()
 def get_notification(notif_id):
     data = db_conn.execute(
-        'SELECT n.actor_id,u.full_name,n.id,n.activity,n.object_type,p.id AS proj_id,p.name,un.is_seen '
+        'SELECT n.id,n.actor_id,n.created_at,u.full_name,n.activity,n.object_type,p.id AS proj_id,p.name,un.is_seen '
         'FROM user_notifications un '
         'INNER JOIN notifications n ON n.id=? AND un.user_id=? AND n.object_type=? AND n.id = un.notif_id '
         'INNER JOIN users u on n.actor_id=u.id '
