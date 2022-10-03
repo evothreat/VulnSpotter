@@ -11,7 +11,7 @@ const messageMap = {
 // notification text style
 function NotifText({children}) {
     return (
-        <Typography variant="body2" color="#505050">
+        <Typography variant="body2" color="#000000DE">
             {children}
         </Typography>
     );
@@ -19,7 +19,7 @@ function NotifText({children}) {
 
 function NotifLink({href, label}) {
     return (
-        <Link href={href} color="#505050" underline="none" sx={{fontWeight: 'bold'}}>{label}</Link>
+        <Link href={href} color="#404040" underline="none" sx={{fontWeight: 'bold'}}>{label}</Link>
     );
 }
 
@@ -37,7 +37,7 @@ function createProject(actor, obj) {
         data.icon = <NotifIcon Icon={PriorityHighIcon}/>;
         data.text = (
             <NotifText>
-                Failed to create project
+                Failed to create project.
             </NotifText>
         );
         return data;
@@ -45,7 +45,7 @@ function createProject(actor, obj) {
     data.icon = <NotifIcon Icon={DoneIcon}/>;
     data.text = (
         <NotifText>
-            The {<NotifLink label={obj.name} href="#"/>} was successfully created
+            The {<NotifLink label={obj.name} href="#"/>} was successfully created.
         </NotifText>
     );
     return data;

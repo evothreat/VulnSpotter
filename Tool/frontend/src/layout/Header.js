@@ -11,7 +11,8 @@ import MenuItem from '@mui/material/MenuItem';
 import PolicyIcon from '@mui/icons-material/Policy';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import EmailIcon from '@mui/icons-material/Email';
-import {List, ListItem, ListItemIcon, ListItemText, Popover} from "@mui/material";
+import DeleteIcon from '@mui/icons-material/Delete';
+import {Divider, List, ListItem, ListItemIcon, ListItemText, Popover} from "@mui/material";
 import * as TimeUtil from "../utils/TimeUtil";
 import {getMessage} from "./message";
 
@@ -43,7 +44,7 @@ const notifications = [{
 function NotificationItem({notif, divider}) {
     const msg = getMessage(notif);
     return (
-        <ListItem key={notif.id} divider={divider}>
+        <ListItem key={notif.id} divider={divider} alignItems="flex-start">
             <ListItemIcon>
                 {msg.icon}
             </ListItemIcon>
@@ -51,12 +52,31 @@ function NotificationItem({notif, divider}) {
                 disableTypography
                 primary={msg.text}
                 secondary={
-                    <Typography variant="body2" color="dimgray" mt="4px">
+                    <Typography variant="body2" color="gray" mt="4px">
                         {TimeUtil.fmtTimeSince(notif.created_at) + ' ago'}
                     </Typography>
                 }
             />
         </ListItem>
+    );
+}
+
+function NotificationsHeader() {
+    return (
+        <Fragment>
+            <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                pt: '5px'
+            }}>
+                <Typography ml="10px" variant="subtitle1">Notifications</Typography>
+                <IconButton>
+                    <DeleteIcon fontSize="small"/>
+                </IconButton>
+            </Box>
+            <Divider/>
+        </Fragment>
     );
 }
 
@@ -77,6 +97,7 @@ function Notifications() {
                 <NotificationsIcon/>
             </IconButton>
             <Popover
+                keepMounted
                 open={anchorEl != null}
                 anchorEl={anchorEl}
                 onClose={handleClose}
@@ -89,7 +110,7 @@ function Notifications() {
                     horizontal: 'right',
                 }}
             >
-                <List sx={{width: '100%', maxWidth: 400}}>
+                <List sx={{width: '100%', maxWidth: 400}} subheader={<NotificationsHeader/>}>
                     {
                         notifications.map((notif, i) => {
                             return <NotificationItem notif={notif} divider={notifications.length > i + 1}/>
