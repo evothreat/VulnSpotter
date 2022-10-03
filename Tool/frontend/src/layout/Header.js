@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {Fragment} from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -10,11 +11,8 @@ import MenuItem from '@mui/material/MenuItem';
 import PolicyIcon from '@mui/icons-material/Policy';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import EmailIcon from '@mui/icons-material/Email';
-import {Fragment} from "react";
-import {Divider, List, ListItem, ListItemIcon, ListItemText, Popover} from "@mui/material";
-import GroupAddIcon from '@mui/icons-material/GroupAdd';
-import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
-import RateReviewIcon from '@mui/icons-material/RateReview';
+import {List, ListItem, ListItemIcon, ListItemText, Popover} from "@mui/material";
+import * as TimeUtil from "../utils/TimeUtil";
 import {getMessage} from "./message";
 
 // TODO: introduce path constants
@@ -23,13 +21,14 @@ import {getMessage} from "./message";
 
 
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
-const testNotif = {
+const notifications = [{
     "activity": "create",
     "actor": {
         "full_name": "Johnny Cash",
         "href": "http://localhost:5000/api/users/1",
         "id": 1
     },
+    "created_at": 1664414462,
     "href": "http://localhost:5000/api/users/me/notifications/1",
     "id": 1,
     "is_seen": false,
@@ -39,8 +38,29 @@ const testNotif = {
         "name": "Apache Server"
     },
     "object_type": "project"
-};
+}];
 
+function NotificationItem({notif, divider}) {
+    const msg = getMessage(notif);
+    return (
+        <ListItem key={notif.id} divider={divider}>
+            <ListItemIcon>
+                {msg.icon}
+            </ListItemIcon>
+            <ListItemText
+                disableTypography
+                primary={msg.text}
+                secondary={
+                    <Typography variant="body2" color="dimgray" mt="4px">
+                        {TimeUtil.fmtTimeSince(notif.created_at) + ' ago'}
+                    </Typography>
+                }
+            />
+        </ListItem>
+    );
+}
+
+// TODO: store notifications as state & load on mount
 function Notifications() {
     const [anchorEl, setAnchorEl] = React.useState(null);
 
@@ -70,62 +90,11 @@ function Notifications() {
                 }}
             >
                 <List sx={{width: '100%', maxWidth: 400}}>
-                    <ListItem>
-                        <ListItemIcon>
-                            <PriorityHighIcon sx={{width: '32px', height: '32px'}}/>
-                        </ListItemIcon>
-                        <ListItemText
-                            disableTypography
-                            primary={getMessage(testNotif)}
-                            secondary={
-                        <Typography variant="body2" color="dimgray" mt="4px">
-                            {"6 hours ago"}
-                        </Typography>
+                    {
+                        notifications.map((notif, i) => {
+                            return <NotificationItem notif={notif} divider={notifications.length > i + 1}/>
+                        })
                     }
-                        />
-                    </ListItem>
-                    <Divider variant="fullWidth" component="li"/>
-                    <ListItem>
-                        <ListItemIcon>
-                            <GroupAddIcon sx={{width: '32px', height: '32px'}}/>
-                        </ListItemIcon>
-                        <ListItemText
-                            secondary={
-                                <React.Fragment>
-                                    <Typography
-                                        sx={{display: 'inline'}}
-                                        component="span"
-                                        variant="body2"
-                                        color="text.primary"
-                                    >
-                                        to Scott, Alex, Jennifer
-                                    </Typography>
-                                    {" — Wish I could come, but I'm out of town this…"}
-                                </React.Fragment>
-                            }
-                        />
-                    </ListItem>
-                    <Divider variant="fullWidth" component="li"/>
-                    <ListItem>
-                        <ListItemIcon>
-                            <RateReviewIcon sx={{width: '32px', height: '32px'}}/>
-                        </ListItemIcon>
-                        <ListItemText
-                            secondary={
-                                <React.Fragment>
-                                    <Typography
-                                        sx={{display: 'inline'}}
-                                        component="span"
-                                        variant="body2"
-                                        color="text.primary"
-                                    >
-                                        Sandra Adams
-                                    </Typography>
-                                    {' — Do you have Paris recommendations? Have you ever…'}
-                                </React.Fragment>
-                            }
-                        />
-                    </ListItem>
                 </List>
             </Popover>
         </Fragment>
