@@ -19,6 +19,7 @@ import {getMessage} from "./message";
 // TODO: introduce path constants
 // TODO: keep this component always mounted!
 // TODO: add correct settings with icons
+// TODO: disable popover's transition?
 
 
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
@@ -44,7 +45,7 @@ const notifications = [{
 function NotificationItem({notif, divider}) {
     const msg = getMessage(notif);
     return (
-        <ListItem key={notif.id} divider={divider} alignItems="flex-start">
+        <ListItem divider={divider} alignItems="flex-start">
             <ListItemIcon>
                 {msg.icon}
             </ListItemIcon>
@@ -113,7 +114,7 @@ function Notifications() {
                 <List sx={{width: '100%', maxWidth: 400}} subheader={<NotificationsHeader/>}>
                     {
                         notifications.map((notif, i) => {
-                            return <NotificationItem notif={notif} divider={notifications.length > i + 1}/>
+                            return <NotificationItem notif={notif} key={notif.id} divider={notifications.length > i + 1}/>
                         })
                     }
                 </List>
