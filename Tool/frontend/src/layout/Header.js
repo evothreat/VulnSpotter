@@ -12,7 +12,8 @@ import PolicyIcon from '@mui/icons-material/Policy';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import EmailIcon from '@mui/icons-material/Email';
 import DeleteIcon from '@mui/icons-material/Delete';
-import {Divider, List, ListItem, ListItemIcon, ListItemText, Popover} from "@mui/material";
+import CircleIcon from '@mui/icons-material/Circle';
+import {Icon, List, ListItem, ListItemIcon, ListItemText, ListSubheader, Popover} from "@mui/material";
 import * as TimeUtil from "../utils/TimeUtil";
 import {getMessage} from "./message";
 
@@ -64,20 +65,18 @@ function NotificationItem({notif, divider}) {
 
 function NotificationsHeader() {
     return (
-        <Fragment>
+        <ListSubheader sx={{pt: '6px', borderBottom: '1px solid #e3e3e3'}}>
             <Box sx={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                pt: '5px'
             }}>
-                <Typography ml="10px" variant="subtitle1">Notifications</Typography>
+                <Typography variant="subtitle1">Notifications</Typography>
                 <IconButton>
                     <DeleteIcon fontSize="small"/>
                 </IconButton>
             </Box>
-            <Divider/>
-        </Fragment>
+        </ListSubheader>
     );
 }
 
@@ -111,10 +110,12 @@ function Notifications() {
                     horizontal: 'right',
                 }}
             >
-                <List sx={{width: '100%', maxWidth: 400}} subheader={<NotificationsHeader/>}>
+                <List sx={{maxWidth: '500px', maxHeight: '250px', overflowY: 'auto'}}
+                      subheader={<NotificationsHeader/>}>
                     {
                         notifications.map((notif, i) => {
-                            return <NotificationItem notif={notif} key={notif.id} divider={notifications.length > i + 1}/>
+                            return <NotificationItem notif={notif} key={notif.id}
+                                                     divider={notifications.length > i + 1}/>
                         })
                     }
                 </List>
