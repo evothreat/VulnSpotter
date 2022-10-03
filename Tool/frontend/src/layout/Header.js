@@ -71,7 +71,7 @@ function NotificationsHeader() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
             }}>
-                <Typography variant="subtitle1">Notifications</Typography>
+                <Typography variant="subtitle1" sx={{color: '#505050'}}>Notifications</Typography>
                 <IconButton>
                     <DeleteIcon fontSize="small"/>
                 </IconButton>
@@ -110,8 +110,7 @@ function Notifications() {
                     horizontal: 'right',
                 }}
             >
-                <List sx={{maxWidth: '500px', maxHeight: '250px', overflowY: 'auto'}}
-                      subheader={<NotificationsHeader/>}>
+                <List sx={{maxWidth: '500px', maxHeight: '500px', overflowY: 'auto'}} subheader={<NotificationsHeader/>}>
                     {
                         notifications.map((notif, i) => {
                             return <NotificationItem notif={notif} key={notif.id}
