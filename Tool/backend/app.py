@@ -24,7 +24,7 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = config.JWT_ACCESS_TOKEN_EXPIRES
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = config.JWT_REFRESH_TOKEN_EXPIRES
 
 sqlite3.register_adapter(bool, int)
-sqlite3.register_converter('BOOLEAN', lambda v: v == '1')
+sqlite3.register_converter('BOOLEAN', lambda v: bool(int(v)))
 db_conn = sqlite3.connect(config.DB_PATH, check_same_thread=False, isolation_level=None,
                           detect_types=sqlite3.PARSE_DECLTYPES)
 db_conn.row_factory = sqlite3.Row
@@ -295,12 +295,13 @@ def notify(users, actor_id, activity, object_type, object_id):
 @app.route('/api/users/me/notifications', methods=['GET'])
 @jwt_required()
 def get_notifications():
+    param = 'AND un.is_seen=0' if 'unseen' in request.args else ''
     data = db_conn.execute(
         'SELECT n.id,n.actor_id,n.created_at,u.full_name,n.activity,n.object_type,p.id AS proj_id,p.name,un.is_seen '
         'FROM user_notifications un '
-        'INNER JOIN notifications n ON un.user_id=? AND n.object_type=? AND n.id = un.notif_id '
+        'INNER JOIN notifications n ON un.user_id=? {} AND n.object_type=? AND n.id = un.notif_id '
         'INNER JOIN users u on n.actor_id=u.id '
-        'LEFT JOIN projects p ON n.object_id=p.id', (get_jwt_identity(), Model.PROJECT)).fetchall()
+        'LEFT JOIN projects p ON n.object_id=p.id'.format(param), (get_jwt_identity(), Model.PROJECT)).fetchall()
 
     res = [project_notif(d) for d in data]  # add later other notifications types too
     return res
