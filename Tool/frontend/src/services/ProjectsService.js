@@ -2,7 +2,7 @@ import api from "./api";
 
 class ProjectsService {
 
-    getProjects() {
+    get() {
         return api.get('/users/me/projects');
     }
 }

@@ -1,5 +1,5 @@
 
-export function fmtTimeSince(time) {
+function fmtTimeSince(time) {
     const date = typeof time === 'number' ? new Date(time * 1000) : time;
     const seconds = Math.floor((new Date() - date) / 1000);
     let interval = seconds / 31536000;
@@ -25,3 +25,15 @@ export function fmtTimeSince(time) {
     }
     return Math.floor(seconds) + ' seconds';
 }
+
+function createComparator(key, order) {
+    if (order === 'asc') {
+        return (a, b) => a[key] > b[key] ? 1 : -1;
+    }
+    return (a, b) => a[key] < b[key] ? 1 : -1;
+}
+
+export {
+    fmtTimeSince,
+    createComparator
+};

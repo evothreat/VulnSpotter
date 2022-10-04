@@ -51,7 +51,7 @@ function NewProjectDialog({open, closeDlgHandler, createProjHandler}) {
 export function Projects() {
 
     useEffect(() => {
-        ProjectsService.getProjects()
+        ProjectsService.get()
             .then((resp) => {
                 resp.data.forEach((p) => {
                     p.owner_name = p.owner.full_name;

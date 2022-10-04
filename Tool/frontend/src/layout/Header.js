@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Fragment} from 'react';
+import {Fragment, useEffect, useState} from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -14,8 +14,9 @@ import EmailIcon from '@mui/icons-material/Email';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CircleIcon from '@mui/icons-material/Circle';
 import {Badge, List, ListItem, ListItemIcon, ListItemText, ListSubheader, Popover} from "@mui/material";
-import * as TimeUtil from "../utils/TimeUtil";
+import * as Utils from "../utils";
 import {getMessage} from "./message";
+import NotificationsService from "../services/NotificationsService";
 
 // TODO: introduce path constants
 // TODO: keep this component always mounted!
@@ -30,24 +31,10 @@ const badgeStyle = {
 }
 
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
-const notifications = [{
-    "activity": "create",
-    "actor": {
-        "full_name": "Johnny Cash",
-        "href": "http://localhost:5000/api/users/1",
-        "id": 1
-    },
-    "created_at": 1664414462,
-    "href": "http://localhost:5000/api/users/me/notifications/1",
-    "id": 1,
-    "is_seen": false,
-    "object": {
-        "href": "http://localhost:5000/api/users/me/projects/13",
-        "id": 13,
-        "name": "Apache Server"
-    },
-    "object_type": "project"
-}];
+
+function notifsComplement(a, b) {
+    return a.filter((n1) => !b.some((n2) => n1.id === n2.id));
+}
 
 function NotificationItem({notif, divider}) {
     const msg = getMessage(notif);
@@ -66,7 +53,7 @@ function NotificationItem({notif, divider}) {
                 primary={msg.text}
                 secondary={
                     <Typography variant="body2" color="gray" mt="4px">
-                        {TimeUtil.fmtTimeSince(notif.created_at) + ' ago'}
+                        {Utils.fmtTimeSince(notif.created_at) + ' ago'}
                     </Typography>
                 }
             />
@@ -91,9 +78,44 @@ function NotificationsHeader() {
     );
 }
 
-// TODO: store notifications as state & load on mount
 function Notifications() {
-    const [anchorEl, setAnchorEl] = React.useState(null);
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [notifs, setNotifs] = useState([]);
+
+    useEffect(() => {
+        let isMounted = true;
+        // fetch all notifications once
+        const comparator = Utils.createComparator('created_at', 'desc');
+        NotificationsService.get()
+            .then((resp) => {
+                if (isMounted) {
+                    setNotifs(resp.data.sort(comparator));
+                }
+            })
+            .catch((err) => {
+                console.log('Header.getNotifications:', err);
+            });
+        // every minute fetch only unseen notifications
+        const updateNotifs = () => {
+            NotificationsService.get({unseen: true})
+                .then((resp) => {
+                    if (isMounted) {
+                        setNotifs((curNotifs) => {
+                            const newNotifs = notifsComplement(resp.data, curNotifs).sort(comparator);
+                            return newNotifs.length > 0 ? newNotifs : curNotifs;
+                        });
+                    }
+                })
+                .catch((err) => {
+                    console.log('Header.getNotifications:', err);
+                });
+        };
+        let interval = setInterval(updateNotifs, 60000);
+        return () => {
+            isMounted = false;
+            clearInterval(interval);
+        };
+    }, []);
 
     const handleOpen = (e) => {
         setAnchorEl(e.currentTarget);
@@ -107,7 +129,7 @@ function Notifications() {
             <IconButton color="inherit" onClick={handleOpen}>
                 <Badge sx={badgeStyle}
                        overlap="circular"
-                       badgeContent={notifications.filter((n) => !n.is_seen).length}>
+                       badgeContent={notifs.filter((n) => !n.is_seen).length}>
                     <NotificationsIcon/>
                 </Badge>
             </IconButton>
@@ -128,8 +150,8 @@ function Notifications() {
             >
                 <List sx={{width: '370px', maxHeight: '400px', overflowY: 'auto'}} subheader={<NotificationsHeader/>}>
                     {
-                        notifications.map((notif, i) => {
-                            return <NotificationItem notif={notif} key={notif.id} divider={notifications.length > i + 1}/>
+                        notifs.map((n, i) => {
+                            return <NotificationItem notif={n} key={n.id} divider={notifs.length > i + 1}/>
                         })
                     }
                 </List>
@@ -140,7 +162,7 @@ function Notifications() {
 
 
 function UserMenu() {
-    const [anchorEl, setAnchorEl] = React.useState(null);
+    const [anchorEl, setAnchorEl] = useState(null);
 
     const handleOpen = (e) => {
         setAnchorEl(e.currentTarget);

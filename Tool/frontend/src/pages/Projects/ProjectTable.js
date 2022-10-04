@@ -12,8 +12,7 @@ import {TableSortLabel, ToggleButtonGroup} from "@mui/material";
 import {ToggleButton} from "@mui/material";
 import {SearchBar} from "./SearchBar";
 import Box from "@mui/material/Box";
-import * as TimeUtil from "../../utils/TimeUtil";
-import * as SortUtil from "../../utils/SortUtil";
+import * as Utils from "../../utils";
 
 
 const headCells = [
@@ -84,7 +83,7 @@ function ProjectTableList({items}) {
                 <TableRow key={p.id}>
                     <TableCell>{p.name}</TableCell>
                     <TableCell>{p.owner_name}</TableCell>
-                    <TableCell>{TimeUtil.fmtTimeSince(p.updated_at) + ' ago'}</TableCell>
+                    <TableCell>{Utils.fmtTimeSince(p.updated_at) + ' ago'}</TableCell>
                     <TableCell align="right">
                         <IconButton>
                             <MoreVertIcon/>
@@ -128,7 +127,7 @@ export default function ProjectTable({items, userId}) {
                                     (group === 'personal' && p.owner.id === userId) ||
                                     (group === 'starred' && p.starred)) &&
                                    p.name.toLowerCase().includes(searchKw.toLowerCase()))
-                    .sort(SortUtil.createComparator(sorter.orderBy, sorter.order));
+                    .sort(Utils.createComparator(sorter.orderBy, sorter.order));
     };
 
     return (
