@@ -13,7 +13,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import EmailIcon from '@mui/icons-material/Email';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CircleIcon from '@mui/icons-material/Circle';
-import {List, ListItem, ListItemIcon, ListItemText, ListSubheader, Popover} from "@mui/material";
+import {Badge, List, ListItem, ListItemIcon, ListItemText, ListSubheader, Popover} from "@mui/material";
 import * as TimeUtil from "../utils/TimeUtil";
 import {getMessage} from "./message";
 
@@ -22,6 +22,12 @@ import {getMessage} from "./message";
 // TODO: add correct settings with icons
 // TODO: disable popover's transition?
 
+
+const badgeStyle = {
+    "& .MuiBadge-badge": {
+        backgroundColor: '#eb0014',
+    }
+}
 
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 const notifications = [{
@@ -99,8 +105,13 @@ function Notifications() {
     return (
         <Fragment>
             <IconButton color="inherit" onClick={handleOpen}>
-                <NotificationsIcon/>
+                <Badge sx={badgeStyle}
+                       overlap="circular"
+                       badgeContent={notifications.filter((n) => !n.is_seen).length}>
+                    <NotificationsIcon/>
+                </Badge>
             </IconButton>
+
             <Popover
                 keepMounted
                 open={anchorEl != null}
