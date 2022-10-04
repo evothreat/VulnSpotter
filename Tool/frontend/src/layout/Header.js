@@ -13,7 +13,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import EmailIcon from '@mui/icons-material/Email';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CircleIcon from '@mui/icons-material/Circle';
-import {Badge, List, ListItem, ListItemIcon, ListItemText, ListSubheader, Popover} from "@mui/material";
+import {Badge, Fade, List, ListItem, ListItemIcon, ListItemText, ListSubheader, Popover} from "@mui/material";
 import * as Utils from "../utils";
 import {getMessage} from "./message";
 import NotificationsService from "../services/NotificationsService";
@@ -147,6 +147,7 @@ function Notifications() {
                     vertical: 'top',
                     horizontal: 'right',
                 }}
+                TransitionComponent={Fade}
             >
                 <List sx={{width: '370px', maxHeight: '400px', overflowY: 'auto'}} subheader={<NotificationsHeader/>}>
                     {
