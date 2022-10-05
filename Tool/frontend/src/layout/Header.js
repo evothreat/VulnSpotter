@@ -17,6 +17,7 @@ import {Badge, Fade, List, ListItem, ListItemIcon, ListItemText, ListSubheader, 
 import * as Utils from "../utils";
 import {getMessage} from "./message";
 import NotificationsService from "../services/NotificationsService";
+import api from "../services/api";
 
 // TODO: introduce path constants
 // TODO: add correct settings with icons
@@ -59,7 +60,7 @@ function NotificationItem({notif, divider}) {
     );
 }
 
-function NotificationsHeader() {
+function NotificationsHeader({deleteHandler}) {
     return (
         <ListSubheader sx={{pt: '6px', borderBottom: '1px solid #e3e3e3'}}>
             <Box sx={{
@@ -68,7 +69,7 @@ function NotificationsHeader() {
                 justifyContent: 'space-between',
             }}>
                 <Typography variant="subtitle1" sx={{color: '#505050'}}>Notifications</Typography>
-                <IconButton>
+                <IconButton onClick={deleteHandler}>
                     <DeleteIcon fontSize="small"/>
                 </IconButton>
             </Box>
@@ -128,6 +129,25 @@ function Notifications() {
     };
     const handleClose = () => {
         setAnchorEl(null);
+        markAllAsSeen();
+    };
+
+    const markAllAsSeen = () => {
+        notifs.forEach((n) => {
+            if (!n.is_seen) {
+                n.is_seen = true;
+                api.patch(n.href, {'is_seen': true})
+                    .catch((err) => {
+                        console.log('Header.markAllAsSeen:', err)
+                    });
+            }
+        });
+        setNotifs(notifs.slice());
+    };
+
+    const deleteAll = () => {
+        notifs.forEach((n) => api.delete(n.href));
+        setNotifs([]);
     };
 
     return (
@@ -153,7 +173,8 @@ function Notifications() {
                 }}
                 TransitionComponent={Fade}
             >
-                <List sx={{width: '370px', maxHeight: '400px', overflowY: 'auto'}} subheader={<NotificationsHeader/>}>
+                <List sx={{width: '370px', maxHeight: '430px', overflowY: 'auto'}}
+                      subheader={<NotificationsHeader deleteHandler={deleteAll}/>}>
                     {
                         notifs.length > 0
                             ? notifs.map((n, i) => {
@@ -197,9 +218,9 @@ function UserMenu() {
                 open={anchorEl != null}
                 onClose={handleClose}
             >
-                {settings.map((setting) => (
-                    <MenuItem key={setting} onClick={handleClose}>
-                        <Typography textAlign="center">{setting}</Typography>
+                {settings.map((s) => (
+                    <MenuItem key={s} onClick={handleClose}>
+                        <Typography textAlign="center">{s}</Typography>
                     </MenuItem>
                 ))}
             </Menu>
