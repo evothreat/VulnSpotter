@@ -19,9 +19,7 @@ import {getMessage} from "./message";
 import NotificationsService from "../services/NotificationsService";
 
 // TODO: introduce path constants
-// TODO: keep this component always mounted!
 // TODO: add correct settings with icons
-// TODO: disable popover's transition?
 
 
 const badgeStyle = {
@@ -78,6 +76,14 @@ function NotificationsHeader() {
     );
 }
 
+function EmptyListMsg() {
+    return (
+        <Typography align="center" sx={{color: '#808080', padding: '10px'}}>
+            No notifications
+        </Typography>
+    );
+}
+
 function Notifications() {
     const [anchorEl, setAnchorEl] = useState(null);
     const [notifs, setNotifs] = useState([]);
@@ -127,9 +133,7 @@ function Notifications() {
     return (
         <Fragment>
             <IconButton color="inherit" onClick={handleOpen}>
-                <Badge sx={badgeStyle}
-                       overlap="circular"
-                       badgeContent={notifs.filter((n) => !n.is_seen).length}>
+                <Badge sx={badgeStyle} overlap="circular" badgeContent={notifs.filter((n) => !n.is_seen).length}>
                     <NotificationsIcon/>
                 </Badge>
             </IconButton>
@@ -151,9 +155,11 @@ function Notifications() {
             >
                 <List sx={{width: '370px', maxHeight: '400px', overflowY: 'auto'}} subheader={<NotificationsHeader/>}>
                     {
-                        notifs.map((n, i) => {
-                            return <NotificationItem notif={n} key={n.id} divider={notifs.length > i + 1}/>
-                        })
+                        notifs.length > 0
+                            ? notifs.map((n, i) => {
+                                return <NotificationItem notif={n} key={n.id} divider={notifs.length > i + 1}/>
+                            })
+                            : <EmptyListMsg/>
                     }
                 </List>
             </Popover>
