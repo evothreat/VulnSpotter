@@ -17,7 +17,6 @@ import {Badge, Fade, List, ListItem, ListItemIcon, ListItemText, ListSubheader, 
 import * as Utils from "../utils";
 import {getMessage} from "./message";
 import NotificationsService from "../services/NotificationsService";
-import api from "../services/api";
 
 // TODO: introduce path constants
 // TODO: add correct settings with icons
@@ -133,20 +132,25 @@ function Notifications() {
     };
 
     const markAllAsSeen = () => {
-        notifs.forEach((n) => {
-            if (!n.is_seen) {
-                n.is_seen = true;
-                api.patch(n.href, {'is_seen': true})
-                    .catch((err) => {
-                        console.log('Header.markAllAsSeen:', err)
-                    });
-            }
+        const ids = notifs.filter((n) => !n.is_seen).map((n) => {
+            n.is_seen = true;
+            return n.id;
+        });
+        if (ids.length === 0) {
+            return;
+        }
+        NotificationsService.updateMany(ids, {'is_seen': true})
+            .catch((err) => {
+                console.log('Header.markAllAsSeen:', err)
         });
         setNotifs(notifs.slice());
     };
 
     const deleteAll = () => {
-        notifs.forEach((n) => api.delete(n.href));
+        NotificationsService.deleteMany(notifs.map((n) => n.id))
+            .catch((err) => {
+                console.log('Header.deleteAll:', err)
+            });
         setNotifs([]);
     };
 
