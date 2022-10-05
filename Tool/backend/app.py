@@ -343,6 +343,29 @@ def update_notification(notif_id):
     return '', 204
 
 
+@app.route('/api/users/me/notifications', methods=['PATCH'])
+@jwt_required()
+def update_notifications():
+    ids = request.args.get('ids')
+    if not all(i.isdigit() for i in ids.split(',')):
+        return '', 400
+
+    params, args = sql_params_args(
+        request.json,
+        {
+            'is_seen': bool
+        }
+    )
+    if not params:
+        return '', 400
+
+    args.append(get_jwt_identity())
+    # prepare the statement to allow optimization?
+    db_conn.execute(f'UPDATE user_notifications SET {params} WHERE user_id=? AND notif_id IN ({ids})', args)
+    # verify rowcount to ensure that every specified resource was updated?
+    return '', 204
+
+
 @app.route('/api/users/me/notifications/<notif_id>', methods=['DELETE'])
 @jwt_required()
 def delete_notification(notif_id):
@@ -362,8 +385,13 @@ def delete_notification(notif_id):
 @app.route('/api/users/me/notifications', methods=['DELETE'])
 @jwt_required()
 def delete_notifications():
+    ids = request.args.get('ids')
+    if not all(i.isdigit() for i in ids.split(',')):
+        return '', 400
+
     with transaction(db_conn):
-        db_conn.execute('DELETE FROM user_notifications WHERE user_id=?', (get_jwt_identity(),))
+        db_conn.execute(f'DELETE FROM user_notifications WHERE user_id=? AND notif_id IN ({ids})',
+                        (get_jwt_identity(),))
         # warning: deletes every orphaned row in notifications table (unrelated to current user)
         db_conn.execute('DELETE FROM notifications WHERE '
                         'NOT EXISTS(SELECT * FROM user_notifications WHERE notif_id=notifications.id)')
