@@ -67,29 +67,36 @@ function ProjectTableHead({order, orderBy, sortReqHandler}) {
     )
 }
 
-function ProjectTableList({items}) {
-    if (items.length === 0) {
-        return (
-            <TableBody>
-                <TableRow>
-                    <TableCell colSpan="100%" sx={{border: 0}}>There are no items to display.</TableCell>
-                </TableRow>
-            </TableBody>
-        );
-    }
+function EmptyTableMsg() {
     return (
         <TableBody>
-            {items.map((p) =>
-                <TableRow key={p.id}>
-                    <TableCell>{p.name}</TableCell>
-                    <TableCell>{p.owner_name}</TableCell>
-                    <TableCell>{Utils.fmtTimeSince(p.updated_at) + ' ago'}</TableCell>
-                    <TableCell align="right">
-                        <IconButton>
-                            <MoreVertIcon/>
-                        </IconButton>
-                    </TableCell>
-                </TableRow>)}
+            <TableRow>
+                <TableCell colSpan="100%" sx={{border: 0, color: '#606060'}}>
+                    There are no items to display
+                </TableCell>
+            </TableRow>
+        </TableBody>
+    );
+}
+
+function ProjectTableList({items}) {
+    return (
+        <TableBody>
+            {
+                items.length > 0
+                    ? items.map((p) =>
+                        <TableRow key={p.id}>
+                            <TableCell>{p.name}</TableCell>
+                            <TableCell>{p.owner_name}</TableCell>
+                            <TableCell>{Utils.fmtTimeSince(p.updated_at) + ' ago'}</TableCell>
+                            <TableCell align="right">
+                                <IconButton>
+                                    <MoreVertIcon/>
+                                </IconButton>
+                            </TableCell>
+                        </TableRow>)
+                    : <EmptyTableMsg/>
+            }
         </TableBody>
     );
 }
