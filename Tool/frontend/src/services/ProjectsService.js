@@ -8,8 +8,8 @@ class ProjectsService {
 
     create(repoUrl, projName) {
         return api.post('/users/me/projects', {
-            repoUrl: repoUrl,
-            projName: projName
+            'repo_url': repoUrl,
+            'proj_name': projName
         });
     }
 }

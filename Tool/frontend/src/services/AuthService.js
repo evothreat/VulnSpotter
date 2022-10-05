@@ -5,8 +5,8 @@ class AuthService {
 
     login(username, password) {
         return api.post('/login', {
-            username: username,
-            password: password,
+            'username': username,
+            'password': password,
         }).then((resp) => {
             TokenService.setRefreshToken(resp.data.refresh_token);
             TokenService.setAccessToken(resp.data.access_token);
@@ -29,9 +29,9 @@ class AuthService {
 
     register(username, email, password) {
         return api.post('/register', {
-            username,
-            email,
-            password
+            'username': username,
+            'email': email,
+            'password': password
         });
     }
 

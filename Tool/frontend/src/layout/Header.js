@@ -108,7 +108,7 @@ function Notifications() {
                     if (isMounted) {
                         setNotifs((curNotifs) => {
                             const newNotifs = notifsComplement(resp.data, curNotifs).sort(comparator);
-                            return newNotifs.length > 0 ? curNotifs.concat(newNotifs) : curNotifs;
+                            return newNotifs.length > 0 ? newNotifs.concat(curNotifs) : curNotifs;
                         });
                     }
                 })
