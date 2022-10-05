@@ -57,9 +57,6 @@ export function Projects() {
                     p.owner_name = p.owner.full_name;
                 });
                 setProjects(resp.data);
-            })
-            .catch((err) => {
-                console.log('Projects.useEffect:', err);
             });
     }, []);
 
@@ -93,10 +90,7 @@ export function Projects() {
     const handleCreateProj = (repoUrl, projName) => {
         hideNewProjDlg();
 
-        ProjectsService.create(repoUrl, projName)
-            .catch((err) => {
-                console.log('Projects.handleCreateProj:', err);
-            });
+        ProjectsService.create(repoUrl, projName);
 
         showAlert('Once the project is created, you will be notified');
     };

@@ -97,9 +97,6 @@ function Notifications() {
                 if (isMounted) {
                     setNotifs(resp.data.sort(comparator));
                 }
-            })
-            .catch((err) => {
-                console.log('Header.useEffect:', err);
             });
         // every minute fetch only unseen notifications
         const updateNotifs = () => {
@@ -111,9 +108,6 @@ function Notifications() {
                             return newNotifs.length > 0 ? newNotifs.concat(curNotifs) : curNotifs;
                         });
                     }
-                })
-                .catch((err) => {
-                    console.log('Header.useEffect:', err);
                 });
         };
         let interval = setInterval(updateNotifs, 60000);
@@ -139,18 +133,12 @@ function Notifications() {
         if (ids.length === 0) {
             return;
         }
-        NotificationsService.updateMany(ids, {'is_seen': true})
-            .catch((err) => {
-                console.log('Header.markAllAsSeen:', err)
-        });
+        NotificationsService.updateMany(ids, {'is_seen': true});
         setNotifs(notifs.slice());
     };
 
     const deleteAll = () => {
-        NotificationsService.deleteMany(notifs.map((n) => n.id))
-            .catch((err) => {
-                console.log('Header.deleteAll:', err)
-            });
+        NotificationsService.deleteMany(notifs.map((n) => n.id));
         setNotifs([]);
     };
 

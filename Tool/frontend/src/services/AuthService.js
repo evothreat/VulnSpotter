@@ -6,7 +6,7 @@ class AuthService {
     login(username, password) {
         return api.post('/login', {
             'username': username,
-            'password': password,
+            'password': password
         }).then((resp) => {
             TokenService.setRefreshToken(resp.data.refresh_token);
             TokenService.setAccessToken(resp.data.access_token);
@@ -14,11 +14,12 @@ class AuthService {
             return api.get('/users/me')
                 .then((r) => {
                     TokenService.setIdentity(r.data);
-                })
-                .catch((err) => {
+
+                }).catch((err) => {
                     TokenService.invalidate();
                     return Promise.reject(err);
                 });
+
         });
     }
 

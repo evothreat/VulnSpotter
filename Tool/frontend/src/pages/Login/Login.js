@@ -27,12 +27,12 @@ export default function Login() {
         const data = new FormData(event.currentTarget);
 
         AuthService.login(data.get('username'), data.get('password'))
-            .then(() => window.location.replace('/projects'))
-            .catch((err) => {
+            .then(() => {
+                window.location.replace('/projects');
+
+            }).catch((err) => {
                 if (err.response?.status === 401) {
                     setShowError(true);
-                } else {
-                    console.log('AuthService.login:', err);
                 }
             })
     };

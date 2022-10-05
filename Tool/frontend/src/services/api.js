@@ -28,10 +28,13 @@ const onResponseError = async (err) => {
             TokenService.setAccessToken(resp.data.access_token);
             return api(origReq);
         } catch (_err) {
+            console.error(_err);
             return Promise.reject(_err);
         }
+    } else {
+        console.error(err);
+        return Promise.reject(err);
     }
-    return Promise.reject(err);
 };
 
 const api = axios.create({
