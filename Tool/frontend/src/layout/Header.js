@@ -99,7 +99,7 @@ function Notifications() {
                 }
             })
             .catch((err) => {
-                console.log('Header.getNotifications:', err);
+                console.log('Header.useEffect:', err);
             });
         // every minute fetch only unseen notifications
         const updateNotifs = () => {
@@ -113,7 +113,7 @@ function Notifications() {
                     }
                 })
                 .catch((err) => {
-                    console.log('Header.getNotifications:', err);
+                    console.log('Header.useEffect:', err);
                 });
         };
         let interval = setInterval(updateNotifs, 60000);

@@ -59,7 +59,7 @@ export function Projects() {
                 setProjects(resp.data);
             })
             .catch((err) => {
-                console.log('Projects.getProjects:', err);
+                console.log('Projects.useEffect:', err);
             });
     }, []);
 
@@ -93,7 +93,10 @@ export function Projects() {
     const handleCreateProj = (repoUrl, projName) => {
         hideNewProjDlg();
 
-        // run service
+        ProjectsService.create(repoUrl, projName)
+            .catch((err) => {
+                console.log('Projects.handleCreateProj:', err);
+            });
 
         showAlert('Once the project is created, you will be notified');
     };
@@ -116,10 +119,11 @@ export function Projects() {
                         New
                     </Button>
                 </Box>
-
-                {projects !== null ? <ProjectTable items={projects}
-                                                   userId={AuthService.getCurrentUser().id}/> :
-                    <p>Loading projects...</p>}
+                {
+                    projects !== null
+                        ? <ProjectTable items={projects} userId={AuthService.getCurrentUser().id}/>
+                        : <p>Loading projects...</p>
+                }
             </Box>
 
             <NewProjectDialog open={newProjDlgVisible}
