@@ -67,18 +67,6 @@ function ProjectTableHead({order, orderBy, sortReqHandler}) {
     )
 }
 
-function EmptyTableMsg() {
-    return (
-        <TableBody>
-            <TableRow>
-                <TableCell colSpan="100%" sx={{border: 0, color: '#606060'}}>
-                    There are no items to display
-                </TableCell>
-            </TableRow>
-        </TableBody>
-    );
-}
-
 function ProjectTableList({items}) {
     return (
         <TableBody>
@@ -95,7 +83,11 @@ function ProjectTableList({items}) {
                                 </IconButton>
                             </TableCell>
                         </TableRow>)
-                    : <EmptyTableMsg/>
+                    : <TableRow>
+                        <TableCell colSpan="100%" sx={{border: 0, color: '#606060'}}>
+                            There are no items to display
+                        </TableCell>
+                    </TableRow>
             }
         </TableBody>
     );
@@ -131,10 +123,10 @@ export default function ProjectTable({items, userId}) {
 
     const getItems = () => {
         return items.filter((p) => (group === 'all' ||
-                                    (group === 'personal' && p.owner.id === userId) ||
-                                    (group === 'starred' && p.starred)) &&
-                                   p.name.toLowerCase().includes(searchKw.toLowerCase()))
-                    .sort(Utils.createComparator(sorter.orderBy, sorter.order));
+                (group === 'personal' && p.owner.id === userId) ||
+                (group === 'starred' && p.starred)) &&
+            p.name.toLowerCase().includes(searchKw.toLowerCase()))
+            .sort(Utils.createComparator(sorter.orderBy, sorter.order));
     };
 
     return (
