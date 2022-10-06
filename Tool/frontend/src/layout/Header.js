@@ -130,20 +130,21 @@ function Notifications() {
             n.is_seen = true;
             return n.id;
         });
-        if (ids.length === 0) {
-            return;
+        if (ids.length > 0) {
+            NotificationsService.updateMany(ids, {'is_seen': true})
+                .then(() => {
+                    setNotifs(notifs.slice());
+                });
         }
-        NotificationsService.updateMany(ids, {'is_seen': true})
-            .then(() => {
-                setNotifs(notifs.slice());
-            });
     };
 
     const deleteAll = () => {
-        NotificationsService.deleteMany(notifs.map((n) => n.id))
-            .then(() => {
-                setNotifs([]);
-            });
+        if (notifs.length > 0) {
+            NotificationsService.deleteMany(notifs.map((n) => n.id))
+                .then(() => {
+                    setNotifs([]);
+                });
+        }
     };
 
     return (
