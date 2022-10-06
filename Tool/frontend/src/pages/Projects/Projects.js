@@ -90,9 +90,10 @@ export function Projects() {
     const handleCreateProj = (repoUrl, projName) => {
         hideNewProjDlg();
 
-        ProjectsService.create(repoUrl, projName);
-
-        showAlert('Once the project is created, you will be notified');
+        ProjectsService.create(repoUrl, projName)
+            .then(() => {
+                showAlert('Once the project is created, you will be notified');
+            });
     };
 
     return (

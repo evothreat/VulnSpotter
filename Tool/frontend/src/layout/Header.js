@@ -98,7 +98,7 @@ function Notifications() {
                     setNotifs(resp.data.sort(comparator));
                 }
             });
-        // every minute fetch only unseen notifications
+        // every 30 seconds fetch only unseen notifications
         const updateNotifs = () => {
             NotificationsService.get({unseen: true})
                 .then((resp) => {
@@ -110,7 +110,7 @@ function Notifications() {
                     }
                 });
         };
-        let interval = setInterval(updateNotifs, 60000);
+        let interval = setInterval(updateNotifs, 30000);
         return () => {
             isMounted = false;
             clearInterval(interval);
@@ -133,13 +133,17 @@ function Notifications() {
         if (ids.length === 0) {
             return;
         }
-        NotificationsService.updateMany(ids, {'is_seen': true});
-        setNotifs(notifs.slice());
+        NotificationsService.updateMany(ids, {'is_seen': true})
+            .then(() => {
+                setNotifs(notifs.slice());
+            });
     };
 
     const deleteAll = () => {
-        NotificationsService.deleteMany(notifs.map((n) => n.id));
-        setNotifs([]);
+        NotificationsService.deleteMany(notifs.map((n) => n.id))
+            .then(() => {
+                setNotifs([]);
+            });
     };
 
     return (
