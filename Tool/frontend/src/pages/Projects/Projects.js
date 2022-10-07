@@ -1,4 +1,4 @@
-import {Fragment, useEffect, useState} from "react";
+import {Fragment, useState} from "react";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import AddIcon from '@mui/icons-material/Add';
@@ -50,28 +50,17 @@ function NewProjectDialog({open, closeDlgHandler, createProjHandler}) {
 
 export function Projects() {
 
-    useEffect(() => {
-        ProjectsService.get()
-            .then((resp) => {
-                resp.data.forEach((p) => {
-                    p.owner_name = p.owner.full_name;
-                });
-                setProjects(resp.data);
-            });
-    }, []);
-
-    const [projects, setProjects] = useState(null);
-    const [newProjDlgVisible, setNewProjDlgVisible] = useState(false);
+    const [openNewProjDlg, setOpenNewProjDlg] = useState(false);
     const [alert, setAlert] = useState({
         visible: false,
         msg: ''
     });
 
     const showNewProjDlg = () => {
-        setNewProjDlgVisible(true);
+        setOpenNewProjDlg(true);
     };
     const hideNewProjDlg = () => {
-        setNewProjDlgVisible(false);
+        setOpenNewProjDlg(false);
     };
 
     const showAlert = (msg) => {
@@ -114,14 +103,10 @@ export function Projects() {
                         New
                     </Button>
                 </Box>
-                {
-                    projects !== null
-                        ? <ProjectTable items={projects} userId={AuthService.getCurrentUser().id}/>
-                        : <p>Loading projects...</p>
-                }
+                <ProjectTable userId={AuthService.getCurrentUser().id}/>
             </Box>
 
-            <NewProjectDialog open={newProjDlgVisible}
+            <NewProjectDialog open={openNewProjDlg}
                               closeDlgHandler={hideNewProjDlg}
                               createProjHandler={handleCreateProj}/>
 

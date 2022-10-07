@@ -12,6 +12,10 @@ class ProjectsService {
             'proj_name': projName
         });
     }
+
+    delete(id) {
+        return api.delete('/users/me/projects/' + id);
+    }
 }
 
 export default new ProjectsService();
