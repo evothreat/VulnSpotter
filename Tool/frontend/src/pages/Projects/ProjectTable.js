@@ -6,9 +6,10 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
 import IconButton from "@mui/material/IconButton";
-import {TableSortLabel, ToggleButtonGroup} from "@mui/material";
+import {Fade, TableSortLabel, ToggleButtonGroup, Tooltip} from "@mui/material";
 import {ToggleButton} from "@mui/material";
 import {SearchBar} from "./SearchBar";
 import Box from "@mui/material/Box";
@@ -20,7 +21,7 @@ const headCells = [
         label: 'Name',
         key: 'name',
         sortable: true,
-        width: '37%'
+        width: '35%'
     },
     {
         label: 'Owner',
@@ -35,13 +36,41 @@ const headCells = [
         width: '20%'
     },
     {
-        label: '',
+        label: 'Action',
         key: 'action',
         sortable: false,
-        width: '8%'
+        width: '10%',
+        align: 'right'
     }
 ];
 
+const tooltipStyle = {
+    tooltip: {
+        sx: {
+            bgcolor: 'common.black',
+            '& .MuiTooltip-arrow': {
+                color: 'common.black',
+            },
+        },
+    }
+};
+
+const actionBtnStyle = {
+    fontSize: '22px',
+    padding: '4px 4px'
+};
+
+const ActionTooltip = ({children, ...props}) => {
+    return (
+        <Tooltip arrow
+                 TransitionComponent={Fade}
+                 placement="top"
+                 componentsProps={tooltipStyle}
+                 children={children}
+                 {...props}
+        />
+    );
+};
 
 function ProjectTableHead({order, orderBy, sortReqHandler}) {
     const handleClick = (e) => {
@@ -54,7 +83,8 @@ function ProjectTableHead({order, orderBy, sortReqHandler}) {
                     <TableCell
                         key={hc.key}
                         sx={{fontWeight: 'bold', width: hc.width}}
-                        sortDirection={orderBy === hc.key ? order : false}>
+                        sortDirection={orderBy === hc.key ? order : false}
+                        align={hc.align || 'left'}>
                         {hc.sortable ?
                             <TableSortLabel
                                 active={hc.key === orderBy}
@@ -73,14 +103,23 @@ function ProjectTableList({items}) {
             {
                 items.length > 0
                     ? items.map((p) =>
-                        <TableRow key={p.id}>
+                        <TableRow key={p.id} hover>
                             <TableCell>{p.name}</TableCell>
                             <TableCell>{p.owner_name}</TableCell>
                             <TableCell>{Utils.fmtTimeSince(p.updated_at) + ' ago'}</TableCell>
                             <TableCell align="right">
-                                <IconButton>
-                                    <MoreVertIcon/>
-                                </IconButton>
+                                <Box sx={{display: 'flex', justifyContent: 'right'}}>
+                                    <ActionTooltip title="Rename">
+                                        <IconButton disableRipple sx={actionBtnStyle}>
+                                            <DriveFileRenameOutlineIcon fontSize="inherit"/>
+                                        </IconButton>
+                                    </ActionTooltip>
+                                    <ActionTooltip title="Delete">
+                                        <IconButton disableRipple sx={actionBtnStyle}>
+                                            <DeleteForeverIcon fontSize="inherit"/>
+                                        </IconButton>
+                                    </ActionTooltip>
+                                </Box>
                             </TableCell>
                         </TableRow>)
                     : <TableRow>
@@ -145,7 +184,7 @@ export default function ProjectTable({items, userId}) {
                 <SearchBar width="260px" placeholder="Search by name" changeHandler={searchItems}/>
             </Box>
 
-            <TableContainer sx={{maxHeight: '440px'}}>
+            <TableContainer sx={{maxHeight: '450px'}}>
                 <Table size="small" stickyHeader>
                     <ProjectTableHead
                         order={sorter.order}
