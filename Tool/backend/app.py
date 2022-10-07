@@ -238,7 +238,7 @@ def clone_n_parse_repo(user_id, repo_url, proj_name):
     proj_id = None
     try:
         if not isdir(repo_dir):
-            Repo.clone_from(f'{parts.scheme}:@{repo_loc}', repo_dir)
+            Repo.clone_from(f'{parts.scheme}://:@{repo_loc}', repo_dir)
 
         vulns, _, _ = find_vulns(repo_dir)
         with transaction(db_conn):
