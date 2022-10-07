@@ -142,7 +142,7 @@ function ConfirmDeleteDlg({open, selItem, closeDlgHandler, deleteHandler}) {
             </DialogTitle>
             <DialogContent>
                 <Box sx={{display: 'flex', alignItems: 'flex-end'}}>
-                    <WarningIcon sx={{fontSize: '48px', mr: '12px', color: 'gray'}}/>
+                    <WarningIcon color="warning" sx={{fontSize: '48px', mr: '12px'}}/>
                     <DialogContentText>
                         Are you sure you want to permanently delete the "{selItem.name}"-Project?
                     </DialogContentText>
@@ -150,7 +150,7 @@ function ConfirmDeleteDlg({open, selItem, closeDlgHandler, deleteHandler}) {
             </DialogContent>
             <DialogActions>
                 <Button variant="outlined" onClick={closeDlgHandler}>Cancel</Button>
-                <Button color="error" variant="contained" onClick={handleDelClick} autoFocus>
+                <Button variant="contained" onClick={handleDelClick} autoFocus>
                     Delete
                 </Button>
             </DialogActions>
