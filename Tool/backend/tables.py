@@ -16,8 +16,8 @@ MEMBERSHIP_SCHEMA = '''
         project_id  INTEGER,
         role        TEXT,
         starred     BOOLEAN,
-        FOREIGN KEY(user_id) REFERENCES users(id),
-        FOREIGN KEY(project_id) REFERENCES projects(id),
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE,
         PRIMARY KEY(user_id, project_id)
     )
 '''
@@ -29,7 +29,7 @@ PROJECTS_SCHEMA = '''
         name        TEXT,
         repository  TEXT,
         updated_at  INTEGER,
-        FOREIGN KEY(owner_id) REFERENCES users(id)
+        FOREIGN KEY(owner_id) REFERENCES users(id) ON DELETE CASCADE
     )
 '''
 
@@ -40,10 +40,10 @@ COMMITS_SCHEMA = '''
         hash        TEXT,
         message     TEXT,
         created_at  INTEGER,
-        FOREIGN KEY(project_id) REFERENCES projects(id)
+        FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
     )
 '''
-
+# we can not cascade on object_id, because it's type is variable...
 NOTIFICATIONS_SCHEMA = '''
     CREATE TABLE notifications (
         id          INTEGER PRIMARY KEY,
@@ -52,7 +52,7 @@ NOTIFICATIONS_SCHEMA = '''
         object_type TEXT,
         object_id   INTEGER,
         created_at  INTEGER,
-        FOREIGN KEY(actor_id) REFERENCES users(id)
+        FOREIGN KEY(actor_id) REFERENCES users(id) ON DELETE CASCADE
     )
 '''
 
@@ -62,8 +62,8 @@ USER_NOTIFICATIONS_SCHEMA = '''
         user_id     INTEGER,
         notif_id    INTEGER,
         is_seen     BOOLEAN,     
-        FOREIGN KEY(user_id) REFERENCES users(id),
-        FOREIGN KEY(notif_id) REFERENCES notifications(id)
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY(notif_id) REFERENCES notifications(id) ON DELETE CASCADE
     )
 '''
 
