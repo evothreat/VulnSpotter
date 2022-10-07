@@ -17,6 +17,7 @@ import {Badge, Fade, List, ListItem, ListItemIcon, ListItemText, ListSubheader, 
 import * as Utils from "../utils";
 import {getMessage} from "./message";
 import NotificationsService from "../services/NotificationsService";
+import ActionTooltip from "../components/ActionTooltip";
 
 // TODO: introduce path constants
 // TODO: add correct settings with icons
@@ -68,9 +69,11 @@ function NotificationsHeader({deleteHandler}) {
                 justifyContent: 'space-between',
             }}>
                 <Typography variant="subtitle1" sx={{color: '#505050'}}>Notifications</Typography>
-                <IconButton onClick={deleteHandler}>
-                    <DeleteIcon fontSize="small"/>
-                </IconButton>
+                <ActionTooltip title="Delete all" placement="left">
+                    <IconButton onClick={deleteHandler}>
+                        <DeleteIcon fontSize="small"/>
+                    </IconButton>
+                </ActionTooltip>
             </Box>
         </ListSubheader>
     );

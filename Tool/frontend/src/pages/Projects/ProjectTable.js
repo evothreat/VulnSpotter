@@ -15,10 +15,8 @@ import {
     DialogActions,
     DialogContent, DialogContentText,
     DialogTitle,
-    Fade,
     TableSortLabel,
     ToggleButtonGroup,
-    Tooltip
 } from "@mui/material";
 import {ToggleButton} from "@mui/material";
 import {SearchBar} from "./SearchBar";
@@ -27,6 +25,7 @@ import * as Utils from "../../utils";
 import Button from "@mui/material/Button";
 import ProjectsService from "../../services/ProjectsService";
 import Typography from "@mui/material/Typography";
+import ActionTooltip from "../../components/ActionTooltip";
 
 
 const headCells = [
@@ -57,32 +56,10 @@ const headCells = [
     }
 ];
 
-const tooltipStyle = {
-    tooltip: {
-        sx: {
-            bgcolor: 'common.black',
-            '& .MuiTooltip-arrow': {
-                color: 'common.black',
-            },
-        },
-    }
-};
 
 const actionBtnStyle = {
     fontSize: '22px',
     padding: '4px 4px'
-};
-
-const ActionTooltip = ({children, ...props}) => {
-    return (
-        <Tooltip arrow
-                 TransitionComponent={Fade}
-                 placement="top"
-                 componentsProps={tooltipStyle}
-                 children={children}
-                 {...props}
-        />
-    );
 };
 
 function ProjectTableHead({order, orderBy, sortReqHandler}) {
