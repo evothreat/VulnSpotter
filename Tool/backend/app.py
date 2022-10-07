@@ -16,6 +16,9 @@ import tables
 from enums import Role, Action, Model
 from utils import time_before, pathjoin, unix_time, normpath, sql_params_args
 
+sqlite3.register_adapter(bool, int)
+sqlite3.register_converter('BOOLEAN', lambda v: bool(int(v)))
+
 app = Flask(__name__)
 jwt = JWTManager(app)
 
@@ -23,10 +26,10 @@ app.config['JWT_SECRET_KEY'] = config.JWT_SECRET_KEY
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = config.JWT_ACCESS_TOKEN_EXPIRES
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = config.JWT_REFRESH_TOKEN_EXPIRES
 
-sqlite3.register_adapter(bool, int)
-sqlite3.register_converter('BOOLEAN', lambda v: bool(int(v)))
 db_conn = sqlite3.connect(config.DB_PATH, check_same_thread=False, isolation_level=None,
                           detect_types=sqlite3.PARSE_DECLTYPES)
+db_conn.execute('PRAGMA foreign_keys=ON')     # to enable foreign keys constraint
+# db_conn.execute('PRAGMA journal_mode=WAL')    # to allow reading while someone is writing
 db_conn.row_factory = sqlite3.Row
 
 
@@ -43,9 +46,6 @@ def transaction(conn):
 
 
 def setup_db():
-    # db_conn.execute('PRAGMA foreign_keys=ON')     # to enable foreign keys constraint
-    # db_conn.execute('PRAGMA journal_mode=WAL')    # to allow reading while someone writing
-
     # tables
     db_conn.execute(tables.USERS_SCHEMA)
     db_conn.execute(tables.PROJECTS_SCHEMA)
@@ -282,6 +282,19 @@ def get_project(proj_id):
     return project(data)
 
 
+@app.route('/api/users/me/projects/<proj_id>', methods=['DELETE'])
+@jwt_required()
+def delete_project(proj_id):
+    deleted = db_conn.execute('DELETE FROM projects WHERE id=?', (proj_id,)).rowcount
+    if deleted == 0:
+        return '', 404
+    # notifications-table doesn't have foreign key enabled to out project, so records must be deleted explicitly
+    db_conn.execute('DELETE FROM notifications WHERE object_type=? AND object_id=?', (Model.PROJECT, proj_id))
+
+    # TODO: notify all members about deletion!
+    return '', 204
+
+
 def notify(users, actor_id, activity, object_type, object_id):
     with transaction(db_conn):
         notif_id = db_conn.execute('INSERT INTO notifications(actor_id,activity,object_type,object_id,created_at) '
@@ -360,7 +373,7 @@ def update_notifications():
         return '', 400
 
     args.append(get_jwt_identity())
-    # prepare the statement to allow optimization?
+    # warning: using raw data directly avoiding bind-variables, decreases performance (try to create prepared stmt)
     db_conn.execute(f'UPDATE user_notifications SET {params} WHERE user_id=? AND notif_id IN ({ids})', args)
     # verify rowcount to ensure that every specified resource was updated?
     return '', 204
@@ -370,14 +383,14 @@ def update_notifications():
 @jwt_required()
 def delete_notification(notif_id):
     with transaction(db_conn):
-        deleted = db_conn.execute('DELETE FROM user_notifications WHERE user_id=? AND notif_id=?',
-                                  (get_jwt_identity(), notif_id)).rowcount
+        deleted = db_conn.execute(
+            f'DELETE FROM notifications WHERE id=? '
+            f'AND EXISTS('
+            f'SELECT notif_id FROM user_notifications WHERE notif_id=notifications.id AND user_id=?)',
+            (notif_id, get_jwt_identity())).rowcount
+
         if deleted == 0:
             return '', 404
-
-        db_conn.execute('DELETE FROM notifications '
-                        'WHERE id=? AND NOT EXISTS(SELECT * FROM user_notifications WHERE notif_id=?)',
-                        (notif_id, notif_id))
 
     return '', 204
 
@@ -389,12 +402,10 @@ def delete_notifications():
     if not all(i.isdigit() for i in ids.split(',')):
         return '', 400
 
-    with transaction(db_conn):
-        db_conn.execute(f'DELETE FROM user_notifications WHERE user_id=? AND notif_id IN ({ids})',
-                        (get_jwt_identity(),))
-        # warning: deletes every orphaned row in notifications table (unrelated to current user)
-        db_conn.execute('DELETE FROM notifications WHERE '
-                        'NOT EXISTS(SELECT * FROM user_notifications WHERE notif_id=notifications.id)')
+    db_conn.execute(f'DELETE FROM notifications WHERE id IN ({ids}) '
+                    f'AND EXISTS('
+                    f'SELECT notif_id FROM user_notifications WHERE notif_id=notifications.id AND user_id=?)',
+                    (get_jwt_identity(),))
 
     return '', 204
 
@@ -407,5 +418,4 @@ if __name__ == '__main__':
 
 # PROBLEMS
 # 1. types aren't in explicit table
-
-# why using links in representation? faster access & paths can change
+# 2. what is the use of links in representation?
