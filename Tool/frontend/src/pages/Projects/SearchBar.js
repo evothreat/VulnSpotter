@@ -14,7 +14,8 @@ export function SearchBar({width, placeholder, changeHandler}) {
         changeHandler(e.target.value);
     };
 
-    const handleClear = () => {
+    const handleClear = (e) => {
+        e.preventDefault();
         setInput('');
         changeHandler('');
     };
@@ -30,7 +31,7 @@ export function SearchBar({width, placeholder, changeHandler}) {
                 ),
                 endAdornment: (
                     <InputAdornment position="start">
-                        <IconButton size="small" onClick={handleClear}>
+                        <IconButton size="small" onMouseDown={handleClear}>
                             <ClearIcon fontSize="small"/>
                         </IconButton>
                     </InputAdornment>
