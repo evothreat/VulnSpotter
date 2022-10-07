@@ -383,8 +383,8 @@ def update_notifications():
 @jwt_required()
 def delete_notification(notif_id):
     deleted = db_conn.execute(
-        f'DELETE FROM notifications WHERE id=? '
-        f'AND EXISTS(SELECT notif_id FROM user_notifications WHERE notif_id=notifications.id AND user_id=?)',
+        'DELETE FROM notifications WHERE id=? '
+        'AND EXISTS(SELECT notif_id FROM user_notifications WHERE notif_id=notifications.id AND user_id=?)',
         (notif_id, get_jwt_identity())).rowcount
 
     if deleted == 0:
