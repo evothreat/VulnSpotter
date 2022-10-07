@@ -28,7 +28,7 @@ app.config['JWT_REFRESH_TOKEN_EXPIRES'] = config.JWT_REFRESH_TOKEN_EXPIRES
 
 db_conn = sqlite3.connect(config.DB_PATH, check_same_thread=False, isolation_level=None,
                           detect_types=sqlite3.PARSE_DECLTYPES)
-db_conn.execute('PRAGMA foreign_keys=ON')     # to enable foreign keys constraint
+db_conn.execute('PRAGMA foreign_keys=ON')  # to enable foreign keys constraint
 # db_conn.execute('PRAGMA journal_mode=WAL')    # to allow reading while someone is writing
 db_conn.row_factory = sqlite3.Row
 
@@ -382,15 +382,13 @@ def update_notifications():
 @app.route('/api/users/me/notifications/<notif_id>', methods=['DELETE'])
 @jwt_required()
 def delete_notification(notif_id):
-    with transaction(db_conn):
-        deleted = db_conn.execute(
-            f'DELETE FROM notifications WHERE id=? '
-            f'AND EXISTS('
-            f'SELECT notif_id FROM user_notifications WHERE notif_id=notifications.id AND user_id=?)',
-            (notif_id, get_jwt_identity())).rowcount
+    deleted = db_conn.execute(
+        f'DELETE FROM notifications WHERE id=? '
+        f'AND EXISTS(SELECT notif_id FROM user_notifications WHERE notif_id=notifications.id AND user_id=?)',
+        (notif_id, get_jwt_identity())).rowcount
 
-        if deleted == 0:
-            return '', 404
+    if deleted == 0:
+        return '', 404
 
     return '', 204
 
@@ -402,10 +400,10 @@ def delete_notifications():
     if not all(i.isdigit() for i in ids.split(',')):
         return '', 400
 
-    db_conn.execute(f'DELETE FROM notifications WHERE id IN ({ids}) '
-                    f'AND EXISTS('
-                    f'SELECT notif_id FROM user_notifications WHERE notif_id=notifications.id AND user_id=?)',
-                    (get_jwt_identity(),))
+    db_conn.execute(
+        f'DELETE FROM notifications WHERE id IN ({ids}) '
+        f'AND EXISTS(SELECT notif_id FROM user_notifications WHERE notif_id=notifications.id AND user_id=?)',
+        (get_jwt_identity(),))
 
     return '', 204
 
