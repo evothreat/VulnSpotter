@@ -26,6 +26,7 @@ import Button from "@mui/material/Button";
 import ProjectsService from "../../services/ProjectsService";
 import Typography from "@mui/material/Typography";
 import ActionTooltip from "../../components/ActionTooltip";
+import TextField from "@mui/material/TextField";
 
 
 const headCells = [
@@ -87,11 +88,14 @@ function ProjectTableHead({order, orderBy, sortReqHandler}) {
     )
 }
 
-function ProjectTableList({items, deleteHandler}) {
+function ProjectTableList({items, deleteHandler, renameHandler}) {
 
     const handleDelClick = (e) => {
-        const itemId = Number(e.currentTarget.dataset.id);
-        deleteHandler(itemId);
+        deleteHandler(Number(e.currentTarget.dataset.itemId));
+    };
+
+    const handleRenClick = (e) => {
+        renameHandler(Number(e.currentTarget.dataset.itemId));
     };
 
     return (
@@ -106,12 +110,13 @@ function ProjectTableList({items, deleteHandler}) {
                             <TableCell align="right">
                                 <Box sx={{display: 'flex', justifyContent: 'right'}}>
                                     <ActionTooltip title="Rename">
-                                        <IconButton disableRipple sx={actionBtnStyle} data-id={it.id}>
+                                        <IconButton disableRipple sx={actionBtnStyle} data-item-id={it.id}
+                                                    onClick={handleRenClick}>
                                             <DriveFileRenameOutlineIcon fontSize="inherit"/>
                                         </IconButton>
                                     </ActionTooltip>
                                     <ActionTooltip title="Delete">
-                                        <IconButton disableRipple sx={actionBtnStyle} data-id={it.id}
+                                        <IconButton disableRipple sx={actionBtnStyle} data-item-id={it.id}
                                                     onClick={handleDelClick}>
                                             <DeleteForeverIcon fontSize="inherit"/>
                                         </IconButton>
@@ -129,16 +134,16 @@ function ProjectTableList({items, deleteHandler}) {
     );
 }
 
-function ConfirmDeleteDlg({open, selItem, closeDlgHandler, deleteHandler}) {
+function ConfirmDeleteDialog({open, selItem, closeHandler, deleteHandler}) {
 
     const handleDelClick = () => {
-        deleteHandler(selItem.id, true);
+        deleteHandler(selItem.id);
     };
 
     return (
-        <Dialog open={open} onClose={closeDlgHandler} maxWidth="xs">
+        <Dialog open={open} onClose={closeHandler} maxWidth="xs" fullWidth>
             <DialogTitle>
-                {'Delete Project'}
+                Delete Project
             </DialogTitle>
             <DialogContent>
                 <Box sx={{display: 'flex', alignItems: 'flex-end'}}>
@@ -149,11 +154,35 @@ function ConfirmDeleteDlg({open, selItem, closeDlgHandler, deleteHandler}) {
                 </Box>
             </DialogContent>
             <DialogActions>
-                <Button variant="outlined" onClick={closeDlgHandler}>Cancel</Button>
+                <Button variant="outlined" onClick={closeHandler}>Cancel</Button>
                 <Button variant="contained" onClick={handleDelClick} autoFocus>
                     Delete
                 </Button>
             </DialogActions>
+        </Dialog>
+    );
+}
+
+function RenameProjectDialog({open, selItem, closeHandler, renameHandler}) {
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        renameHandler(selItem.id, e.target.projName.value);
+    };
+
+    return (
+        <Dialog open={open} onClose={closeHandler} maxWidth="xs" fullWidth>
+            <form onSubmit={handleSubmit}>
+                <DialogTitle>Rename Project</DialogTitle>
+                <DialogContent>
+                    <TextField name="projName" margin="dense" label="Project name"
+                               defaultValue={selItem.name} fullWidth required autoFocus/>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={closeHandler} variant="outlined">Cancel</Button>
+                    <Button type="submit" variant="contained">Rename</Button>
+                </DialogActions>
+            </form>
         </Dialog>
     );
 }
@@ -166,7 +195,9 @@ export default function ProjectTable({userId}) {
         orderBy: 'updated_at'
     });
     const [searchKw, setSearchKw] = useState('');
-    const [openConfirmDelDlg, setOpenConfirmDelDlg] = useState(false);
+    const [openConfirmDlg, setOpenConfirmDlg] = useState(false);
+    const [openRenameDlg, setOpenRenameDlg] = useState(false);
+
     const selItemRef = useRef('');
 
     useEffect(() => {
@@ -179,7 +210,7 @@ export default function ProjectTable({userId}) {
             });
     }, []);
 
-    const handleGroupChg = (event, val) => {
+    const handleGroupChg = (e, val) => {
         // If the user presses the same button twice (i.e. deselects option), do nothing (replace later with radio buttons).
         if (val) {
             setGroup(val);
@@ -199,32 +230,54 @@ export default function ProjectTable({userId}) {
         setSearchKw(kw);
     };
 
-    const deleteItem = (id, confirmed=false) => {
-        if (confirmed) {
-            ProjectsService.delete(id)
-                .then(() => {
-                    setItems((curItems) => curItems.filter((it) => it.id !== id));
-                });
-            hideConfirmDelDlg();    // first check if even open?
-        } else {
-            selItemRef.current = items.find((it) => it.id === id);
-            showConfirmDelDlg();
-        }
+    const handleRenameClickRow = (id) => {
+        selItemRef.current = items.find((it) => it.id === id);
+        showRenameDlg();
+    };
+    const handleRenameClickDlg = (id, newName) => {
+        ProjectsService.update(id, {'name': newName})
+            .then(() => {
+                setItems((curItems) => {
+                        curItems.find((it) => it.id === id).name = newName;
+                        return curItems.slice();
+                    }
+                );
+            });
+        hideRenameDlg();
+    };
+
+    const handleDeleteClickRow = (id) => {
+        selItemRef.current = items.find((it) => it.id === id);
+        showConfirmDlg();
+    };
+    const handleDeleteClickDlg = (id) => {
+        ProjectsService.delete(id)
+            .then(() => {
+                setItems((curItems) => curItems.filter((it) => it.id !== id));
+            });
+        hideConfirmDlg();
     };
 
     const getItems = () => {
         return items.filter((it) => (group === 'all' ||
-                                    (group === 'personal' && it.owner.id === userId) ||
-                                    (group === 'starred' && it.starred)) &&
-                                    it.name.toLowerCase().includes(searchKw.toLowerCase()))
-                    .sort(Utils.createComparator(sorter.orderBy, sorter.order));
+                (group === 'personal' && it.owner.id === userId) ||
+                (group === 'starred' && it.starred)) &&
+            it.name.toLowerCase().includes(searchKw.toLowerCase()))
+            .sort(Utils.createComparator(sorter.orderBy, sorter.order));
     };
 
-    const showConfirmDelDlg = () => {
-        setOpenConfirmDelDlg(true);
+    const showConfirmDlg = () => {
+        setOpenConfirmDlg(true);
     };
-    const hideConfirmDelDlg = () => {
-        setOpenConfirmDelDlg(false);
+    const hideConfirmDlg = () => {
+        setOpenConfirmDlg(false);
+    };
+
+    const showRenameDlg = () => {
+        setOpenRenameDlg(true);
+    };
+    const hideRenameDlg = () => {
+        setOpenRenameDlg(false);
     };
 
     return (
@@ -251,12 +304,17 @@ export default function ProjectTable({userId}) {
                                 order={sorter.order}
                                 orderBy={sorter.orderBy}
                                 sortReqHandler={sortItems}/>
-                            <ProjectTableList items={getItems()} deleteHandler={deleteItem}/>
+                            <ProjectTableList items={getItems()} deleteHandler={handleDeleteClickRow}
+                                              renameHandler={handleRenameClickRow}/>
                         </Table>
                     </TableContainer>
             }
-            <ConfirmDeleteDlg open={openConfirmDelDlg} selItem={selItemRef.current}
-                              closeDlgHandler={hideConfirmDelDlg} deleteHandler={deleteItem}/>
+
+            <RenameProjectDialog open={openRenameDlg} selItem={selItemRef.current}
+                                 closeHandler={hideRenameDlg} renameHandler={handleRenameClickDlg}/>
+
+            <ConfirmDeleteDialog open={openConfirmDlg} selItem={selItemRef.current}
+                                 closeHandler={hideConfirmDlg} deleteHandler={handleDeleteClickDlg}/>
         </Fragment>
     );
 }

@@ -16,6 +16,10 @@ class ProjectsService {
     delete(id) {
         return api.delete('/users/me/projects/' + id);
     }
+
+    update(id, data) {
+        return api.patch('/users/me/projects/' + id, data);
+    }
 }
 
 export default new ProjectsService();
