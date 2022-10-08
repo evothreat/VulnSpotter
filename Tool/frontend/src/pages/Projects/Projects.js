@@ -21,26 +21,27 @@ import TextField from "@mui/material/TextField";
 const FakeComponent = ({ children }) => children;
 
 
-function NewProjectDialog({open, closeDlgHandler, createProjHandler}) {
+function CreateProjectDialog({open, closeHandler, createHandler}) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        createProjHandler(e.target.repoUrl.value, e.target.projName.value);
+        createHandler(e.target.repoUrl.value, e.target.projName.value);
     };
 
     return (
-        <Dialog open={open} onClose={closeDlgHandler} maxWidth="xs" fullWidth>
+        <Dialog open={open} onClose={closeHandler} maxWidth="xs" fullWidth>
             <form onSubmit={handleSubmit}>
                 <DialogTitle>New Project</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
                         Specify the Git repository to parse.
                     </DialogContentText>
-                    <TextField sx={{mt: '20px'}} name="repoUrl" margin="dense" label="Repository URL" fullWidth required/>
+                    <TextField sx={{mt: '20px'}} name="repoUrl" margin="dense" label="Repository URL"
+                               fullWidth required autoFocus/>
                     <TextField name="projName" margin="dense" label="Project name" fullWidth required/>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={closeDlgHandler} variant="outlined">Cancel</Button>
+                    <Button onClick={closeHandler} variant="outlined">Cancel</Button>
                     <Button type="submit" variant="contained">Create</Button>
                 </DialogActions>
             </form>
@@ -50,17 +51,17 @@ function NewProjectDialog({open, closeDlgHandler, createProjHandler}) {
 
 export function Projects() {
 
-    const [openNewProjDlg, setOpenNewProjDlg] = useState(false);
+    const [openCreateDlg, setOpenCreateDlg] = useState(false);
     const [alert, setAlert] = useState({
         visible: false,
         msg: ''
     });
 
-    const showNewProjDlg = () => {
-        setOpenNewProjDlg(true);
+    const showCreateDlg = () => {
+        setOpenCreateDlg(true);
     };
-    const hideNewProjDlg = () => {
-        setOpenNewProjDlg(false);
+    const hideCreateDlg = () => {
+        setOpenCreateDlg(false);
     };
 
     const showAlert = (msg) => {
@@ -76,9 +77,8 @@ export function Projects() {
         });
     };
 
-    const handleCreateProj = (repoUrl, projName) => {
-        hideNewProjDlg();
-
+    const handleCreateClickDlg = (repoUrl, projName) => {
+        hideCreateDlg();
         ProjectsService.create(repoUrl, projName)
             .then(() => {
                 showAlert('Once the project is created, you will be notified');
@@ -99,16 +99,14 @@ export function Projects() {
                     <Typography variant="h5">
                         Projects
                     </Typography>
-                    <Button variant="contained" startIcon={<AddIcon/>} onClick={showNewProjDlg}>
+                    <Button variant="contained" startIcon={<AddIcon/>} onClick={showCreateDlg}>
                         New
                     </Button>
                 </Box>
                 <ProjectTable userId={AuthService.getCurrentUser().id}/>
             </Box>
 
-            <NewProjectDialog open={openNewProjDlg}
-                              closeDlgHandler={hideNewProjDlg}
-                              createProjHandler={handleCreateProj}/>
+            <CreateProjectDialog open={openCreateDlg} closeHandler={hideCreateDlg} createHandler={handleCreateClickDlg}/>
 
             <Snackbar open={alert.visible} autoHideDuration={5000} onClose={hideAlert} TransitionComponent={FakeComponent}>
                 <Alert onClose={hideAlert} severity="info">
