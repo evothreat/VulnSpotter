@@ -282,6 +282,31 @@ def get_project(proj_id):
     return project(data)
 
 
+@app.route('/api/users/me/projects/<proj_id>', methods=['PATCH'])
+@jwt_required()
+def update_project(proj_id):
+    params, args = sql_params_args(
+        request.json,
+        {
+            'name': str
+        }
+    )
+    if not params:
+        return '', 422
+
+    args.extend([proj_id, get_jwt_identity(), Role.OWNER])
+
+    updated = db_conn.execute(
+        f'UPDATE projects SET {params} WHERE id=? '
+        f'AND EXISTS(SELECT * FROM membership WHERE project_id=projects.id AND user_id=? AND role=?)', args).rowcount
+
+    if updated == 0:
+        return '', 404
+
+    # TODO: notify all members about name change!
+    return '', 204
+
+
 @app.route('/api/users/me/projects/<proj_id>', methods=['DELETE'])
 @jwt_required()
 def delete_project(proj_id):
@@ -384,7 +409,7 @@ def update_notifications():
 def delete_notification(notif_id):
     deleted = db_conn.execute(
         'DELETE FROM notifications WHERE id=? '
-        'AND EXISTS(SELECT notif_id FROM user_notifications WHERE notif_id=notifications.id AND user_id=?)',
+        'AND EXISTS(SELECT * FROM user_notifications WHERE notif_id=notifications.id AND user_id=?)',
         (notif_id, get_jwt_identity())).rowcount
 
     if deleted == 0:
@@ -402,7 +427,7 @@ def delete_notifications():
 
     db_conn.execute(
         f'DELETE FROM notifications WHERE id IN ({ids}) '
-        f'AND EXISTS(SELECT notif_id FROM user_notifications WHERE notif_id=notifications.id AND user_id=?)',
+        f'AND EXISTS(SELECT * FROM user_notifications WHERE notif_id=notifications.id AND user_id=?)',
         (get_jwt_identity(),))
 
     return '', 204
