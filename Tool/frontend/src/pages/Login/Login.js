@@ -22,13 +22,12 @@ export default function Login() {
 
     const [showError, setShowError] = useState(false);
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        const data = new FormData(event.currentTarget);
+    const handleSubmit = (e) => {
+        e.preventDefault();
 
-        AuthService.login(data.get('username'), data.get('password'))
+        AuthService.login(e.target.username.value, e.target.password.value)
             .then(() => {
-                window.location.replace('/projects');
+                window.location.replace('/home');
 
             }).catch((err) => {
                 if (err.response?.status === 401) {
