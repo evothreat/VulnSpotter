@@ -230,11 +230,11 @@ export default function ProjectTable({userId}) {
         setSearchKw(kw);
     };
 
-    const handleRenameClickRow = (id) => {
+    const handleRenameInRow = (id) => {
         selItemRef.current = items.find((it) => it.id === id);
         showRenameDlg();
     };
-    const handleRenameClickDlg = (id, newName) => {
+    const handleRenameInDlg = (id, newName) => {
         ProjectsService.update(id, {'name': newName})
             .then(() => {
                 setItems((curItems) => {
@@ -246,11 +246,11 @@ export default function ProjectTable({userId}) {
         hideRenameDlg();
     };
 
-    const handleDeleteClickRow = (id) => {
+    const handleDeleteInRow = (id) => {
         selItemRef.current = items.find((it) => it.id === id);
         showConfirmDlg();
     };
-    const handleDeleteClickDlg = (id) => {
+    const handleDeleteInDlg = (id) => {
         ProjectsService.delete(id)
             .then(() => {
                 setItems((curItems) => curItems.filter((it) => it.id !== id));
@@ -260,10 +260,10 @@ export default function ProjectTable({userId}) {
 
     const getItems = () => {
         return items.filter((it) => (group === 'all' ||
-                (group === 'personal' && it.owner.id === userId) ||
-                (group === 'starred' && it.starred)) &&
-            it.name.toLowerCase().includes(searchKw.toLowerCase()))
-            .sort(Utils.createComparator(sorter.orderBy, sorter.order));
+                                    (group === 'personal' && it.owner.id === userId) ||
+                                    (group === 'starred' && it.starred)) &&
+                                    it.name.toLowerCase().includes(searchKw.toLowerCase()))
+                    .sort(Utils.createComparator(sorter.orderBy, sorter.order));
     };
 
     const showConfirmDlg = () => {
@@ -304,17 +304,17 @@ export default function ProjectTable({userId}) {
                                 order={sorter.order}
                                 orderBy={sorter.orderBy}
                                 sortReqHandler={sortItems}/>
-                            <ProjectTableList items={getItems()} deleteHandler={handleDeleteClickRow}
-                                              renameHandler={handleRenameClickRow}/>
+                            <ProjectTableList items={getItems()} deleteHandler={handleDeleteInRow}
+                                              renameHandler={handleRenameInRow}/>
                         </Table>
                     </TableContainer>
             }
 
             <RenameProjectDialog open={openRenameDlg} selItem={selItemRef.current}
-                                 closeHandler={hideRenameDlg} renameHandler={handleRenameClickDlg}/>
+                                 closeHandler={hideRenameDlg} renameHandler={handleRenameInDlg}/>
 
             <ConfirmDeleteDialog open={openConfirmDlg} selItem={selItemRef.current}
-                                 closeHandler={hideConfirmDlg} deleteHandler={handleDeleteClickDlg}/>
+                                 closeHandler={hideConfirmDlg} deleteHandler={handleDeleteInDlg}/>
         </Fragment>
     );
 }

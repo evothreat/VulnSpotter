@@ -77,7 +77,7 @@ export default function Projects() {
         });
     };
 
-    const handleCreateClickDlg = (repoUrl, projName) => {
+    const handleCreateInDlg = (repoUrl, projName) => {
         hideCreateDlg();
         ProjectsService.create(repoUrl, projName)
             .then(() => {
@@ -106,7 +106,7 @@ export default function Projects() {
                 <ProjectTable userId={AuthService.getCurrentUser().id}/>
             </Box>
 
-            <CreateProjectDialog open={openCreateDlg} closeHandler={hideCreateDlg} createHandler={handleCreateClickDlg}/>
+            <CreateProjectDialog open={openCreateDlg} closeHandler={hideCreateDlg} createHandler={handleCreateInDlg}/>
 
             <Snackbar open={alert.visible} autoHideDuration={5000} onClose={hideAlert} TransitionComponent={FakeComponent}>
                 <Alert onClose={hideAlert} severity="info">
