@@ -239,7 +239,7 @@ export default function Header() {
                         variant="h6"
                         noWrap
                         component="a"
-                        href="/projects"
+                        href="/home"
                         sx={{
                             fontFamily: 'monospace',
                             fontWeight: 'bolder',

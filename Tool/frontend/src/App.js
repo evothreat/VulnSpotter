@@ -1,30 +1,30 @@
 import {BrowserRouter, Navigate, Outlet, Route, Routes} from "react-router-dom";
-import {Fragment} from "react";
-import Header from "./layout/Header";
-import {Projects} from "./pages/Projects/Projects";
+import Projects from "./pages/Projects/Projects";
+import Commits from "./pages/Commits/Commits";
 import Login from "./pages/Login/Login";
-import {NotFound} from "./pages/NotFound";
+import NotFound from "./pages/NotFound";
 import AuthService from "./services/AuthService";
+import Layout from "./layout/Layout";
 
 
 function RequireAuth() {
     if (!AuthService.isLoggedIn()) {
         return <Navigate to="/login"/>;
     }
-    return <Outlet/>;
+    return (
+        <Layout>
+            <Outlet/>
+        </Layout>
+    );
 }
 
-function App() {
+export default function App() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route element={<RequireAuth/>}>
-                    <Route path="/projects" element={
-                        <Fragment>
-                            <Header/>
-                            <Projects/>
-                        </Fragment>
-                    }/>
+                <Route path="/home" element={<RequireAuth/>}>
+                    <Route path="" element={<Projects/>}/>
+                    <Route path="projects/:projId" element={<Commits/>}/>
                 </Route>
                 <Route path="/login" element={<Login/>}/>
                 <Route path="*" element={<NotFound/>}/>
@@ -32,5 +32,3 @@ function App() {
         </BrowserRouter>
     );
 }
-
-export default App;
