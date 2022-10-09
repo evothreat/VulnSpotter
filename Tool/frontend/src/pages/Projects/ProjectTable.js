@@ -136,9 +136,9 @@ function ProjectTableList({items, setItemToDelete, setItemToRename}) {
     );
 }
 
-function ConfirmDeleteDialog({open, itemToDelete, closeHandler, deleteHandler}) {
+function ConfirmDeleteDialog({itemToDelete, closeHandler, deleteHandler}) {
     return (
-        <Dialog open={open} onClose={closeHandler} maxWidth="xs" fullWidth>
+        <Dialog open={true} onClose={closeHandler} maxWidth="xs" fullWidth>
             <DialogTitle>
                 Delete Project
             </DialogTitle>
@@ -146,7 +146,7 @@ function ConfirmDeleteDialog({open, itemToDelete, closeHandler, deleteHandler}) 
                 <Box sx={{display: 'flex', alignItems: 'flex-end'}}>
                     <WarningIcon color="warning" sx={{fontSize: '48px', mr: '12px'}}/>
                     <DialogContentText>
-                        Are you sure you want to permanently delete the "{itemToDelete?.name}"-Project?
+                        Are you sure you want to permanently delete the "{itemToDelete.name}"-Project?
                     </DialogContentText>
                 </Box>
             </DialogContent>
@@ -160,7 +160,7 @@ function ConfirmDeleteDialog({open, itemToDelete, closeHandler, deleteHandler}) 
     );
 }
 
-function RenameProjectDialog({open, itemToRename, closeHandler, renameHandler}) {
+function RenameProjectDialog({itemToRename, closeHandler, renameHandler}) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -168,12 +168,12 @@ function RenameProjectDialog({open, itemToRename, closeHandler, renameHandler}) 
     };
 
     return (
-        <Dialog open={open} onClose={closeHandler} maxWidth="xs" fullWidth>
+        <Dialog open={true} onClose={closeHandler} maxWidth="xs" fullWidth>
             <form onSubmit={handleSubmit}>
                 <DialogTitle>Rename Project</DialogTitle>
                 <DialogContent>
                     <TextField name="projName" margin="dense" label="Project name"
-                               defaultValue={itemToRename?.name} fullWidth required autoFocus/>
+                               defaultValue={itemToRename.name} fullWidth required autoFocus/>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={closeHandler} variant="outlined">Cancel</Button>
@@ -235,7 +235,7 @@ export default function ProjectTable({userId}) {
 
     const handleDelete = () => {
         const itemId = itemToDelete.id;
-        setItemToDelete(null);
+        clearItemToDelete();
 
         ProjectsService.delete(itemId)
             .then(() => {
@@ -245,7 +245,7 @@ export default function ProjectTable({userId}) {
 
     const handleRename = (newName) => {
         const itemId = itemToRename.id;
-        setItemToRename(null);
+        clearItemToRename();
 
         ProjectsService.update(itemId, {'name': newName})
             .then(() => {
@@ -257,11 +257,11 @@ export default function ProjectTable({userId}) {
             });
     };
 
-    const hideDeleteDlg = () => {
+    const clearItemToDelete = () => {
         setItemToDelete(null);
     };
 
-    const hideRenameDlg = () => {
+    const clearItemToRename = () => {
         setItemToRename(null);
     };
 
@@ -296,11 +296,11 @@ export default function ProjectTable({userId}) {
                     </TableContainer>
             }
 
-            <RenameProjectDialog open={itemToRename != null} itemToRename={itemToRename}
-                                 closeHandler={hideRenameDlg} renameHandler={handleRename}/>
+            {itemToRename && <RenameProjectDialog itemToRename={itemToRename} renameHandler={handleRename}
+                                                  closeHandler={clearItemToRename}/>}
 
-            <ConfirmDeleteDialog open={itemToDelete != null} itemToDelete={itemToDelete}
-                                 closeHandler={hideDeleteDlg} deleteHandler={handleDelete}/>
+            {itemToDelete && <ConfirmDeleteDialog itemToDelete={itemToDelete} deleteHandler={handleDelete}
+                                                  closeHandler={clearItemToDelete}/>}
         </Fragment>
     );
 }
