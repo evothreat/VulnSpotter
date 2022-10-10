@@ -62,7 +62,7 @@ function NotificationItem({notif, divider}) {
 
 function NotificationsHeader({deleteHandler}) {
     return (
-        <ListSubheader sx={{pt: '6px', borderBottom: '1px solid #e3e3e3'}}>
+        <ListSubheader sx={{pt: '6px', borderBottom: 'thin solid lightgray'}}>
             <Box sx={{
                 display: 'flex',
                 alignItems: 'center',
