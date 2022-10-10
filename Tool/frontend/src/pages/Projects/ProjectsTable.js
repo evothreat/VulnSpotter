@@ -78,12 +78,17 @@ function ProjectTableHead({order, orderBy, sortReqHandler}) {
                         sx={{fontWeight: 'bold', width: hc.width}}
                         sortDirection={orderBy === hc.key ? order : false}
                         align={hc.align || 'left'}>
-                        {hc.sortable ?
-                            <TableSortLabel
-                                active={hc.key === orderBy}
-                                direction={hc.key === orderBy ? order : 'asc'}
-                                data-key={hc.key}
-                                onClick={handleSortClick}> {hc.label} </TableSortLabel> : hc.label}
+                        {
+                            hc.sortable
+                                ? <TableSortLabel
+                                    active={hc.key === orderBy}
+                                    direction={hc.key === orderBy ? order : 'asc'}
+                                    data-key={hc.key}
+                                    onClick={handleSortClick}>
+                                    {hc.label}
+                                </TableSortLabel>
+                                : hc.label
+                        }
                     </TableCell>)}
             </TableRow>
         </TableHead>
