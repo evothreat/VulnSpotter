@@ -27,6 +27,7 @@ import ProjectsService from "../../services/ProjectsService";
 import Typography from "@mui/material/Typography";
 import ActionTooltip from "../../components/ActionTooltip";
 import TextField from "@mui/material/TextField";
+import Link from "@mui/material/Link";
 
 
 const headCells = [
@@ -60,7 +61,8 @@ const headCells = [
 
 const actionBtnStyle = {
     fontSize: '22px',
-    padding: '4px 4px'
+    padding: '4px 4px',
+    color: '#707070'
 };
 
 function ProjectTableHead({order, orderBy, sortReqHandler}) {
@@ -106,7 +108,9 @@ function ProjectTableList({items, setItemToDelete, setItemToRename}) {
                 items.length > 0
                     ? items.map((it) =>
                         <TableRow key={it.id} hover>
-                            <TableCell>{it.name}</TableCell>
+                            <TableCell>
+                                <Link underline="hover" href={`/home/projects/${it.id}`}>{it.name}</Link>
+                            </TableCell>
                             <TableCell>{it.owner_name}</TableCell>
                             <TableCell>{Utils.fmtTimeSince(it.updated_at) + ' ago'}</TableCell>
                             <TableCell align="right">
