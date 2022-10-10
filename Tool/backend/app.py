@@ -133,6 +133,16 @@ def project(d):
     }
 
 
+def commit(d, proj_id):
+    return {
+        'href': url_for('get_commit', proj_id=proj_id, commit_id=d['id'], _external=True),
+        'id': d['id'],
+        'hash': d['hash'],
+        'message': d['message'],
+        'created_at': d['created_at']
+    }
+
+
 def notification(d):
     return {
         'href': url_for('get_notification', notif_id=d['id'], _external=True),
@@ -431,6 +441,26 @@ def delete_notifications():
         (get_jwt_identity(),))
 
     return '', 204
+
+
+@app.route('/api/users/me/projects/<proj_id>/commits', methods=['GET'])
+@jwt_required()
+def get_commits(proj_id):
+    # check if project exist & belongs to user (very important)
+    exist = db_conn.execute('SELECT 1 FROM membership WHERE user_id=? AND project_id=?',
+                            (get_jwt_identity(), proj_id)).fetchone()
+    if not exist:
+        return '', 404
+
+    data = db_conn.execute('SELECT id,hash,message,created_at FROM commits WHERE project_id=?',
+                           (proj_id,)).fetchall()
+    return [commit(d, proj_id) for d in data]
+
+
+@app.route('/api/users/me/projects/<proj_id>/commits/<commit_id>', methods=['GET'])
+@jwt_required()
+def get_commit(proj_id, commit_id):
+    return 'Not implemented yet', 200
 
 
 if __name__ == '__main__':
