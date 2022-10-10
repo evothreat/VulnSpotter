@@ -188,7 +188,7 @@ function RenameProjectDialog({itemToRename, closeHandler, renameHandler}) {
     );
 }
 
-export default function ProjectTable({userId}) {
+export default function ProjectsTable({userId}) {
     const [items, setItems] = useState(null);
     const [group, setGroup] = useState('all');
     const [sorter, setSorter] = useState({

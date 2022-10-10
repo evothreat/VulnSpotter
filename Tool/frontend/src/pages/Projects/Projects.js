@@ -3,7 +3,7 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import AddIcon from '@mui/icons-material/Add';
 import Button from "@mui/material/Button";
-import ProjectTable from "./ProjectTable";
+import ProjectsTable from "./ProjectsTable";
 import AuthService from "../../services/AuthService";
 import ProjectsService from "../../services/ProjectsService";
 import {
@@ -103,7 +103,7 @@ export default function Projects() {
                         New
                     </Button>
                 </Box>
-                <ProjectTable userId={AuthService.getCurrentUser().id}/>
+                <ProjectsTable userId={AuthService.getCurrentUser().id}/>
             </Box>
 
             <CreateProjectDialog open={openCreateDlg} closeHandler={hideCreateDlg} createHandler={handleCreateInDlg}/>
