@@ -176,7 +176,7 @@ export default function ProjectsTable({userId}) {
     const [itemToRename, setItemToRename] = useState(null);
 
     useEffect(() => {
-        ProjectsService.get()
+        ProjectsService.getAll()
             .then((resp) => {
                 resp.data.forEach((p) => {
                     p.owner_name = p.owner.full_name;

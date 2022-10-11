@@ -95,7 +95,7 @@ function Notifications() {
         let isMounted = true;
         // fetch all notifications once
         const comparator = Utils.createComparator('created_at', 'desc');
-        NotificationsService.get()
+        NotificationsService.getAll()
             .then((resp) => {
                 if (isMounted) {
                     setNotifs(resp.data.sort(comparator));
@@ -103,7 +103,7 @@ function Notifications() {
             });
         // every 30 seconds fetch only unseen notifications
         const updateNotifs = () => {
-            NotificationsService.get({unseen: true})
+            NotificationsService.getAll({unseen: true})
                 .then((resp) => {
                     if (isMounted) {
                         setNotifs((curNotifs) => {

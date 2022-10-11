@@ -2,23 +2,31 @@ import api from "./api";
 
 class ProjectsService {
 
-    get() {
-        return api.get('/users/me/projects');
+    constructor() {
+        this.basePath = '/users/me/projects';
+    }
+
+    getAll() {
+        return api.get(this.basePath);
+    }
+
+    get(id) {
+        return api.get(`${this.basePath}/${id}`);
     }
 
     create(repoUrl, projName) {
-        return api.post('/users/me/projects', {
+        return api.post(this.basePath, {
             'repo_url': repoUrl,
             'proj_name': projName
         });
     }
 
     delete(id) {
-        return api.delete('/users/me/projects/' + id);
+        return api.delete(`${this.basePath}/${id}`);
     }
 
     update(id, data) {
-        return api.patch('/users/me/projects/' + id, data);
+        return api.patch(`${this.basePath}/${id}`, data);
     }
 }
 
