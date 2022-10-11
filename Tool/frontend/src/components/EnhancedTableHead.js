@@ -12,9 +12,9 @@ function EnhancedTableHead({headCells, order, orderBy, sortReqHandler}) {
     return (
         <TableHead>
             <TableRow key="head">
-                {headCells.map((hc) =>
+                {headCells.map((hc, i) =>
                     <TableCell
-                        key={hc.key}
+                        key={i}
                         sx={{fontWeight: 'bold', width: hc.width}}
                         sortDirection={orderBy === hc.key ? order : false}
                         align={hc.align || 'left'}>
