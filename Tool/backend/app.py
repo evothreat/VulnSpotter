@@ -101,12 +101,6 @@ def setup_db():
 
 
 # representation format for corresponding resource
-def current_user(d):
-    res = user(d)
-    res['href'] = url_for('get_current_user', _external=True)
-    return res
-
-
 def user(d):
     return {
         'href': url_for('get_user', user_id=d['id'], _external=True),
@@ -129,6 +123,9 @@ def project(d):
             'href': url_for('get_user', user_id=d['owner_id'], _external=True),
             'id': d['owner_id'],
             'full_name': d['full_name'],
+        },
+        'commits': {
+            'href': url_for('get_commits', proj_id=d['id'], _external=True)
         }
     }
 
@@ -207,7 +204,7 @@ def protected():
 @jwt_required()
 def get_current_user():
     data = db_conn.execute('SELECT id,username,full_name,email FROM users WHERE id=?', (get_jwt_identity(),)).fetchone()
-    return current_user(data)
+    return user(data)
 
 
 @app.route('/api/users/<user_id>', methods=['GET'])
