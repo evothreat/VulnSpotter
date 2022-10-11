@@ -5,7 +5,7 @@ from os.path import isdir
 from threading import Thread
 from urllib.parse import urlparse
 
-from flask import Flask, request, url_for
+from flask import Flask, request
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, create_refresh_token
 from git import Repo
 from git_vuln_finder import find as find_vulns
@@ -103,7 +103,6 @@ def setup_db():
 # representation format for corresponding resource
 def user(d):
     return {
-        'href': url_for('get_user', user_id=d['id'], _external=True),
         'id': d['id'],
         'username': d['username'],
         'full_name': d['full_name'],
@@ -113,26 +112,20 @@ def user(d):
 
 def project(d):
     return {
-        'href': url_for('get_project', proj_id=d['id'], _external=True),
         'id': d['id'],
         'name': d['name'],
         'repository': d['repository'],
         'updated_at': d['updated_at'],
         'starred': d['starred'],
         'owner': {
-            'href': url_for('get_user', user_id=d['owner_id'], _external=True),
             'id': d['owner_id'],
             'full_name': d['full_name'],
-        },
-        'commits': {
-            'href': url_for('get_commits', proj_id=d['id'], _external=True)
         }
     }
 
 
 def commit(d, proj_id):
     return {
-        'href': url_for('get_commit', proj_id=proj_id, commit_id=d['id'], _external=True),
         'id': d['id'],
         'hash': d['hash'],
         'message': d['message'],
@@ -142,10 +135,8 @@ def commit(d, proj_id):
 
 def notification(d):
     return {
-        'href': url_for('get_notification', notif_id=d['id'], _external=True),
         'id': d['id'],
         'actor': {
-            'href': url_for('get_user', user_id=d['actor_id'], _external=True),
             'id': d['actor_id'],
             'full_name': d['full_name']
         },
@@ -160,7 +151,6 @@ def notification(d):
 def project_notif(d):
     res = notification(d)
     res['object'] = {
-        'href': url_for('get_project', proj_id=d['proj_id'], _external=True),
         'id': d['proj_id'],
         'name': d['name']
     } if d['proj_id'] else None
