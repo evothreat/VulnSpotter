@@ -4,7 +4,6 @@ import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
@@ -13,12 +12,12 @@ import IconButton from "@mui/material/IconButton";
 import {
     Dialog,
     DialogActions,
-    DialogContent, DialogContentText,
+    DialogContent,
+    DialogContentText,
     DialogTitle,
-    TableSortLabel,
+    ToggleButton,
     ToggleButtonGroup,
 } from "@mui/material";
-import {ToggleButton} from "@mui/material";
 import {SearchBar} from "./SearchBar";
 import Box from "@mui/material/Box";
 import * as Utils from "../../utils";
@@ -28,6 +27,7 @@ import Typography from "@mui/material/Typography";
 import ActionTooltip from "../../components/ActionTooltip";
 import TextField from "@mui/material/TextField";
 import Link from "@mui/material/Link";
+import EnhancedTableHead from "../../components/EnhancedTableHead";
 
 
 const headCells = [
@@ -65,35 +65,6 @@ const actionBtnStyle = {
     color: '#707070'
 };
 
-function ProjectTableHead({order, orderBy, sortReqHandler}) {
-    const handleSortClick = (e) => {
-        sortReqHandler(e.currentTarget.dataset.key);
-    };
-    return (
-        <TableHead>
-            <TableRow key="head">
-                {headCells.map((hc) =>
-                    <TableCell
-                        key={hc.key}
-                        sx={{fontWeight: 'bold', width: hc.width}}
-                        sortDirection={orderBy === hc.key ? order : false}
-                        align={hc.align || 'left'}>
-                        {
-                            hc.sortable
-                                ? <TableSortLabel
-                                    active={hc.key === orderBy}
-                                    direction={hc.key === orderBy ? order : 'asc'}
-                                    data-key={hc.key}
-                                    onClick={handleSortClick}>
-                                    {hc.label}
-                                </TableSortLabel>
-                                : hc.label
-                        }
-                    </TableCell>)}
-            </TableRow>
-        </TableHead>
-    )
-}
 
 function ProjectTableList({items, setItemToDelete, setItemToRename}) {
 
@@ -294,7 +265,8 @@ export default function ProjectsTable({userId}) {
                     ? <Typography variant="body2">Loading projects...</Typography>
                     : <TableContainer sx={{height: '450px'}}>
                         <Table size="small" stickyHeader>
-                            <ProjectTableHead
+                            <EnhancedTableHead
+                                headCells={headCells}
                                 order={sorter.order}
                                 orderBy={sorter.orderBy}
                                 sortReqHandler={sortItems}/>
