@@ -124,7 +124,7 @@ def project(d):
     }
 
 
-def commit(d, proj_id):
+def commit(d):
     return {
         'id': d['id'],
         'hash': d['hash'],
@@ -441,7 +441,7 @@ def get_commits(proj_id):
 
     data = db_conn.execute('SELECT id,hash,message,created_at FROM commits WHERE project_id=?',
                            (proj_id,)).fetchall()
-    return [commit(d, proj_id) for d in data]
+    return [commit(d) for d in data]
 
 
 @app.route('/api/users/me/projects/<proj_id>/commits/<commit_id>', methods=['GET'])
