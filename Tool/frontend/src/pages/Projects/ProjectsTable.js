@@ -292,7 +292,7 @@ export default function ProjectsTable({userId}) {
             {
                 items == null
                     ? <Typography variant="body2">Loading projects...</Typography>
-                    : <TableContainer sx={{maxHeight: '450px'}}>
+                    : <TableContainer sx={{height: '450px'}}>
                         <Table size="small" stickyHeader>
                             <ProjectTableHead
                                 order={sorter.order}
