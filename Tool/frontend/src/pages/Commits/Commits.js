@@ -67,9 +67,9 @@ const commitMsgStyle = {
     marginBottom: '0.5rem',
     overflow: 'auto',       // overflowX
     borderLeft: '3px solid #eaeaea',
-    wordBreak: 'normal',           // break if adding cve description! (How do I know what is the right CVE?)
     lineHeight: 1.5,
-    wordWrap: 'break-word',
+    //wordWrap: 'break-word',       // break if adding cve description! (How do I know what is the right CVE?)
+    //whiteSpace: 'pre-wrap',       // for line breaks
     fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace'
 };
 
