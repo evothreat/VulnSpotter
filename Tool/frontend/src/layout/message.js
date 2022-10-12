@@ -19,7 +19,7 @@ function NotifText({children}) {
 
 function NotifLink({href, label}) {
     return (
-        <Link href={href} color="#404040" underline="none" sx={{fontWeight: 'bold'}}>{label}</Link>
+        <Link href={href} underline="hover">{label}</Link>
     );
 }
 
@@ -45,7 +45,7 @@ function createProject(actor, obj) {
     data.icon = <NotifIcon Icon={CreateNewFolderIcon}/>;
     data.text = (
         <NotifText>
-            The {<NotifLink label={obj.name} href="#"/>} was successfully created.
+            The {<NotifLink label={obj.name} href={`/home/projects/${obj.id}`}/>} was successfully created.
         </NotifText>
     );
     return data;
