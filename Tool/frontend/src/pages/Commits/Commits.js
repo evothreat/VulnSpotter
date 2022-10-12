@@ -14,7 +14,10 @@ import CommitsService from "../../services/CommitsService";
 import Typography from "@mui/material/Typography";
 import {Checkbox} from "@mui/material";
 import * as Utils from "../../utils";
+import Link from "@mui/material/Link";
 
+
+const cveDetailUrl = 'https://nvd.nist.gov/vuln/detail/';
 
 const headCells = [
     {
@@ -27,7 +30,13 @@ const headCells = [
     },*/
     {
         label: 'Summary',
-        width: '80%'
+        width: '65%'
+    },
+    {
+        label: 'CVEs',
+        sortable: true,
+        key: 'cve',
+        width: '15%'
     },
     {
         label: 'Created',
@@ -63,7 +72,7 @@ function CommitsList({items}) {
                     ? <Fragment>
                         {
                             items.slice(0, (itemsRef.current === items ? maxIndex : MAX_ITEMS)).map((it) =>
-                                <TableRow key={it.id} hover>
+                                <TableRow key={it.id} hover sx={{verticalAlign: 'text-top'}}>
                                     <TableCell>
                                         <Checkbox size="small" disableRipple sx={{padding: '5px'}}/>
                                     </TableCell>
@@ -78,6 +87,18 @@ function CommitsList({items}) {
                                         whiteSpace: 'nowrap'
                                     }}>
                                         {it.message.split('\n', 1)[0]}
+                                    </TableCell>
+                                    <TableCell>
+                                        {
+                                            it.cve.map((cve, i) =>
+                                                <Fragment key={i}>
+                                                    <Link target="_blank" underline="hover" href={cveDetailUrl + cve}>
+                                                        {cve}
+                                                    </Link>
+                                                    {it.cve.length > i + 1 ? <br/> : null}
+                                                </Fragment>
+                                            )
+                                        }
                                     </TableCell>
                                     <TableCell>
                                         {Utils.fmtTimeSince(it.created_at) + ' ago'}
@@ -110,6 +131,9 @@ function CommitsTable() {
     useEffect(() => {
         CommitsService.getAll()
             .then((resp) => {
+                resp.data.forEach((c) => {
+                    c.cve = Utils.findCVEs(c.message);
+                });
                 setItems(resp.data);
             });
     }, []);
@@ -153,7 +177,7 @@ export default function Commits() {
                 setCurProject(resp.data);
                 CommitsService.setProject(resp.data.id);
             });
-    }, []);
+    }, [projId]);
 
     return (
         <Box sx={{mr: '17%', ml: '17%', mt: '7%'}}>

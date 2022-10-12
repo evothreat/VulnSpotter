@@ -1,4 +1,3 @@
-
 function fmtTimeSince(time) {
     const date = typeof time === 'number' ? new Date(time * 1000) : time;
     const seconds = Math.floor((new Date() - date) / 1000);
@@ -33,7 +32,12 @@ function createComparator(key, order) {
     return (a, b) => a[key] < b[key] ? 1 : -1;
 }
 
+function findCVEs(str) {
+    return [...new Set(str.match(/CVE-\d{4}-\d{4,7}/gmi))];
+}
+
 export {
     fmtTimeSince,
-    createComparator
+    createComparator,
+    findCVEs
 };
