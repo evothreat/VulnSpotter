@@ -45,7 +45,7 @@ function createProject(actor, obj) {
     data.icon = <NotifIcon Icon={CreateNewFolderIcon}/>;
     data.text = (
         <NotifText>
-            The {<NotifLink label={obj.name} href={`/home/projects/${obj.id}`}/>} was successfully created.
+            The <NotifLink label={obj.name} href={`/home/projects/${obj.id}`}/> project was successfully created.
         </NotifText>
     );
     return data;
