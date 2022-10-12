@@ -33,7 +33,7 @@ function createComparator(key, order) {
 }
 
 function findCVEs(str) {
-    return [...new Set(str.match(/CVE-\d{4}-\d{4,7}/gmi))];
+    return [...new Set(str.match(/CVE-\d{4}-\d{4,7}/gmi))].map((v) => v.toUpperCase());
 }
 
 export {
