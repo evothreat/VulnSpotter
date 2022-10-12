@@ -1,7 +1,7 @@
 import Table from "@mui/material/Table";
 import TableContainer from "@mui/material/TableContainer";
 import * as React from "react";
-import {Fragment, useEffect, useState} from "react";
+import {Fragment, useEffect, useRef, useState} from "react";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
@@ -45,10 +45,16 @@ const BOTTOM_OFFSET = '-80px';
 
 function CommitsList({items}) {
     const [maxIndex, setMaxIndex] = useState(MAX_ITEMS);
+    const itemsRef = useRef(items);
 
-    const showNextPage = () => {
+    const showNextItems = () => {
         setMaxIndex((curIx) => Math.min(items.length, curIx + MAX_ITEMS));
     };
+
+    useEffect(() => {
+        itemsRef.current = items;
+        setMaxIndex(MAX_ITEMS);
+    }, [items]);
 
     return (
         <TableBody>
@@ -56,7 +62,7 @@ function CommitsList({items}) {
                 items.length > 0
                     ? <Fragment>
                         {
-                            items.slice(0, maxIndex).map((it) =>
+                            items.slice(0, (itemsRef.current === items ? maxIndex : MAX_ITEMS)).map((it) =>
                                 <TableRow key={it.id} hover>
                                     <TableCell>
                                         <Checkbox size="small" disableRipple sx={{padding: '5px'}}/>
@@ -80,7 +86,7 @@ function CommitsList({items}) {
                         }
                         <TableRow>
                             <TableCell colSpan="100%">
-                                <Waypoint bottomOffset={BOTTOM_OFFSET} onEnter={showNextPage}/>
+                                <Waypoint bottomOffset={BOTTOM_OFFSET} onEnter={showNextItems}/>
                             </TableCell>
                         </TableRow>
                     </Fragment>
