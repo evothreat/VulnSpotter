@@ -1,7 +1,7 @@
 import Table from "@mui/material/Table";
 import TableContainer from "@mui/material/TableContainer";
 import * as React from "react";
-import {Fragment, useEffect, useRef, useState} from "react";
+import {Fragment, useEffect, useState} from "react";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
@@ -56,7 +56,7 @@ const headCells = [
 const MAX_ITEMS = 30;
 
 const TABLE_HEIGHT = '460px';
-const BOTTOM_OFFSET = '-80px';
+const BOTTOM_OFFSET = '-90px';
 
 const commitMsgStyle = {
     fontSize: '0.8125rem',
@@ -133,39 +133,40 @@ function CommitRow({item}) {
 
 function CommitsList({items}) {
     const [maxIndex, setMaxIndex] = useState(MAX_ITEMS);
-    const itemsRef = useRef(items);
+    const [itemsRef, setItemsRef] = useState(items);
 
     const showNextItems = () => {
         setMaxIndex((curIx) => Math.min(items.length, curIx + MAX_ITEMS));
     };
 
     useEffect(() => {
-        itemsRef.current = items;
         setMaxIndex(MAX_ITEMS);
+        setItemsRef(items);
     }, [items]);
 
     return (
-        <TableBody>
-            {
-                items.length > 0
-                    ? <Fragment>
-                        {
-                            items.slice(0, (itemsRef.current === items ? maxIndex : MAX_ITEMS))
-                                .map((it, i) => <CommitRow item={it} key={i}/>)
-                        }
-                        <TableRow>
-                            <TableCell colSpan="100%">
-                                <Waypoint bottomOffset={BOTTOM_OFFSET} onEnter={showNextItems}/>
+        itemsRef === items
+            ? <TableBody>
+                {
+                    items.length > 0
+                        ? <Fragment>
+                            {
+                                items.slice(0, maxIndex).map((it, i) => <CommitRow item={it} key={i}/>)
+                            }
+                            <TableRow>
+                                <TableCell colSpan="100%">
+                                    <Waypoint bottomOffset={BOTTOM_OFFSET} onEnter={showNextItems}/>
+                                </TableCell>
+                            </TableRow>
+                        </Fragment>
+                        : <TableRow>
+                            <TableCell colSpan="100%" sx={{border: 0, color: '#606060'}}>
+                                There are no items to display
                             </TableCell>
                         </TableRow>
-                    </Fragment>
-                    : <TableRow>
-                        <TableCell colSpan="100%" sx={{border: 0, color: '#606060'}}>
-                            There are no items to display
-                        </TableCell>
-                    </TableRow>
-            }
-        </TableBody>
+                }
+            </TableBody>
+            : null
     );
 }
 
