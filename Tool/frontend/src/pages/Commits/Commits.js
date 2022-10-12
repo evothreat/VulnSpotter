@@ -12,14 +12,21 @@ import {useParams} from "react-router-dom";
 import ProjectsService from "../../services/ProjectsService";
 import CommitsService from "../../services/CommitsService";
 import Typography from "@mui/material/Typography";
-import {Checkbox} from "@mui/material";
+import {Checkbox, Collapse} from "@mui/material";
 import * as Utils from "../../utils";
 import Link from "@mui/material/Link";
+import IconButton from "@mui/material/IconButton";
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 
 const cveDetailUrl = 'https://nvd.nist.gov/vuln/detail/';
 
 const headCells = [
+    {
+        label: '',
+        width: '2%',
+    },
     {
         label: '',
         width: '2%'
@@ -42,7 +49,7 @@ const headCells = [
         label: 'Created',
         sortable: true,
         key: 'created_at',
-        width: '18%'
+        width: '16%'
     }
 ];
 
@@ -51,6 +58,78 @@ const MAX_ITEMS = 30;
 const TABLE_HEIGHT = '460px';
 const BOTTOM_OFFSET = '-80px';
 
+const commitMsgStyle = {
+    fontSize: '0.8125rem',
+    color: '#666',
+    padding: '8px 0 8px 8px',
+    display: 'block',
+    marginTop: '8px',
+    marginBottom: '0.5rem',
+    overflow: 'auto',       // overflowX
+    borderLeft: '3px solid #eaeaea',
+    wordBreak: 'normal',           // break if adding cve description! (How do I know what is the right CVE?)
+    lineHeight: 1.5,
+    wordWrap: 'break-word',
+    fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace'
+};
+
+function CommitRow({item}) {
+    const [detailsOpen, setDetailsOpen] = useState(false);
+
+    const toggleDetails = () => {
+        setDetailsOpen((prevState) => !prevState)
+    };
+
+    return (
+        <Fragment>
+            <TableRow hover sx={{'& > *': {borderBottom: 'unset'}}}>
+                <TableCell>
+                    <IconButton size="small" onClick={toggleDetails}>
+                        {detailsOpen ? <KeyboardArrowUpIcon/> : <KeyboardArrowDownIcon/>}
+                    </IconButton>
+                </TableCell>
+                <TableCell padding="checkbox">
+                    <Checkbox size="small" disableRipple/>
+                </TableCell>
+                <TableCell sx={{
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap'
+                }}>
+                    {item.message.split('\n', 1)[0]}
+                </TableCell>
+                <TableCell>
+                    {
+                        item.cve.length > 0
+                            ? item.cve.map((cve, i) =>
+                                <Fragment key={i}>
+                                    <Link target="_blank" underline="hover" href={cveDetailUrl + cve}>
+                                        {cve}
+                                    </Link>
+                                    {item.cve.length > i + 1 ? <br/> : null}
+                                </Fragment>
+                            )
+                            : <Typography variant="body2" color="lightgray">N/A</Typography>
+                    }
+                </TableCell>
+                <TableCell>
+                    {Utils.fmtTimeSince(item.created_at) + ' ago'}
+                </TableCell>
+            </TableRow>
+            <TableRow>
+                <TableCell colSpan="100%" sx={{pb: 0, pt: 0}}>
+                    <Collapse in={detailsOpen} timeout="auto" unmountOnExit>
+                        <Box>
+                            <pre style={commitMsgStyle}>
+                                {item.message}
+                            </pre>
+                        </Box>
+                    </Collapse>
+                </TableCell>
+            </TableRow>
+        </Fragment>
+    );
+}
 
 function CommitsList({items}) {
     const [maxIndex, setMaxIndex] = useState(MAX_ITEMS);
@@ -71,39 +150,8 @@ function CommitsList({items}) {
                 items.length > 0
                     ? <Fragment>
                         {
-                            items.slice(0, (itemsRef.current === items ? maxIndex : MAX_ITEMS)).map((it) =>
-                                <TableRow key={it.id} hover sx={{verticalAlign: 'text-top'}}>
-                                    <TableCell>
-                                        <Checkbox size="small" disableRipple sx={{padding: '5px'}}/>
-                                    </TableCell>
-                                    {/*                                    <TableCell>
-                                        <Link underline="hover" href="#">
-                                            {it.hash.substring(0, 8)}
-                                        </Link>
-                                    </TableCell>*/}
-                                    <TableCell sx={{
-                                        textOverflow: 'ellipsis',
-                                        overflow: 'hidden',
-                                        whiteSpace: 'nowrap'
-                                    }}>
-                                        {it.message.split('\n', 1)[0]}
-                                    </TableCell>
-                                    <TableCell>
-                                        {
-                                            it.cve.map((cve, i) =>
-                                                <Fragment key={i}>
-                                                    <Link target="_blank" underline="hover" href={cveDetailUrl + cve}>
-                                                        {cve}
-                                                    </Link>
-                                                    {it.cve.length > i + 1 ? <br/> : null}
-                                                </Fragment>
-                                            )
-                                        }
-                                    </TableCell>
-                                    <TableCell>
-                                        {Utils.fmtTimeSince(it.created_at) + ' ago'}
-                                    </TableCell>
-                                </TableRow>)
+                            items.slice(0, (itemsRef.current === items ? maxIndex : MAX_ITEMS))
+                                .map((it, i) => <CommitRow item={it} key={i}/>)
                         }
                         <TableRow>
                             <TableCell colSpan="100%">
