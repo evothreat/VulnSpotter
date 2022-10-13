@@ -16,8 +16,7 @@ import {Checkbox, Collapse} from "@mui/material";
 import * as Utils from "../../utils";
 import Link from "@mui/material/Link";
 import IconButton from "@mui/material/IconButton";
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 
 
 const cveDetailUrl = 'https://nvd.nist.gov/vuln/detail/';
@@ -25,18 +24,10 @@ const cveDetailUrl = 'https://nvd.nist.gov/vuln/detail/';
 const headCells = [
     {
         label: '',
-        width: '2%',
-    },
-    {
-        label: '',
         width: '2%'
     },
-    /*{
-        label: 'ID',
-        width: '7%'
-    },*/
     {
-        label: 'Summary',
+        label: 'Description',
         width: '65%'
     },
     {
@@ -59,17 +50,14 @@ const TABLE_HEIGHT = '460px';
 const BOTTOM_OFFSET = '-90px';
 
 const commitMsgStyle = {
-    fontSize: '0.8125rem',
+    fontSize: '13px',
     color: '#666',
-    padding: '8px 0 8px 8px',
+    padding: '8px 0 14px 8px',
     display: 'block',
     marginTop: '8px',
-    marginBottom: '0.5rem',
     overflow: 'auto',       // overflowX
     borderLeft: '3px solid #eaeaea',
     lineHeight: 1.5,
-    //wordWrap: 'break-word',       // break if adding cve description! (How do I know what is the right CVE?)
-    //whiteSpace: 'pre-wrap',       // for line breaks
     fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace'
 };
 
@@ -82,21 +70,21 @@ function CommitRow({item}) {
 
     return (
         <Fragment>
-            <TableRow hover sx={{'& td': {borderBottom: 'unset'}}}>
-                <TableCell>
-                    <IconButton size="small" onClick={toggleDetails}>
-                        {detailsOpen ? <KeyboardArrowUpIcon/> : <KeyboardArrowDownIcon/>}
-                    </IconButton>
-                </TableCell>
+            <TableRow hover sx={{'& td': {borderBottom: 'unset', height: '30px'}}}>
                 <TableCell padding="checkbox">
                     <Checkbox size="small" disableRipple/>
                 </TableCell>
-                <TableCell sx={{
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap'
-                }}>
-                    {item.message.split('\n', 1)[0]}
+                <TableCell>
+                    {
+                        item.message.length > 60
+                            ? <Box display="flex" alignItems="flex-end">
+                                <span>{item.message.substring(0, 60)}</span>
+                                <IconButton onClick={toggleDetails} sx={{padding: 0, borderRadius: 0, height: '14px'}}>
+                                    <MoreHorizIcon/>
+                                </IconButton>
+                            </Box>
+                            : item.message
+                    }
                 </TableCell>
                 <TableCell>
                     {
