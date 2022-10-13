@@ -1,11 +1,10 @@
 import logging
-import sqlite3
 from contextlib import contextmanager
 from os.path import isdir
 from threading import Thread
 from urllib.parse import urlparse
 
-from flask import Flask, request
+from flask import Flask, request, Response, url_for
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, create_refresh_token
 from git import Repo
 from git_vuln_finder import find as find_vulns
@@ -13,8 +12,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 import config
 import tables
-from enums import Role, Action, Model
+from enums import *
 from utils import time_before, pathjoin, unix_time, normpath, sql_params_args
+from views import *
 
 sqlite3.register_adapter(bool, int)
 sqlite3.register_converter('BOOLEAN', lambda v: bool(int(v)))
@@ -53,6 +53,7 @@ def setup_db():
     db_conn.execute(tables.MEMBERSHIP_SCHEMA)
     db_conn.execute(tables.NOTIFICATIONS_SCHEMA)
     db_conn.execute(tables.USER_NOTIFICATIONS_SCHEMA)
+    db_conn.execute(tables.INVITATIONS_SCHEMA)
 
     # TEST DATA
     # users
@@ -94,67 +95,10 @@ def setup_db():
                             (1, 4, Role.OWNER, False),
                             (1, 5, Role.OWNER, False),
                             (1, 9, Role.OWNER, False),
-                            (1, 3, Role.MEMBER, False),
-                            (1, 7, Role.MEMBER, False),
-                            (1, 6, Role.MEMBER, False)
+                            (1, 3, Role.CONTRIBUTOR, False),
+                            (1, 7, Role.CONTRIBUTOR, False),
+                            (1, 6, Role.CONTRIBUTOR, False)
                         ])
-
-
-# representation format for corresponding resource
-def user(d):
-    return {
-        'id': d['id'],
-        'username': d['username'],
-        'full_name': d['full_name'],
-        'email': d['email']
-    }
-
-
-def project(d):
-    return {
-        'id': d['id'],
-        'name': d['name'],
-        'repository': d['repository'],
-        'updated_at': d['updated_at'],
-        'starred': d['starred'],
-        'owner': {
-            'id': d['owner_id'],
-            'full_name': d['full_name'],
-        }
-    }
-
-
-def commit(d):
-    return {
-        'id': d['id'],
-        'hash': d['hash'],
-        'message': d['message'],
-        'created_at': d['created_at']
-    }
-
-
-def notification(d):
-    return {
-        'id': d['id'],
-        'actor': {
-            'id': d['actor_id'],
-            'full_name': d['full_name']
-        },
-        'activity': d['activity'],
-        'object_type': d['object_type'],
-        'object': None,
-        'created_at': d['created_at'],
-        'is_seen': d['is_seen']
-    }
-
-
-def project_notif(d):
-    res = notification(d)
-    res['object'] = {
-        'id': d['proj_id'],
-        'name': d['name']
-    } if d['proj_id'] else None
-    return res
 
 
 @app.route('/api/login', methods=['POST'])
@@ -165,7 +109,7 @@ def login():
     if not (username and password):
         return '', 401
 
-    creds = db_conn.execute('SELECT id,password FROM users WHERE username=?', (username,)).fetchone()
+    creds = db_conn.execute('SELECT id,password FROM users WHERE username=? LIMIT 1', (username,)).fetchone()
 
     if not (creds and check_password_hash(creds['password'], password)):
         return '', 401
@@ -193,14 +137,16 @@ def protected():
 @app.route('/api/users/me', methods=['GET'])
 @jwt_required()
 def get_current_user():
-    data = db_conn.execute('SELECT id,username,full_name,email FROM users WHERE id=?', (get_jwt_identity(),)).fetchone()
+    data = db_conn.execute('SELECT id,username,full_name,email FROM users WHERE id=? LIMIT 1',
+                           (get_jwt_identity(),)).fetchone()
     return user(data)
 
 
 @app.route('/api/users/<user_id>', methods=['GET'])
 @jwt_required()
 def get_user(user_id):
-    data = db_conn.execute('SELECT id,username,full_name,email FROM users WHERE id=?', (user_id,)).fetchone()
+    data = db_conn.execute('SELECT id,username,full_name,email FROM users WHERE id=? LIMIT 1',
+                           (user_id,)).fetchone()
 
     if not data:
         return '', 404
@@ -272,7 +218,7 @@ def get_project(proj_id):
     data = db_conn.execute('SELECT p.id,p.name,p.repository,p.updated_at,m.starred,p.owner_id,u.full_name '
                            'FROM membership m '
                            'JOIN projects p ON m.user_id=? AND m.project_id=? AND m.project_id=p.id '
-                           'JOIN users u ON p.owner_id=u.id', (get_jwt_identity(), proj_id)).fetchone()
+                           'JOIN users u ON p.owner_id=u.id LIMIT 1', (get_jwt_identity(), proj_id)).fetchone()
     if not data:
         return '', 404
 
@@ -298,7 +244,7 @@ def update_project(proj_id):
         f'AND EXISTS(SELECT * FROM membership WHERE project_id=projects.id AND user_id=? AND role=?)', args).rowcount
 
     if updated == 0:
-        return '', 404
+        return '', 422
 
     # TODO: notify all members about name change!
     return '', 204
@@ -307,10 +253,11 @@ def update_project(proj_id):
 @app.route('/api/users/me/projects/<proj_id>', methods=['DELETE'])
 @jwt_required()
 def delete_project(proj_id):
-    deleted = db_conn.execute('DELETE FROM projects WHERE id=?', (proj_id,)).rowcount
+    deleted = db_conn.execute('DELETE FROM projects WHERE id=? AND owner_id=?', (proj_id, get_jwt_identity())).rowcount
     if deleted == 0:
         return '', 404
     # notifications-table doesn't have foreign key enabled to out project, so records must be deleted explicitly
+    # notifications have lower priority, so if transaction fails we don't need to rollback
     db_conn.execute('DELETE FROM notifications WHERE object_type=? AND object_id=?', (Model.PROJECT, proj_id))
 
     # TODO: notify all members about deletion!
@@ -332,7 +279,7 @@ def notify(users, actor_id, activity, object_type, object_id):
 def get_notifications():
     param = 'AND un.is_seen=0' if 'unseen' in request.args else ''
     data = db_conn.execute(
-        'SELECT n.id,n.actor_id,n.created_at,u.full_name,n.activity,n.object_type,p.id AS proj_id,p.name,un.is_seen '
+        'SELECT n.id,n.actor_id,n.created_at,u.full_name,n.activity,n.object_type,p.id AS project_id,p.name,un.is_seen '
         'FROM user_notifications un '
         'INNER JOIN notifications n ON un.user_id=? {} AND n.object_type=? AND n.id = un.notif_id '
         'INNER JOIN users u on n.actor_id=u.id '
@@ -340,22 +287,6 @@ def get_notifications():
 
     res = [project_notif(d) for d in data]  # add later other notifications types too
     return res
-
-
-@app.route('/api/users/me/notifications/<notif_id>', methods=['GET'])
-@jwt_required()
-def get_notification(notif_id):
-    data = db_conn.execute(
-        'SELECT n.id,n.actor_id,n.created_at,u.full_name,n.activity,n.object_type,p.id AS proj_id,p.name,un.is_seen '
-        'FROM user_notifications un '
-        'INNER JOIN notifications n ON n.id=? AND un.user_id=? AND n.object_type=? AND n.id = un.notif_id '
-        'INNER JOIN users u on n.actor_id=u.id '
-        'LEFT JOIN projects p ON n.object_id=p.id', (notif_id, get_jwt_identity(), Model.PROJECT)).fetchone()
-
-    if data:
-        return project_notif(data)
-
-    return '', 404
 
 
 @app.route('/api/users/me/notifications/<notif_id>', methods=['PATCH'])
@@ -434,13 +365,13 @@ def delete_notifications():
 @jwt_required()
 def get_commits(proj_id):
     # check if project exist & belongs to user (very important)
-    exist = db_conn.execute('SELECT 1 FROM membership WHERE user_id=? AND project_id=?',
+    exist = db_conn.execute('SELECT 1 FROM membership WHERE user_id=? AND project_id=? LIMIT 1',
                             (get_jwt_identity(), proj_id)).fetchone()
     if not exist:
         return '', 404
 
-    data = db_conn.execute('SELECT id,hash,message,created_at FROM commits WHERE project_id=?',
-                           (proj_id,)).fetchall()
+    data = db_conn.execute('SELECT id,hash,message,created_at FROM commits WHERE project_id=?', (proj_id,)).fetchall()
+
     return [commit(d) for d in data]
 
 
@@ -448,6 +379,76 @@ def get_commits(proj_id):
 @jwt_required()
 def get_commit(proj_id, commit_id):
     return 'Not implemented yet', 200
+
+
+# return conflict if invitation already exist?
+@app.route('/api/users/me/projects/<proj_id>/invitations', methods=['POST'])
+@jwt_required()
+def create_invitation(proj_id):
+    owner_id = get_jwt_identity()
+    user_id = request.json.get('user_id')
+    role = request.json.get('role', Role.CONTRIBUTOR.value)  # role field if more roles implemented
+
+    # insert only if the current user is owner of the project
+    entity_id = db_conn.execute('INSERT INTO invitations(user_id,project_id,role) '
+                                'SELECT ?,?,? WHERE EXISTS(SELECT * FROM projects WHERE id=? AND owner_id=?)',
+                                (user_id, proj_id, role, proj_id, owner_id)).lastrowid
+    if entity_id is None:
+        return '', 422
+
+    return Response(
+        status=204,
+        headers={
+            'Location': url_for('get_project_invitation', proj_id=proj_id, invitation_id=entity_id, _external=True)
+        }
+    )
+
+
+@app.route('/api/users/me/projects/<proj_id>/invitations/<invitation_id>', methods=['GET'])
+@jwt_required()
+def get_project_invitation(proj_id, invitation_id):
+    data = db_conn.execute('SELECT id,user_id,project_id FROM invitations WHERE id=? AND project_id=?'
+                           'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?) LIMIT 1',
+                           (invitation_id, proj_id, get_jwt_identity())).fetchone()
+    if not data:
+        return '', 404
+
+    return invitation(data)
+
+
+@app.route('/api/users/me/invitations/<invitation_id>', methods=['GET'])
+@jwt_required()
+def get_invitation(invitation_id):
+    data = db_conn.execute('SELECT id,user_id,project_id FROM invitations WHERE id=? AND user_id=? LIMIT 1',
+                           (invitation_id, get_jwt_identity())).fetchone()
+    if not data:
+        return '', 404
+    return invitation(data)
+
+
+@app.route('/api/users/me/invitations', methods=['GET'])
+@jwt_required()
+def get_invitations():
+    data = db_conn.execute('SELECT id,user_id,project_id FROM invitations WHERE user_id=?',
+                           (get_jwt_identity(),)).fetchall()
+    return [invitation(d) for d in data]
+
+
+@app.route('/api/users/me/invitations/<invitation_id>', methods=['PATCH'])
+@jwt_required()
+def accept_invitation(invitation_id):
+    with transaction(db_conn):
+        # 'starred' field missing
+        entity_id = db_conn.execute('INSERT INTO membership(user_id,project_id,role) '
+                                    'SELECT user_id,project_id,role FROM invitations WHERE id=? AND user_id=? LIMIT 1',
+                                    (invitation_id, get_jwt_identity())).lastrowid
+        if entity_id is None:
+            return '', 404
+
+        db_conn.execute('DELETE FROM invitations WHERE id=?', (invitation_id,))  # AND user_id=?
+        # TODO: notify both users!
+
+    return '', 204
 
 
 if __name__ == '__main__':
@@ -458,4 +459,3 @@ if __name__ == '__main__':
 
 # PROBLEMS
 # 1. types aren't in explicit table
-# 2. what is the use of links in representation?

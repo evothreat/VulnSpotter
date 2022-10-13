@@ -67,5 +67,17 @@ USER_NOTIFICATIONS_SCHEMA = '''
     )
 '''
 
+# avoid duplicated invitations
+INVITATIONS_SCHEMA = '''
+    CREATE TABLE invitations (
+        id          INTEGER PRIMARY KEY,
+        user_id     INTEGER,
+        project_id  INTEGER,
+        role        TEXT,
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
+    )
+'''
+
 # user can delete notifications only from user_notifications
 # after everyone saw the notification - delete it automatically

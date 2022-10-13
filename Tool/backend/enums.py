@@ -24,4 +24,4 @@ class Model(SQLiteEnum):
 
 class Role(SQLiteEnum):
     OWNER = 'owner'
-    MEMBER = 'member'
+    CONTRIBUTOR = 'contributor'
