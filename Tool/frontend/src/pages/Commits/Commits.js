@@ -151,7 +151,7 @@ function CommitsList({items}) {
                     items.length > 0
                         ? <Fragment>
                             {
-                                items.slice(0, maxIndex).map((it, i) => <CommitRow item={it} key={i}/>)
+                                items.slice(0, maxIndex).map((it) => <CommitRow item={it} key={it.id}/>)
                             }
                             <TableRow>
                                 <TableCell colSpan="100%">
