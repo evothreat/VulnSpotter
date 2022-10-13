@@ -128,12 +128,6 @@ def refresh():
     }
 
 
-@app.route('/api/protected', methods=['GET'])
-@jwt_required()
-def protected():
-    return {'msg': 'you are authenticated'}
-
-
 @app.route('/api/users/me', methods=['GET'])
 @jwt_required()
 def get_current_user():
@@ -416,6 +410,18 @@ def get_project_invitation(proj_id, invitation_id):
     return invitation(data)
 
 
+@app.route('/api/users/me/projects/<proj_id>/invitations/<invitation_id>', methods=['DELETE'])
+@jwt_required()
+def delete_project_invitation(proj_id, invitation_id):
+    deleted = db_conn.execute('DELETE FROM invitations WHERE id=? AND project_id=? '
+                              'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?)',
+                              (invitation_id, proj_id, get_jwt_identity())).rowcount
+    if deleted == 0:
+        return '', 404
+
+    return '', 204
+
+
 @app.route('/api/users/me/invitations/<invitation_id>', methods=['GET'])
 @jwt_required()
 def get_invitation(invitation_id):
@@ -447,6 +453,17 @@ def accept_invitation(invitation_id):
 
         db_conn.execute('DELETE FROM invitations WHERE id=?', (invitation_id,))  # AND user_id=?
         # TODO: notify both users!
+
+    return '', 204
+
+
+@app.route('/api/users/me/invitations/<invitation_id>', methods=['DELETE'])
+@jwt_required()
+def delete_invitation(invitation_id):
+    deleted = db_conn.execute('DELETE FROM invitations WHERE id=? AND user_id=?',
+                              (invitation_id, get_jwt_identity())).rowcount
+    if deleted == 0:
+        return '', 404
 
     return '', 204
 
