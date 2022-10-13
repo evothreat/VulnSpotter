@@ -82,7 +82,7 @@ function CommitRow({item}) {
 
     return (
         <Fragment>
-            <TableRow hover sx={{'& > *': {border: 'unset'}}}>
+            <TableRow hover sx={{'& td': {borderBottom: 'unset'}}}>
                 <TableCell>
                     <IconButton size="small" onClick={toggleDetails}>
                         {detailsOpen ? <KeyboardArrowUpIcon/> : <KeyboardArrowDownIcon/>}
