@@ -133,7 +133,7 @@ function CommitRow({item}) {
 
 function CommitsList({items}) {
     const [maxIndex, setMaxIndex] = useState(MAX_ITEMS);
-    const [itemsRef, setItemsRef] = useState(items);
+    const [curItems, setCurItems] = useState(items);
 
     const showNextItems = () => {
         setMaxIndex((curIx) => Math.min(items.length, curIx + MAX_ITEMS));
@@ -141,11 +141,11 @@ function CommitsList({items}) {
 
     useEffect(() => {
         setMaxIndex(MAX_ITEMS);
-        setItemsRef(items);
+        setCurItems(items);
     }, [items]);
 
     return (
-        itemsRef === items
+        curItems === items
             ? <TableBody>
                 {
                     items.length > 0
