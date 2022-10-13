@@ -78,7 +78,9 @@ function CommitRow({item}) {
                     {
                         item.message.length > 60
                             ? <Box display="flex" alignItems="flex-end">
-                                <span>{item.message.substring(0, 60)}</span>
+                                <span>
+                                    {item.message.substring(0, 60).replace('\n', ' ⤶ ')}
+                                </span>
                                 <IconButton onClick={toggleDetails} sx={{padding: 0, borderRadius: 0, height: '14px'}}>
                                     <MoreHorizIcon/>
                                 </IconButton>
