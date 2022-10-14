@@ -18,7 +18,7 @@ import {
 import TextField from "@mui/material/TextField";
 
 
-const FakeComponent = ({ children }) => children;
+const FakeComponent = ({children}) => children;
 
 
 function CreateProjectDialog({open, closeHandler, createHandler}) {
@@ -87,28 +87,26 @@ export default function Projects() {
 
     return (
         <Fragment>
-            <Box sx={{mr: '17%', ml: '17%'}}>
-
-                <Box sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-end',
-                    mt: '56px',
-                    mb: '24px'
-                }}>
-                    <Typography variant="h5">
-                        Projects
-                    </Typography>
-                    <Button variant="contained" startIcon={<AddIcon/>} onClick={showCreateDlg}>
-                        New
-                    </Button>
-                </Box>
-                <ProjectsTable userId={AuthService.getCurrentUser().id}/>
+            <Box sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-end',
+                mt: '56px',
+                mb: '24px'
+            }}>
+                <Typography variant="h5">
+                    Projects
+                </Typography>
+                <Button variant="contained" startIcon={<AddIcon/>} onClick={showCreateDlg}>
+                    New
+                </Button>
             </Box>
 
-            <CreateProjectDialog open={openCreateDlg} closeHandler={hideCreateDlg} createHandler={handleCreateInDlg}/>
+            <ProjectsTable userId={AuthService.getCurrentUser().id}/>
 
-            <Snackbar open={alert.visible} autoHideDuration={5000} onClose={hideAlert} TransitionComponent={FakeComponent}>
+            <CreateProjectDialog open={openCreateDlg} closeHandler={hideCreateDlg} createHandler={handleCreateInDlg}/>
+            <Snackbar open={alert.visible} autoHideDuration={5000} onClose={hideAlert}
+                      TransitionComponent={FakeComponent}>
                 <Alert onClose={hideAlert} severity="info">
                     {alert.msg}
                 </Alert>

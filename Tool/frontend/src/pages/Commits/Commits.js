@@ -219,7 +219,7 @@ export default function Commits() {
     }, [projId]);
 
     return (
-        <Box sx={{mr: '17%', ml: '17%', mt: '7%'}}>
+        <Box sx={{mt: '8%'}}>
             {curProject && <CommitsTable/>}
         </Box>
     )
