@@ -7,24 +7,37 @@ import * as React from "react";
 import Sidebar from "./Sidebar";
 import CommitsTable from "./CommitsTable";
 
+
+function getView(key, props) {
+    switch (key) {
+        case 'commits':
+            return <CommitsTable {...props}/>;
+        default:
+            return null;
+    }
+}
+
 export default function Project() {
 
     const {projId} = useParams();
-    const [curProject, setCurProject] = useState(null);
+    const [project, setProject] = useState(null);
+    const [viewKey, setViewKey] = useState('commits');
 
     useEffect(() => {
         ProjectsService.get(projId)
             .then((resp) => {
-                setCurProject(resp.data);
+                setProject(resp.data);
                 CommitsService.setProject(resp.data.id);
             });
     }, [projId]);
 
+    const handleViewChange = (viewId) => setViewKey(viewId);
+
     return (
-        curProject
+        project
             ? <Box sx={{mt: '8%'}}>
-                <Sidebar project={curProject}/>
-                <CommitsTable/>
+                <Sidebar project={project} viewKey={viewKey} viewChgHandler={handleViewChange}/>
+                {getView(viewKey)}
             </Box>
             : null
     )

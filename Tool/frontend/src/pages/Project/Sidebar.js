@@ -22,9 +22,21 @@ import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 
 
 const sidebarItems = [
-    {label: 'Commits', Icon: DescriptionOutlinedIcon},
-    {label: 'Members', Icon: PeopleAltOutlinedIcon},
-    {label: 'Settings', Icon: SettingsOutlinedIcon}
+    {
+        label: 'Commits',
+        key: 'commits',
+        Icon: DescriptionOutlinedIcon
+    },
+    {
+        label: 'Members',
+        key: 'members',
+        Icon: PeopleAltOutlinedIcon
+    },
+    {
+        label: 'Settings',
+        key: 'settings',
+        Icon: SettingsOutlinedIcon
+    }
 ];
 
 const sidebarItemStyle = {
@@ -38,11 +50,13 @@ const sidebarItemStyle = {
 };
 
 
-export default function Sidebar({project}) {
+export default function Sidebar({project, viewKey, viewChgHandler}) {
 
     const [open, setOpen] = useState(false);
 
     const toggleOpen = () => setOpen((prevState) => !prevState);
+
+    const handleChange = (e) => viewChgHandler(e.currentTarget.dataset.viewKey);
 
     return (
         <Drawer
@@ -69,9 +83,12 @@ export default function Sidebar({project}) {
                 </ListItem>
                 <Divider sx={{mt: '24px', mb: '12px'}}/>
                 {
-                    sidebarItems.map(({label, Icon}, i) => (
-                            <ListItem disablePadding key={i}>
-                                <ListItemButton sx={sidebarItemStyle}>
+                    sidebarItems.map(({label, key, Icon}, i) => (
+                            <ListItem key={i} disablePadding>
+                                <ListItemButton selected={key === viewKey}
+                                                sx={sidebarItemStyle}
+                                                data-view-key={key}
+                                                onClick={handleChange}>
                                     <ListItemIcon sx={{minWidth: 0, mr: '18px'}}>
                                         <Icon sx={{width: '20px', height: '20px'}}/>
                                     </ListItemIcon>
