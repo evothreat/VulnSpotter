@@ -74,14 +74,14 @@ export default function Sidebar({project, viewKey, viewChgHandler}) {
             </Box>
             <List dense>
                 <ListItem disablePadding>
-                    <ListItemAvatar sx={{minWidth: 0, ml: '8px', mr: '16px'}}>
-                        <Avatar variant="square">
+                    <ListItemAvatar sx={{minWidth: 0, ml: '12px', mr: '12px'}}>
+                        <Avatar variant="square" sx={{height: '32px', width: '32px'}}>
                             {project.name.charAt(0) /* only first char*/}
                         </Avatar>
                     </ListItemAvatar>
                     <ListItemText primary={project.name} primaryTypographyProps={{sx: {fontWeight: 'bold'}}}/>
                 </ListItem>
-                <Divider sx={{mt: '24px', mb: '12px'}}/>
+                <Divider sx={{mt: '20px', mb: '10px'}}/>
                 {
                     sidebarItems.map(({label, key, Icon}, i) => (
                             <ListItem key={i} disablePadding>
