@@ -81,7 +81,7 @@ export default function Sidebar({project, viewKey, viewChgHandler}) {
                     </ListItemAvatar>
                     <ListItemText primary={project.name} primaryTypographyProps={{sx: {fontWeight: 'bold'}}}/>
                 </ListItem>
-                <Divider sx={{mt: '20px', mb: '10px'}}/>
+                <Divider sx={{mt: '20px'}}/>
                 {
                     sidebarItems.map(({label, key, Icon}, i) => (
                             <ListItem key={i} disablePadding>
