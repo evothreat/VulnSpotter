@@ -61,9 +61,7 @@ const commitMsgStyle = {
 function CommitRow({item}) {
     const [detailsOpen, setDetailsOpen] = useState(false);
 
-    const toggleDetails = () => {
-        setDetailsOpen((prevState) => !prevState)
-    };
+    const toggleDetails = () => setDetailsOpen((prevState) => !prevState);
 
     return (
         <Fragment>
@@ -122,9 +120,7 @@ function CommitsList({items}) {
     const [maxIndex, setMaxIndex] = useState(MAX_ITEMS);
     const [curItems, setCurItems] = useState(items);
 
-    const showNextItems = () => {
-        setMaxIndex((curIx) => Math.min(items.length, curIx + MAX_ITEMS));
-    };
+    const showNextItems = () => setMaxIndex((curIx) => Math.min(items.length, curIx + MAX_ITEMS));
 
     useEffect(() => {
         setMaxIndex(MAX_ITEMS);

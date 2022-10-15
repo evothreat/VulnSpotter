@@ -201,9 +201,7 @@ export default function ProjectsTable({userId}) {
         });
     };
 
-    const searchItems = (kw) => {
-        setSearchKw(kw);
-    };
+    const searchItems = (kw) => setSearchKw(kw);
 
     const getItems = () => {
         return items.filter((it) => (group === 'all' ||
@@ -237,13 +235,8 @@ export default function ProjectsTable({userId}) {
             });
     };
 
-    const clearItemToDelete = () => {
-        setItemToDelete(null);
-    };
-
-    const clearItemToRename = () => {
-        setItemToRename(null);
-    };
+    const clearItemToDelete = () => setItemToDelete(null);
+    const clearItemToRename = () => setItemToRename(null);
 
     return (
         <Fragment>

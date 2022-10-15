@@ -57,25 +57,11 @@ export default function Home() {
         msg: ''
     });
 
-    const showCreateDlg = () => {
-        setOpenCreateDlg(true);
-    };
-    const hideCreateDlg = () => {
-        setOpenCreateDlg(false);
-    };
+    const showCreateDlg = () => setOpenCreateDlg(true);
+    const hideCreateDlg = () => setOpenCreateDlg(false);
 
-    const showAlert = (msg) => {
-        setAlert({
-            visible: true,
-            msg: msg
-        });
-    };
-    const hideAlert = () => {
-        setAlert({
-            visible: false,
-            msg: ''
-        });
-    };
+    const showAlert = (msg) => setAlert({visible: true, msg: msg});
+    const hideAlert = () => setAlert({visible: false, msg: ''});
 
     const handleCreateInDlg = (repoUrl, projName) => {
         hideCreateDlg();

@@ -120,9 +120,8 @@ function Notifications() {
         };
     }, []);
 
-    const handleOpen = (e) => {
-        setAnchorEl(e.currentTarget);
-    };
+    const handleOpen = (e) => setAnchorEl(e.currentTarget);
+
     const handleClose = () => {
         setAnchorEl(null);
         markAllAsSeen();
@@ -192,12 +191,8 @@ function Notifications() {
 function UserMenu() {
     const [anchorEl, setAnchorEl] = useState(null);
 
-    const handleOpen = (e) => {
-        setAnchorEl(e.currentTarget);
-    };
-    const handleClose = () => {
-        setAnchorEl(null);
-    };
+    const handleOpen = (e) => setAnchorEl(e.currentTarget);
+    const handleClose = () => setAnchorEl(null);
 
     return (
         <Fragment>
