@@ -1,6 +1,6 @@
 import {BrowserRouter, Navigate, Outlet, Route, Routes} from "react-router-dom";
-import Projects from "./pages/Projects/Projects";
-import Commits from "./pages/Commits/Commits";
+import Home from "./pages/Home/Home";
+import Project from "./pages/Project/Project";
 import Login from "./pages/Login/Login";
 import NotFound from "./pages/NotFound";
 import AuthService from "./services/AuthService";
@@ -23,8 +23,8 @@ export default function App() {
         <BrowserRouter>
             <Routes>
                 <Route path="/home" element={<RequireAuth/>}>
-                    <Route path="" element={<Projects/>}/>
-                    <Route path="projects/:projId" element={<Commits/>}/>
+                    <Route path="" element={<Home/>}/>
+                    <Route path="projects/:projId" element={<Project/>}/>
                 </Route>
                 <Route path="/login" element={<Login/>}/>
                 <Route path="*" element={<NotFound/>}/>

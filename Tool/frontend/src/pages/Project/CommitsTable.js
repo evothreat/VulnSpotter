@@ -1,38 +1,20 @@
-import Table from "@mui/material/Table";
-import TableContainer from "@mui/material/TableContainer";
-import * as React from "react";
 import {Fragment, useEffect, useState} from "react";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
+import {Checkbox, Collapse} from "@mui/material";
+import Box from "@mui/material/Box";
+import IconButton from "@mui/material/IconButton";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import Link from "@mui/material/Link";
+import Typography from "@mui/material/Typography";
+import * as Utils from "../../utils";
 import TableBody from "@mui/material/TableBody";
 import {Waypoint} from "react-waypoint";
-import EnhancedTableHead from "../../components/EnhancedTableHead";
-import Box from "@mui/material/Box";
-import {useParams} from "react-router-dom";
-import ProjectsService from "../../services/ProjectsService";
 import CommitsService from "../../services/CommitsService";
-import Typography from "@mui/material/Typography";
-import {
-    Checkbox,
-    Collapse, Divider,
-    Drawer,
-    List,
-    ListItem,
-    ListItemAvatar,
-    ListItemButton,
-    ListItemIcon,
-    ListItemText
-} from "@mui/material";
-import * as Utils from "../../utils";
-import Link from "@mui/material/Link";
-import IconButton from "@mui/material/IconButton";
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import Avatar from "@mui/material/Avatar";
-import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
-import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
-import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
-import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
+import TableContainer from "@mui/material/TableContainer";
+import Table from "@mui/material/Table";
+import EnhancedTableHead from "../../components/EnhancedTableHead";
+import * as React from "react";
 
 const cveDetailUrl = 'https://nvd.nist.gov/vuln/detail/';
 
@@ -59,12 +41,6 @@ const headCells = [
     }
 ];
 
-const sidebarItems = [
-    {label: 'Commits', Icon: DescriptionOutlinedIcon},
-    {label: 'Members', Icon: PeopleAltOutlinedIcon},
-    {label: 'Settings', Icon: SettingsOutlinedIcon}
-];
-
 const MAX_ITEMS = 30;
 
 const TABLE_HEIGHT = '460px';
@@ -80,16 +56,6 @@ const commitMsgStyle = {
     borderLeft: '3px solid #eaeaea',
     lineHeight: 1.5,
     fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace'
-};
-
-const sidebarItemStyle = {
-    padding: '6px 10px',
-    borderRadius: '4px',
-    transition: 'none',
-    '&:hover': {
-        backgroundColor: '#e9e9e9',
-    },
-    ml: '8px', mr: '8px'
 };
 
 function CommitRow({item}) {
@@ -191,7 +157,7 @@ function CommitsList({items}) {
     );
 }
 
-function CommitsTable() {
+export default function CommitsTable() {
     const [items, setItems] = useState(null);
     const [sorter, setSorter] = useState({
         order: 'desc',
@@ -234,75 +200,4 @@ function CommitsTable() {
                 </Table>
             </TableContainer>
     );
-}
-
-function Sidebar({project}) {
-
-    const [open, setOpen] = useState(false);
-
-    const toggleOpen = () => setOpen((prevState) => !prevState);
-
-    return (
-        <Drawer
-            variant="permanent"
-            anchor="left"
-            PaperProps={{
-                sx: {backgroundColor: '#f9f9f9', overflowX: 'hidden', transition: 'width 0.25s'},
-                style: {width: open ? '240px' : '56px'},
-            }}
-        >
-                <Box mt="60px" display="flex" width="100%" justifyContent={open ? 'right' : 'left'}>
-                    <IconButton disableTouchRipple sx={{borderRadius: 0, width: '56px'}} onClick={toggleOpen}>
-                        {open ? <KeyboardDoubleArrowLeftIcon/> : <KeyboardDoubleArrowRightIcon/>}
-                    </IconButton>
-                </Box>
-                <List dense>
-                    <ListItem disablePadding>
-                        <ListItemAvatar sx={{padding: '6px 8px'}}>
-                            <Avatar sx={{borderRadius: 0}}>
-                                {project.name.charAt(0)}
-                            </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText primary={project.name} primaryTypographyProps={{sx: {fontWeight: 'bold'}}}/>
-                    </ListItem>
-                    <Divider sx={{mt: '24px', mb: '12px'}}/>
-                    {
-                        sidebarItems.map(({label, Icon}, i) => (
-                                <ListItem disablePadding key={i}>
-                                    <ListItemButton sx={sidebarItemStyle}>
-                                        <ListItemIcon sx={{minWidth: '20px', mr: '18px'}}>
-                                            <Icon sx={{width: '20px', height: '20px'}}/>
-                                        </ListItemIcon>
-                                        <ListItemText primary={label}/>
-                                    </ListItemButton>
-                                </ListItem>
-                            )
-                        )
-                    }
-                </List>
-        </Drawer>
-    );
-}
-
-export default function Commits() {
-
-    const {projId} = useParams();
-    const [curProject, setCurProject] = useState(null);
-
-    useEffect(() => {
-        ProjectsService.get(projId)
-            .then((resp) => {
-                setCurProject(resp.data);
-                CommitsService.setProject(resp.data.id);
-            });
-    }, [projId]);
-
-    return (
-        curProject
-            ? <Box sx={{mt: '8%'}}>
-                <Sidebar project={curProject}/>
-                <CommitsTable/>
-            </Box>
-            : null
-    )
 }

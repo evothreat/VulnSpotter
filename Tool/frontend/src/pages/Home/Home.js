@@ -49,7 +49,7 @@ function CreateProjectDialog({open, closeHandler, createHandler}) {
     );
 }
 
-export default function Projects() {
+export default function Home() {
 
     const [openCreateDlg, setOpenCreateDlg] = useState(false);
     const [alert, setAlert] = useState({
