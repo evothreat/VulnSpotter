@@ -57,19 +57,26 @@ def setup_db():
 
     # TEST DATA
     # users
-    db_conn.execute('INSERT INTO users(username,full_name,email,password) VALUES (?,?,?,?)',
-                    ('admin', 'Johnny Cash', 'admin@vuln.com', generate_password_hash('admin')))
-
-    db_conn.executemany('INSERT INTO users(username,full_name,email) VALUES (?,?,?)',
+    db_conn.executemany('INSERT INTO users(username,full_name,email,password) VALUES (?,?,?,?)',
                         [
-                            ('rambo', 'John Rambo', 'rambo@gmail.com'),  # 2
-                            ('campbell', 'Bruce Campbell', 'campbell@gmail.com'),  # 3
-                            ('williams', 'Ash Williams', 'williams@gmail.com'),  # 4
-                            ('nolan', 'Christopher Nolan', 'nolan@gmail.com'),  # 5
-                            ('chan', 'Jackie Chan', 'chan@gmail.com'),  # 6
-                            ('vandamme', 'Jean Claude Van Damme', 'vandamme@gmail.com'),  # 7
-                            ('cage', 'Nicolas Cage', 'cage@gmail.com'),  # 8
-                            ('dicaprio', 'Leonardo Di Caprio', 'dicaprio@gmail.com')  # 9
+                            # 1
+                            ('admin', 'Johnny Cash', 'admin@vuln.com', generate_password_hash('admin')),
+                            # 2
+                            ('rambo', 'John Rambo', 'rambo@gmail.com', generate_password_hash('rambo')),
+                            # 3
+                            ('campbell', 'Bruce Campbell', 'campbell@gmail.com', generate_password_hash('campbell')),
+                            # 4
+                            ('williams', 'Ash Williams', 'williams@gmail.com', generate_password_hash('williams')),
+                            # 5
+                            ('nolan', 'Christopher Nolan', 'nolan@gmail.com', generate_password_hash('nolan')),
+                            # 6
+                            ('chan', 'Jackie Chan', 'chan@gmail.com', generate_password_hash('chan')),
+                            # 7
+                            ('vandamme', 'Jean Claude Van Damme', 'vandamme@gmail.com', generate_password_hash('vandamme')),
+                            # 8
+                            ('cage', 'Nicolas Cage', 'cage@gmail.com', generate_password_hash('cage')),
+                            # 9
+                            ('dicaprio', 'Leonardo Di Caprio', 'dicaprio@gmail.com', generate_password_hash('dicaprio'))
                         ])
 
     # projects
