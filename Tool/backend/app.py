@@ -101,6 +101,41 @@ def setup_db():
                         ])
 
 
+def notify(users, actor_id, activity, object_type, object_id):
+    with transaction(db_conn):
+        notif_id = db_conn.execute('INSERT INTO notifications(actor_id,activity,object_type,object_id,created_at) '
+                                   'VALUES (?,?,?,?,?)',
+                                   (actor_id, activity, object_type, object_id, unix_time())).lastrowid
+
+        db_conn.executemany('INSERT INTO user_notifications(user_id,notif_id,is_seen) VALUES (?,?,?)',
+                            [(u, notif_id, False) for u in users])
+
+
+def clone_n_parse_repo(user_id, repo_url, proj_name):
+    parts = urlparse(repo_url)
+    repo_loc = normpath(parts.netloc + parts.path.rstrip('.git'))
+    repo_dir = pathjoin(config.REPOS_DIR, repo_loc)
+    proj_id = None
+    try:
+        if not isdir(repo_dir):
+            Repo.clone_from(f'{parts.scheme}://:@{repo_loc}', repo_dir)
+
+        vulns, _, _ = find_vulns(repo_dir)
+        with transaction(db_conn):
+            proj_id = db_conn.execute('INSERT INTO projects(owner_id,name,repository,updated_at) VALUES (?,?,?,?)',
+                                      (user_id, proj_name, repo_loc, unix_time())).lastrowid
+
+            db_conn.execute('INSERT INTO membership(user_id,project_id,role,starred) VALUES (?,?,?,?)',
+                            (user_id, proj_id, Role.OWNER, False))
+
+            commits = [(proj_id, v['commit-id'], v['message'], v['authored_date']) for v in vulns.values()]
+            db_conn.executemany('INSERT INTO commits(project_id,hash,message,created_at) VALUES (?,?,?,?)', commits)
+    except Exception as e:
+        logging.error(e)
+
+    notify((user_id,), 1, Action.CREATE, Model.PROJECT, proj_id)
+
+
 @app.route('/api/login', methods=['POST'])
 def login():
     username = request.json.get('username')
@@ -155,44 +190,6 @@ def get_users():
     return [user(d) for d in data]
 
 
-# add query parameter 'group'
-@app.route('/api/users/me/projects', methods=['GET'])
-@jwt_required()
-def get_projects():
-    # also count number of commits?
-    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.updated_at,m.starred,p.owner_id,u.full_name '
-                           'FROM membership m '
-                           'JOIN projects p ON m.user_id=? AND m.project_id=p.id '
-                           'JOIN users u ON p.owner_id=u.id', (get_jwt_identity(),)).fetchall()
-
-    return [project(d) for d in data]
-
-
-def clone_n_parse_repo(user_id, repo_url, proj_name):
-    parts = urlparse(repo_url)
-    repo_loc = normpath(parts.netloc + parts.path.rstrip('.git'))
-    repo_dir = pathjoin(config.REPOS_DIR, repo_loc)
-    proj_id = None
-    try:
-        if not isdir(repo_dir):
-            Repo.clone_from(f'{parts.scheme}://:@{repo_loc}', repo_dir)
-
-        vulns, _, _ = find_vulns(repo_dir)
-        with transaction(db_conn):
-            proj_id = db_conn.execute('INSERT INTO projects(owner_id,name,repository,updated_at) VALUES (?,?,?,?)',
-                                      (user_id, proj_name, repo_loc, unix_time())).lastrowid
-
-            db_conn.execute('INSERT INTO membership(user_id,project_id,role,starred) VALUES (?,?,?,?)',
-                            (user_id, proj_id, Role.OWNER, False))
-
-            commits = [(proj_id, v['commit-id'], v['message'], v['authored_date']) for v in vulns.values()]
-            db_conn.executemany('INSERT INTO commits(project_id,hash,message,created_at) VALUES (?,?,?,?)', commits)
-    except Exception as e:
-        logging.error(e)
-
-    notify((user_id,), 1, Action.CREATE, Model.PROJECT, proj_id)
-
-
 @app.route('/api/users/me/projects', methods=['POST'])
 @jwt_required()
 def create_project():
@@ -204,6 +201,19 @@ def create_project():
     Thread(target=clone_n_parse_repo, args=(get_jwt_identity(), repo_url, proj_name)).start()
 
     return '', 202
+
+
+# add query parameter 'group'
+@app.route('/api/users/me/projects', methods=['GET'])
+@jwt_required()
+def get_projects():
+    # also count number of commits?
+    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.updated_at,m.starred,p.owner_id,u.full_name '
+                           'FROM membership m '
+                           'JOIN projects p ON m.user_id=? AND m.project_id=p.id '
+                           'JOIN users u ON p.owner_id=u.id', (get_jwt_identity(),)).fetchall()
+
+    return [project(d) for d in data]
 
 
 @app.route('/api/users/me/projects/<proj_id>', methods=['GET'])
@@ -231,12 +241,9 @@ def update_project(proj_id):
     if not params:
         return '', 422
 
-    args.extend([proj_id, get_jwt_identity(), Role.OWNER])
+    args.extend([proj_id, get_jwt_identity()])
 
-    updated = db_conn.execute(
-        f'UPDATE projects SET {params} WHERE id=? '
-        f'AND EXISTS(SELECT * FROM membership WHERE project_id=projects.id AND user_id=? AND role=?)', args).rowcount
-
+    updated = db_conn.execute(f'UPDATE projects SET {params} WHERE id=? AND owner_id=?', args).rowcount
     if updated == 0:
         return '', 422
 
@@ -256,16 +263,6 @@ def delete_project(proj_id):
 
     # TODO: notify all members about deletion!
     return '', 204
-
-
-def notify(users, actor_id, activity, object_type, object_id):
-    with transaction(db_conn):
-        notif_id = db_conn.execute('INSERT INTO notifications(actor_id,activity,object_type,object_id,created_at) '
-                                   'VALUES (?,?,?,?,?)',
-                                   (actor_id, activity, object_type, object_id, unix_time())).lastrowid
-
-        db_conn.executemany('INSERT INTO user_notifications(user_id,notif_id,is_seen) VALUES (?,?,?)',
-                            [(u, notif_id, False) for u in users])
 
 
 @app.route('/api/users/me/notifications', methods=['GET'])
@@ -331,7 +328,7 @@ def update_notifications():
 def delete_notification(notif_id):
     deleted = db_conn.execute(
         'DELETE FROM notifications WHERE id=? '
-        'AND EXISTS(SELECT * FROM user_notifications WHERE notif_id=notifications.id AND user_id=?)',
+        'AND EXISTS(SELECT * FROM user_notifications un WHERE un.notif_id=id AND un.user_id=?)',
         (notif_id, get_jwt_identity())).rowcount
 
     if deleted == 0:
@@ -349,7 +346,7 @@ def delete_notifications():
 
     db_conn.execute(
         f'DELETE FROM notifications WHERE id IN ({ids}) '
-        f'AND EXISTS(SELECT * FROM user_notifications WHERE notif_id=notifications.id AND user_id=?)',
+        f'AND EXISTS(SELECT * FROM user_notifications un WHERE un.notif_id=id AND un.user_id=?)',
         (get_jwt_identity(),))
 
     return '', 204
@@ -358,7 +355,7 @@ def delete_notifications():
 @app.route('/api/users/me/projects/<proj_id>/commits', methods=['GET'])
 @jwt_required()
 def get_commits(proj_id):
-    # check if project exist & belongs to user (very important)
+    # check if current user has access to specified project
     exist = db_conn.execute('SELECT 1 FROM membership WHERE user_id=? AND project_id=? LIMIT 1',
                             (get_jwt_identity(), proj_id)).fetchone()
     if not exist:
@@ -385,7 +382,7 @@ def create_invitation(proj_id):
 
     # insert only if the current user is owner of the project
     entity_id = db_conn.execute('INSERT INTO invitations(user_id,project_id,role) '
-                                'SELECT ?,?,? WHERE EXISTS(SELECT * FROM projects WHERE id=? AND owner_id=?)',
+                                'SELECT ?,?,? WHERE EXISTS(SELECT * FROM projects p WHERE p.id=? AND p.owner_id=?)',
                                 (user_id, proj_id, role, proj_id, owner_id)).lastrowid
     if entity_id is None:
         return '', 422
@@ -393,14 +390,14 @@ def create_invitation(proj_id):
     return Response(
         status=204,
         headers={
-            'Location': url_for('get_project_invitation', proj_id=proj_id, invitation_id=entity_id, _external=True)
+            'Location': url_for('get_sent_invitation', proj_id=proj_id, invitation_id=entity_id, _external=True)
         }
     )
 
 
 @app.route('/api/users/me/projects/<proj_id>/invitations/<invitation_id>', methods=['GET'])
 @jwt_required()
-def get_project_invitation(proj_id, invitation_id):
+def get_sent_invitation(proj_id, invitation_id):
     data = db_conn.execute('SELECT id,user_id,project_id FROM invitations WHERE id=? AND project_id=?'
                            'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?) LIMIT 1',
                            (invitation_id, proj_id, get_jwt_identity())).fetchone()
@@ -412,7 +409,7 @@ def get_project_invitation(proj_id, invitation_id):
 
 @app.route('/api/users/me/projects/<proj_id>/invitations/<invitation_id>', methods=['DELETE'])
 @jwt_required()
-def delete_project_invitation(proj_id, invitation_id):
+def delete_sent_invitation(proj_id, invitation_id):
     deleted = db_conn.execute('DELETE FROM invitations WHERE id=? AND project_id=? '
                               'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?)',
                               (invitation_id, proj_id, get_jwt_identity())).rowcount
@@ -464,6 +461,37 @@ def delete_invitation(invitation_id):
                               (invitation_id, get_jwt_identity())).rowcount
     if deleted == 0:
         return '', 404
+
+    return '', 204
+
+
+@app.route('/api/users/me/projects/<proj_id>/members', methods=['GET'])
+@jwt_required()
+def get_members(proj_id):
+    exist = db_conn.execute('SELECT 1 FROM projects WHERE id=? AND owner_id=? LIMIT 1',
+                            (proj_id, get_jwt_identity())).fetchone()
+    if not exist:
+        return '', 404
+
+    data = db_conn.execute('SELECT u.id,u.username,u.full_name,u.email,m.role FROM membership m '
+                           'INNER JOIN users u ON m.project_id=? AND u.id = m.user_id', (proj_id,)).fetchall()
+    return [user(d) for d in data]
+
+
+@app.route('/api/users/me/projects/<proj_id>/members/<member_id>', methods=['DELETE'])
+@jwt_required()
+def delete_member(proj_id, member_id):
+    owner_id = get_jwt_identity()
+    # trying to delete self
+    if owner_id == member_id:
+        return '', 422
+
+    deleted = db_conn.execute('DELETE FROM membership WHERE project_id=? AND user_id=? '
+                              'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?)',
+                              (proj_id, member_id, owner_id)).rowcount
+    if deleted == 0:
+        return '', 404
+    # TODO: notify deleted user
 
     return '', 204
 
