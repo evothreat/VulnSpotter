@@ -79,7 +79,7 @@ export default function Sidebar({project, viewKey, viewChgHandler}) {
                             {project.name.charAt(0) /* only first char*/}
                         </Avatar>
                     </ListItemAvatar>
-                    <ListItemText primary={project.name} primaryTypographyProps={{sx: {fontWeight: 'bold'}}}/>
+                    <ListItemText primary={project.name} primaryTypographyProps={{sx: {fontWeight: 'bold', whiteSpace: 'nowrap'}}}/>
                 </ListItem>
                 <Divider sx={{mt: '20px'}}/>
                 {
