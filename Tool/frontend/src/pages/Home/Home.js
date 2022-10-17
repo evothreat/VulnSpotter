@@ -4,7 +4,6 @@ import Box from "@mui/material/Box";
 import AddIcon from '@mui/icons-material/Add';
 import Button from "@mui/material/Button";
 import ProjectsTable from "./ProjectsTable";
-import AuthService from "../../services/AuthService";
 import ProjectsService from "../../services/ProjectsService";
 import {
     Alert,
@@ -78,17 +77,17 @@ export default function Home() {
                 justifyContent: 'space-between',
                 alignItems: 'flex-end',
                 mt: '56px',
-                mb: '24px'
+                mb: '30px'
             }}>
-                <Typography variant="h5">
+                <Typography variant="h6">
                     Projects
                 </Typography>
-                <Button variant="contained" startIcon={<AddIcon/>} onClick={showCreateDlg}>
+                <Button size="small" variant="contained" startIcon={<AddIcon/>} onClick={showCreateDlg}>
                     New
                 </Button>
             </Box>
 
-            <ProjectsTable userId={AuthService.getCurrentUser().id}/>
+            <ProjectsTable/>
 
             <CreateProjectDialog open={openCreateDlg} closeHandler={hideCreateDlg} createHandler={handleCreateInDlg}/>
             <Snackbar open={alert.visible} autoHideDuration={5000} onClose={hideAlert}

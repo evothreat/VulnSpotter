@@ -28,6 +28,7 @@ import ActionTooltip from "../../components/ActionTooltip";
 import TextField from "@mui/material/TextField";
 import Link from "@mui/material/Link";
 import EnhancedTableHead from "../../components/EnhancedTableHead";
+import TokenService from "../../services/TokenService";
 
 
 const headCells = [
@@ -50,9 +51,6 @@ const headCells = [
         width: '20%'
     },
     {
-        label: 'Action',
-        key: 'action',
-        sortable: false,
         width: '10%',
         align: 'right'
     }
@@ -69,12 +67,12 @@ const actionBtnStyle = {
 function ProjectTableList({items, setItemToDelete, setItemToRename}) {
 
     const handleDelClick = (e) => {
-        const itemId = Number(e.currentTarget.dataset.itemId);
+        const itemId = parseInt(e.currentTarget.dataset.itemId);
         setItemToDelete(items.find((it) => it.id === itemId));
     };
 
     const handleRenClick = (e) => {
-        const itemId = Number(e.currentTarget.dataset.itemId);
+        const itemId = parseInt(e.currentTarget.dataset.itemId);
         setItemToRename(items.find((it) => it.id === itemId));
     };
 
@@ -164,7 +162,7 @@ function RenameProjectDialog({itemToRename, closeHandler, renameHandler}) {
     );
 }
 
-export default function ProjectsTable({userId}) {
+export default function ProjectsTable() {
     const [items, setItems] = useState(null);
     const [group, setGroup] = useState('all');
     const [sorter, setSorter] = useState({
@@ -174,6 +172,8 @@ export default function ProjectsTable({userId}) {
     const [searchKw, setSearchKw] = useState('');
     const [itemToDelete, setItemToDelete] = useState(null);
     const [itemToRename, setItemToRename] = useState(null);
+
+    const userId = TokenService.getIdentity();
 
     useEffect(() => {
         ProjectsService.getAll()
@@ -254,7 +254,7 @@ export default function ProjectsTable({userId}) {
                 <SearchBar width="260px" placeholder="Search by name" changeHandler={searchItems}/>
             </Box>
             {
-                items == null
+                items
                     ? <Typography variant="body2">Loading projects...</Typography>
                     : <TableContainer sx={{height: '450px'}}>
                         <Table size="small" stickyHeader sx={{tableLayout: 'fixed'}}>

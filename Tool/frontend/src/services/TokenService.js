@@ -1,11 +1,11 @@
 class TokenService {
 
     getIdentity() {
-        return JSON.parse(localStorage.getItem('user'));
+        return parseInt(localStorage.getItem('identity'));
     }
 
     setIdentity(identity) {
-        localStorage.setItem('user', JSON.stringify(identity));
+        localStorage.setItem('identity', identity.toString());
     }
 
     getAccessToken() {

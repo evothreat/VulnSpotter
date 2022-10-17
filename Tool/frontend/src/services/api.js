@@ -15,6 +15,7 @@ const onResponse = (resp) => {
     return resp;
 };
 
+// on error invalidate authentication data & redirect!
 const onResponseError = async (err) => {
     const origReq = err.config;
     if (origReq.url !== '/login' && err.response?.status === 401 && !origReq._retry) {

@@ -3,19 +3,19 @@ import Home from "./pages/Home/Home";
 import Project from "./pages/Project/Project";
 import Login from "./pages/Login/Login";
 import NotFound from "./pages/NotFound";
-import AuthService from "./services/AuthService";
 import Layout from "./layout/Layout";
+import TokenService from "./services/TokenService";
 
 
 function RequireAuth() {
-    if (!AuthService.isLoggedIn()) {
-        return <Navigate to="/login"/>;
+    if (TokenService.getIdentity()) {
+        return (
+            <Layout>
+                <Outlet/>
+            </Layout>
+        );
     }
-    return (
-        <Layout>
-            <Outlet/>
-        </Layout>
-    );
+    return <Navigate to="/login"/>;
 }
 
 export default function App() {

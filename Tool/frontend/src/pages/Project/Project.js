@@ -6,12 +6,15 @@ import Box from "@mui/material/Box";
 import * as React from "react";
 import Sidebar from "./Sidebar";
 import CommitsTable from "./CommitsTable";
+import Members from "./Members";
 
 
 function getView(key, props) {
     switch (key) {
         case 'commits':
             return <CommitsTable {...props}/>;
+        case 'members':
+            return <Members {...props}/>            // bad approach, pass only children & required parameters
         default:
             return null;
     }
@@ -37,7 +40,7 @@ export default function Project() {
         project
             ? <Box sx={{mt: '8%'}}>
                 <Sidebar project={project} viewKey={viewKey} viewChgHandler={handleViewChange}/>
-                {getView(viewKey)}
+                {getView(viewKey, {project: project})}
             </Box>
             : null
     )

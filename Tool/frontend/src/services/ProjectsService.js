@@ -28,6 +28,10 @@ class ProjectsService {
     update(id, data) {
         return api.patch(`${this.basePath}/${id}`, data);
     }
+
+    getMembers(id) {
+        return api.get(`${this.basePath}/${id}/members`);
+    }
 }
 
 export default new ProjectsService();

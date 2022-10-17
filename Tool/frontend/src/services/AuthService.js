@@ -8,18 +8,10 @@ class AuthService {
             'username': username,
             'password': password
         }).then((resp) => {
-            TokenService.setRefreshToken(resp.data.refresh_token);
-            TokenService.setAccessToken(resp.data.access_token);
-
-            return api.get('/users/me')
-                .then((r) => {
-                    TokenService.setIdentity(r.data);
-
-                }).catch((err) => {
-                    TokenService.invalidate();
-                    return Promise.reject(err);
-                });
-
+            const authData = resp.data;
+            TokenService.setRefreshToken(authData.refresh_token);
+            TokenService.setAccessToken(authData.access_token);
+            TokenService.setIdentity(authData.identity);
         });
     }
 
@@ -37,11 +29,7 @@ class AuthService {
     }
 
     getCurrentUser() {
-        return TokenService.getIdentity();
-    }
-
-    isLoggedIn() {
-        return TokenService.getIdentity() !== null;
+        return api.get('/users/me');
     }
 }
 

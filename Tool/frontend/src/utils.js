@@ -32,6 +32,10 @@ function createComparator(key, order) {
     return (a, b) => a[key] < b[key] ? 1 : -1;
 }
 
+function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 function findCVEs(str) {
     return [...new Set(str.match(/CVE-\d{4}-\d{4,7}/gmi))].map((v) => v.toUpperCase());
 }
@@ -39,5 +43,6 @@ function findCVEs(str) {
 export {
     fmtTimeSince,
     createComparator,
+    capitalize,
     findCVEs
 };
