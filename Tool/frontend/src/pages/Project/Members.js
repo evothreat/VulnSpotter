@@ -159,7 +159,7 @@ function MembersTable() {
     );
 }
 
-export default function Members({project}) {
+export default function Members() {
     return (
         <Fragment>
             <Box sx={{
@@ -176,7 +176,7 @@ export default function Members({project}) {
                     Invite
                 </Button>
             </Box>
-            <MembersTable project={project}/>
+            <MembersTable/>
         </Fragment>
     );
 }
