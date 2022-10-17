@@ -11,7 +11,7 @@ class AuthService {
             const authData = resp.data;
             TokenService.setRefreshToken(authData.refresh_token);
             TokenService.setAccessToken(authData.access_token);
-            TokenService.setIdentity(authData.identity);
+            TokenService.setUserId(authData.user_id);
         });
     }
 

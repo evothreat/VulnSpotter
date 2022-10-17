@@ -8,7 +8,7 @@ import TokenService from "./services/TokenService";
 
 
 function RequireAuth() {
-    if (TokenService.getIdentity()) {
+    if (TokenService.getUserId()) {
         return (
             <Layout>
                 <Outlet/>

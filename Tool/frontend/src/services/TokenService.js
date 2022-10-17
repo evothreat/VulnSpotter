@@ -1,11 +1,11 @@
 class TokenService {
 
-    getIdentity() {
-        return parseInt(localStorage.getItem('identity'));
+    getUserId() {
+        return parseInt(localStorage.getItem('user_id'));
     }
 
-    setIdentity(identity) {
-        localStorage.setItem('identity', identity.toString());
+    setUserId(id) {
+        localStorage.setItem('user_id', id.toString());
     }
 
     getAccessToken() {
@@ -27,7 +27,7 @@ class TokenService {
     invalidate() {
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('access_token');
-        localStorage.removeItem('user');
+        localStorage.removeItem('user_id');
     }
 }
 

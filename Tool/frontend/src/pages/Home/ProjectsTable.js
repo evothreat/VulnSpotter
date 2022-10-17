@@ -173,7 +173,7 @@ export default function ProjectsTable() {
     const [itemToDelete, setItemToDelete] = useState(null);
     const [itemToRename, setItemToRename] = useState(null);
 
-    const userId = TokenService.getIdentity();
+    const userId = TokenService.getUserId();
 
     useEffect(() => {
         ProjectsService.getAll()
