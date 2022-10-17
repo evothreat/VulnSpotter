@@ -60,3 +60,12 @@ def invitation(d):
         'project_id': d['project_id'],
         'user_id': d['user_id']
     }
+
+
+def member(d):
+    return {
+        'id': d['id'],
+        'full_name': d['full_name'],
+        'username': d['username'],
+        'role': d['role']
+    }

@@ -159,6 +159,7 @@ def login():
     return {
         'refresh_token': create_refresh_token(identity=creds['id']),
         'access_token': create_access_token(identity=creds['id']),
+        'identity': creds['id']
     }
 
 
@@ -480,9 +481,9 @@ def get_members(proj_id):
     if not exist:
         return '', 404
 
-    data = db_conn.execute('SELECT u.id,u.username,u.full_name,u.email,m.role FROM membership m '
+    data = db_conn.execute('SELECT u.id,u.username,u.full_name,m.role FROM membership m '
                            'INNER JOIN users u ON m.project_id=? AND u.id = m.user_id', (proj_id,)).fetchall()
-    return [user(d) for d in data]
+    return [member(d) for d in data]
 
 
 @app.route('/api/users/me/projects/<proj_id>/members/<member_id>', methods=['DELETE'])
