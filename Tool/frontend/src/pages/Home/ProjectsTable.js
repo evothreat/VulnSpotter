@@ -254,7 +254,7 @@ export default function ProjectsTable() {
                 <SearchBar width="260px" placeholder="Search by name" changeHandler={searchItems}/>
             </Box>
             {
-                items
+                items == null
                     ? <Typography variant="body2">Loading projects...</Typography>
                     : <TableContainer sx={{height: '450px'}}>
                         <Table size="small" stickyHeader sx={{tableLayout: 'fixed'}}>

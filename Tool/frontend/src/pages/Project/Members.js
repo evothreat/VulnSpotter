@@ -121,7 +121,7 @@ function MembersTable({project}) {
     };
 
     return (
-        items
+        items == null
             ? <Typography variant="body2">Loading members...</Typography>
             : <TableContainer sx={{height: TABLE_HEIGHT}}>
                 <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>

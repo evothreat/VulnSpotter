@@ -184,7 +184,7 @@ export default function CommitsTable() {
     };
 
     return (
-        items
+        items == null
             ? <Typography variant="body2">Loading commits...</Typography>
             : <TableContainer sx={{height: TABLE_HEIGHT}}>
                 <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
