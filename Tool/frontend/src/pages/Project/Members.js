@@ -66,7 +66,7 @@ function MembersList({items}) {
             {
                 items.length > 0
                     ? items.map((it) =>
-                        <TableRow key={it.id} hover>
+                        <TableRow key={it.id} hover sx={{'& td': {height: '30px'}}}>
                             <TableCell>{it.full_name}</TableCell>
                             <TableCell>{it.username}</TableCell>
                             <TableCell>{Utils.capitalize(it.role)}</TableCell>

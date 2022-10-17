@@ -81,7 +81,7 @@ function ProjectTableList({items, setItemToDelete, setItemToRename}) {
             {
                 items.length > 0
                     ? items.map((it) =>
-                        <TableRow key={it.id} hover>
+                        <TableRow key={it.id} hover sx={{'& td': {height: '30px'}}}>
                             <TableCell>
                                 <Link underline="hover" href={`/home/projects/${it.id}`}>{it.name}</Link>
                             </TableCell>
