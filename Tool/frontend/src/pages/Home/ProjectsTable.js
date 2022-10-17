@@ -7,17 +7,8 @@ import TableContainer from '@mui/material/TableContainer';
 import TableRow from '@mui/material/TableRow';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
-import WarningIcon from '@mui/icons-material/Warning';
 import IconButton from "@mui/material/IconButton";
-import {
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    ToggleButton,
-    ToggleButtonGroup,
-} from "@mui/material";
+import {Dialog, DialogActions, DialogContent, DialogTitle, ToggleButton, ToggleButtonGroup,} from "@mui/material";
 import {SearchBar} from "./SearchBar";
 import Box from "@mui/material/Box";
 import * as Utils from "../../utils";
@@ -29,6 +20,7 @@ import TextField from "@mui/material/TextField";
 import Link from "@mui/material/Link";
 import EnhancedTableHead from "../../components/EnhancedTableHead";
 import TokenService from "../../services/TokenService";
+import ConfirmDeleteDialog from "../../components/ConfirmDeleteDialog";
 
 
 const headCells = [
@@ -114,30 +106,6 @@ function ProjectTableList({items, setItemToDelete, setItemToRename}) {
     );
 }
 
-function ConfirmDeleteDialog({itemToDelete, closeHandler, deleteHandler}) {
-    return (
-        <Dialog open={true} onClose={closeHandler} maxWidth="xs" fullWidth>
-            <DialogTitle>
-                Delete Project
-            </DialogTitle>
-            <DialogContent>
-                <Box sx={{display: 'flex', alignItems: 'flex-end'}}>
-                    <WarningIcon color="warning" sx={{fontSize: '48px', mr: '12px'}}/>
-                    <DialogContentText>
-                        Are you sure you want to permanently delete the "{itemToDelete.name}"-Project?
-                    </DialogContentText>
-                </Box>
-            </DialogContent>
-            <DialogActions>
-                <Button variant="outlined" onClick={closeHandler}>Cancel</Button>
-                <Button variant="contained" onClick={deleteHandler} autoFocus>
-                    Delete
-                </Button>
-            </DialogActions>
-        </Dialog>
-    );
-}
-
 function RenameProjectDialog({itemToRename, closeHandler, renameHandler}) {
 
     const handleSubmit = (e) => {
@@ -213,7 +181,7 @@ export default function ProjectsTable() {
 
     const handleDelete = () => {
         const itemId = itemToDelete.id;
-        clearItemToDelete();
+        setItemToDelete(null);
 
         ProjectsService.delete(itemId)
             .then(() => {
@@ -223,7 +191,7 @@ export default function ProjectsTable() {
 
     const handleRename = (newName) => {
         const itemId = itemToRename.id;
-        clearItemToRename();
+        setItemToRename(null);
 
         ProjectsService.update(itemId, {'name': newName})
             .then(() => {
@@ -272,9 +240,12 @@ export default function ProjectsTable() {
 
             {itemToRename && <RenameProjectDialog itemToRename={itemToRename} renameHandler={handleRename}
                                                   closeHandler={clearItemToRename}/>}
-
-            {itemToDelete && <ConfirmDeleteDialog itemToDelete={itemToDelete} deleteHandler={handleDelete}
-                                                  closeHandler={clearItemToDelete}/>}
+            {
+                itemToDelete &&
+                <ConfirmDeleteDialog title="Delete Project" closeHandler={clearItemToDelete} deleteHandler={handleDelete}>
+                    Are you sure you want to permanently delete the "{itemToDelete.name}"-Project?
+                </ConfirmDeleteDialog>
+            }
         </Fragment>
     );
 }

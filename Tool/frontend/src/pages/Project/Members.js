@@ -1,6 +1,5 @@
 import * as React from "react";
 import {Fragment, useEffect, useState} from "react";
-import ProjectsService from "../../services/ProjectsService";
 import * as Utils from "../../utils";
 import Typography from "@mui/material/Typography";
 import TableContainer from "@mui/material/TableContainer";
@@ -16,6 +15,8 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import Button from "@mui/material/Button";
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import {Role} from "../../constants";
+import ConfirmDeleteDialog from "../../components/ConfirmDeleteDialog";
+import MembersService from "../../services/MembersService";
 
 
 const headCells = [
@@ -54,11 +55,11 @@ const actionBtnStyle = {
 };
 
 
-function MembersList({items}) {
+function MembersList({items, setItemToDelete}) {
 
     const handleDelClick = (e) => {
-        //const itemId = parseInt(e.currentTarget.dataset.itemId);
-        //setItemToDelete(items.find((it) => it.id === itemId));
+        const itemId = parseInt(e.currentTarget.dataset.itemId);
+        setItemToDelete(items.find((it) => it.id === itemId));
     };
 
     return (
@@ -95,15 +96,16 @@ function MembersList({items}) {
     );
 }
 
-function MembersTable({project}) {
+function MembersTable() {
     const [items, setItems] = useState(null);
     const [sorter, setSorter] = useState({
         order: 'asc',
         orderBy: 'full_name'
     });
+    const [itemToDelete, setItemToDelete] = useState(null);
 
     useEffect(() => {
-        ProjectsService.getMembers(project.id)
+        MembersService.getAll()
             .then((resp) => setItems(resp.data));
     }, []);
 
@@ -120,18 +122,40 @@ function MembersTable({project}) {
         return items.sort(Utils.createComparator(sorter.orderBy, sorter.order)).slice();
     };
 
+    const handleDelete = () => {
+        const itemId = itemToDelete.id;
+        setItemToDelete(null);
+
+        MembersService.delete(itemId)
+            .then(() => {
+                setItems((curItems) => curItems.filter((it) => it.id !== itemId));
+            });
+    };
+
+    const clearItemToDelete = () => setItemToDelete(null);
+
     return (
         items == null
             ? <Typography variant="body2">Loading members...</Typography>
-            : <TableContainer sx={{height: TABLE_HEIGHT}}>
-                <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
-                    <EnhancedTableHead headCells={headCells}
-                                       order={sorter.order}
-                                       orderBy={sorter.orderBy}
-                                       sortReqHandler={sortItems}/>
-                    <MembersList items={getItems()}/>
-                </Table>
-            </TableContainer>
+            : <Fragment>
+                <TableContainer sx={{height: TABLE_HEIGHT}}>
+                    <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
+                        <EnhancedTableHead headCells={headCells}
+                                           order={sorter.order}
+                                           orderBy={sorter.orderBy}
+                                           sortReqHandler={sortItems}/>
+                        <MembersList items={getItems()} setItemToDelete={setItemToDelete}/>
+                    </Table>
+                </TableContainer>
+                {
+                    itemToDelete &&
+                    <ConfirmDeleteDialog title="Remove Member" closeHandler={clearItemToDelete}
+                                         deleteHandler={handleDelete}>
+                        Are you sure you want to remove "{itemToDelete.full_name}" from project?
+                    </ConfirmDeleteDialog>
+                }
+            </Fragment>
+
     );
 }
 
@@ -148,7 +172,7 @@ export default function Members({project}) {
                 <Typography variant="h6">
                     Members
                 </Typography>
-                <Button size="small" variant="contained" startIcon={<PersonAddAlt1Icon/>}>
+                <Button size="small" variant="contained" startIcon={<PersonAddAlt1Icon/>} sx={{textTransform: 'none'}}>
                     Invite
                 </Button>
             </Box>

@@ -1,11 +1,14 @@
 import api from "./api";
 
-// TODO: create main class & inherit methods from it
 
-class ProjectsService {
+class MembersService {
 
     constructor() {
-        this.basePath = '/users/me/projects';
+        this.basePath = '';
+    }
+
+    setProject(projId) {
+        this.basePath = `/users/me/projects/${projId}/members`;
     }
 
     getAll() {
@@ -14,13 +17,6 @@ class ProjectsService {
 
     get(id) {
         return api.get(`${this.basePath}/${id}`);
-    }
-
-    create(repoUrl, projName) {
-        return api.post(this.basePath, {
-            'repo_url': repoUrl,
-            'proj_name': projName
-        });
     }
 
     delete(id) {
@@ -32,4 +28,4 @@ class ProjectsService {
     }
 }
 
-export default new ProjectsService();
+export default new MembersService();

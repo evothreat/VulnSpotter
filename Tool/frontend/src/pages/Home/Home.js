@@ -82,7 +82,8 @@ export default function Home() {
                 <Typography variant="h6">
                     Projects
                 </Typography>
-                <Button size="small" variant="contained" startIcon={<AddIcon/>} onClick={showCreateDlg}>
+                <Button size="small" variant="contained" startIcon={<AddIcon/>} onClick={showCreateDlg}
+                        sx={{textTransform: 'none'}}>
                     New
                 </Button>
             </Box>

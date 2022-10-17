@@ -7,6 +7,7 @@ import * as React from "react";
 import Sidebar from "./Sidebar";
 import CommitsTable from "./CommitsTable";
 import Members from "./Members";
+import MembersService from "../../services/MembersService";
 
 
 function getView(key, props) {
@@ -29,8 +30,10 @@ export default function Project() {
     useEffect(() => {
         ProjectsService.get(projId)
             .then((resp) => {
-                setProject(resp.data);
-                CommitsService.setProject(resp.data.id);
+                const proj = resp.data;
+                setProject(proj);
+                CommitsService.setProject(proj.id);
+                MembersService.setProject(proj.id);
             });
     }, [projId]);
 
@@ -40,7 +43,7 @@ export default function Project() {
         project
             ? <Box sx={{mt: '8%'}}>
                 <Sidebar project={project} viewKey={viewKey} viewChgHandler={handleViewChange}/>
-                {getView(viewKey, {project: project})}
+                {getView(viewKey)}
             </Box>
             : null
     )
