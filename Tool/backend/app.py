@@ -159,7 +159,7 @@ def login():
     return {
         'refresh_token': create_refresh_token(identity=creds['id']),
         'access_token': create_access_token(identity=creds['id']),
-        'identity': creds['id']
+        'user_id': creds['id']
     }
 
 
