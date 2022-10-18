@@ -280,8 +280,8 @@ def get_notifications():
     data = db_conn.execute(
         'SELECT n.id,n.actor_id,n.created_at,u.full_name,n.activity,n.object_type,p.id AS project_id,p.name,un.is_seen '
         'FROM user_notifications un '
-        'INNER JOIN notifications n ON un.user_id=? {} AND n.object_type=? AND n.id = un.notif_id '
-        'INNER JOIN users u on n.actor_id=u.id '
+        'JOIN notifications n ON un.user_id=? {} AND n.object_type=? AND n.id=un.notif_id '
+        'JOIN users u on n.actor_id=u.id '
         'LEFT JOIN projects p ON n.object_id=p.id'.format(param), (get_jwt_identity(), Model.PROJECT)).fetchall()
 
     res = [project_notif(d) for d in data]  # add later other notifications types too
@@ -403,16 +403,29 @@ def create_invitation(proj_id):
     )
 
 
+@app.route('/api/users/me/projects/<proj_id>/invitations', methods=['GET'])
+@jwt_required()
+def get_sent_invitations(proj_id):
+    data = db_conn.execute('SELECT i.id,i.user_id,i.project_id,i.role,u.username,u.full_name FROM invitations i '
+                           'JOIN users u ON i.project_id=? '
+                           'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?) '
+                           'AND u.id=i.user_id',
+                           (proj_id, get_jwt_identity())).fetchall()
+    return [sent_invitation(d) for d in data]
+
+
 @app.route('/api/users/me/sent-invitations/<invitation_id>', methods=['GET'])
 @jwt_required()
 def get_sent_invitation(invitation_id):
-    data = db_conn.execute('SELECT id,user_id,project_id FROM invitations WHERE id=? '
-                           'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?) LIMIT 1',
+    data = db_conn.execute('SELECT i.id,i.user_id,i.project_id,i.role,u.username,u.full_name FROM invitations i '
+                           'JOIN users u ON i.id=? '
+                           'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?) '
+                           'AND u.id=i.user_id LIMIT 1',
                            (invitation_id, get_jwt_identity())).fetchone()
     if not data:
         return '', 404
 
-    return invitation(data)
+    return sent_invitation(data)
 
 
 @app.route('/api/users/me/sent-invitations/<invitation_id>', methods=['DELETE'])
@@ -430,7 +443,7 @@ def delete_sent_invitation(invitation_id):
 @app.route('/api/users/me/invitations/<invitation_id>', methods=['GET'])
 @jwt_required()
 def get_invitation(invitation_id):
-    data = db_conn.execute('SELECT id,user_id,project_id FROM invitations WHERE id=? AND user_id=? LIMIT 1',
+    data = db_conn.execute('SELECT id,project_id,role FROM invitations WHERE id=? AND user_id=? LIMIT 1',
                            (invitation_id, get_jwt_identity())).fetchone()
     if not data:
         return '', 404
@@ -440,7 +453,7 @@ def get_invitation(invitation_id):
 @app.route('/api/users/me/invitations', methods=['GET'])
 @jwt_required()
 def get_invitations():
-    data = db_conn.execute('SELECT id,user_id,project_id FROM invitations WHERE user_id=?',
+    data = db_conn.execute('SELECT id,project_id,role FROM invitations WHERE user_id=?',
                            (get_jwt_identity(),)).fetchall()
     return [invitation(d) for d in data]
 
@@ -482,7 +495,7 @@ def get_members(proj_id):
         return '', 404
 
     data = db_conn.execute('SELECT u.id,u.username,u.full_name,m.role FROM membership m '
-                           'INNER JOIN users u ON m.project_id=? AND u.id = m.user_id', (proj_id,)).fetchall()
+                           'JOIN users u ON m.project_id=? AND u.id = m.user_id', (proj_id,)).fetchall()
     return [member(d) for d in data]
 
 

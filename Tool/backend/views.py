@@ -54,11 +54,24 @@ def project_notif(d):
     return res
 
 
+def sent_invitation(d):
+    return {
+        'id': d['id'],
+        'project_id': d['project_id'],
+        'role': d['role'],
+        'user': {
+            'id': d['user_id'],
+            'username': d['username'],
+            'full_name': d['full_name']
+        }
+    }
+
+
 def invitation(d):
     return {
         'id': d['id'],
         'project_id': d['project_id'],
-        'user_id': d['user_id']
+        'role': d['role']
     }
 
 
