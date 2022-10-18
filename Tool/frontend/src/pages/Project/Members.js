@@ -20,6 +20,8 @@ import MembersService from "../../services/MembersService";
 import {Autocomplete, Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/material";
 import api from "../../services/api";
 import TextField from "@mui/material/TextField";
+import ProjectsService from "../../services/ProjectsService";
+import EnhancedAlert from "../../components/EnhancedAlert";
 
 
 const headCells = [
@@ -172,6 +174,8 @@ function InviteUsersDialog({members, inviteHandler, closeHandler}) {
 
     const changeHandler = (e, val) => selected.current = val;
 
+    const handleSubmit = () => inviteHandler(selected.current);
+
     return (
         allUsers && (
             <Dialog open={true} onClose={closeHandler} maxWidth="xs" fullWidth>
@@ -198,16 +202,17 @@ function InviteUsersDialog({members, inviteHandler, closeHandler}) {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={closeHandler} variant="outlined">Cancel</Button>
-                    <Button variant="contained">Invite</Button>
+                    <Button onClick={handleSubmit} variant="contained">Invite</Button>
                 </DialogActions>
             </Dialog>
         )
     );
 }
 
-export default function Members() {
+export default function Members({project}) {
     const [members, setMembers] = useState(null);
     const [openInviteDlg, setOpenInviteDlg] = useState(false);
+    const [alertMsg, setAlertMsg] = useState('');
 
     useEffect(() => {
         MembersService.getAll()
@@ -216,6 +221,18 @@ export default function Members() {
 
     const showInviteDlg = () => setOpenInviteDlg(true);
     const hideInviteDlg = () => setOpenInviteDlg(false);
+
+    const showSuccessMsg = (msg) => setAlertMsg(msg);
+    const hideSuccessMsg = () => setAlertMsg('');
+
+
+    const handleInvite = (selUsers) => {
+        hideInviteDlg();
+        Promise.all(
+            selUsers.map((u) => ProjectsService.createInvitation(project.id, u.id))
+        )
+            .then(() => showSuccessMsg('Invitations were successfully sent to users.'));
+    };
 
     return (
         <Fragment>
@@ -234,8 +251,16 @@ export default function Members() {
                     Invite
                 </Button>
             </Box>
-            {members && <MembersTable items={members} setItems={setMembers}/>}
-            {openInviteDlg && <InviteUsersDialog members={members} closeHandler={hideInviteDlg}/>}
+            {
+                members && <MembersTable items={members} setItems={setMembers}/>
+            }
+            {
+                openInviteDlg &&
+                <InviteUsersDialog members={members} inviteHandler={handleInvite} closeHandler={hideInviteDlg}/>
+            }
+            {
+                alertMsg && <EnhancedAlert msg={alertMsg} severity="success" closeHandler={hideSuccessMsg}/>
+            }
         </Fragment>
     );
 }

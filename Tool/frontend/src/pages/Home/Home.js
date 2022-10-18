@@ -5,19 +5,9 @@ import AddIcon from '@mui/icons-material/Add';
 import Button from "@mui/material/Button";
 import ProjectsTable from "./ProjectsTable";
 import ProjectsService from "../../services/ProjectsService";
-import {
-    Alert,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    Snackbar
-} from "@mui/material";
+import {Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from "@mui/material";
 import TextField from "@mui/material/TextField";
-
-
-const FakeComponent = ({children}) => children;
+import EnhancedAlert from "../../components/EnhancedAlert";
 
 
 function CreateProjectDialog({open, closeHandler, createHandler}) {
@@ -51,23 +41,18 @@ function CreateProjectDialog({open, closeHandler, createHandler}) {
 export default function Home() {
 
     const [openCreateDlg, setOpenCreateDlg] = useState(false);
-    const [alert, setAlert] = useState({
-        visible: false,
-        msg: ''
-    });
+    const [alertMsg, setAlertMsg] = useState('');
 
     const showCreateDlg = () => setOpenCreateDlg(true);
     const hideCreateDlg = () => setOpenCreateDlg(false);
 
-    const showAlert = (msg) => setAlert({visible: true, msg: msg});
-    const hideAlert = () => setAlert({visible: false, msg: ''});
+    const showInfo = (msg) => setAlertMsg(msg);
+    const hideInfo = () => setAlertMsg('');
 
     const handleCreateInDlg = (repoUrl, projName) => {
         hideCreateDlg();
         ProjectsService.create(repoUrl, projName)
-            .then(() => {
-                showAlert('Once the project is created, you will be notified');
-            });
+            .then(() => showInfo('Once the project is created, you will be notified'));
     };
 
     return (
@@ -91,12 +76,9 @@ export default function Home() {
             <ProjectsTable/>
 
             <CreateProjectDialog open={openCreateDlg} closeHandler={hideCreateDlg} createHandler={handleCreateInDlg}/>
-            <Snackbar open={alert.visible} autoHideDuration={5000} onClose={hideAlert}
-                      TransitionComponent={FakeComponent}>
-                <Alert onClose={hideAlert} severity="info">
-                    {alert.msg}
-                </Alert>
-            </Snackbar>
+            {
+                alertMsg && <EnhancedAlert msg={alertMsg} severity="info" closeHandler={hideInfo}/>
+            }
         </Fragment>
     )
 }

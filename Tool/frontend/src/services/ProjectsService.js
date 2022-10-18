@@ -30,6 +30,10 @@ class ProjectsService {
     update(id, data) {
         return api.patch(`${this.basePath}/${id}`, data);
     }
+
+    createInvitation(id, userId) {
+        return api.post(`${this.basePath}/${id}/invitations`, {'user_id': userId});
+    }
 }
 
 export default new ProjectsService();

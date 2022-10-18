@@ -43,7 +43,7 @@ export default function Project() {
         project
             ? <Box sx={{mt: '8%'}}>
                 <Sidebar project={project} viewKey={viewKey} viewChgHandler={handleViewChange}/>
-                {getView(viewKey)}
+                {getView(viewKey, project)}
             </Box>
             : null
     )
