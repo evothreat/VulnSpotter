@@ -27,7 +27,7 @@ import EnhancedAlert from "../../components/EnhancedAlert";
 const headCells = [
     {
         label: 'Name',
-        width: '40%',
+        width: '30%',
         key: 'full_name',
         sortable: true
     },
@@ -42,6 +42,11 @@ const headCells = [
         sortable: true,
         key: 'role',
         width: '20%'
+    },
+    {
+        label: 'Status',
+        width: '10%',
+        sortable: false
     },
     {
         label: '',
@@ -76,6 +81,7 @@ function MembersList({items, setItemToDelete}) {
                             <TableCell>{it.full_name}</TableCell>
                             <TableCell>{it.username}</TableCell>
                             <TableCell>{Utils.capitalize(it.role)}</TableCell>
+                            <TableCell>{it.invitation_id ? 'pending' : 'active'}</TableCell>
                             <TableCell align="right">
                                 {
                                     it.role === Role.OWNER
@@ -210,13 +216,25 @@ function InviteUsersDialog({members, inviteHandler, closeHandler}) {
 }
 
 export default function Members({project}) {
-    const [members, setMembers] = useState(null);
+    const [projMembers, setProjMembers] = useState(null);
     const [openInviteDlg, setOpenInviteDlg] = useState(false);
     const [alertMsg, setAlertMsg] = useState('');
 
     useEffect(() => {
-        ProjectsService.getMembers(project.id)
-            .then((resp) => setMembers(resp.data));
+        Promise.all([ProjectsService.getMembers(project.id), ProjectsService.getInvitations(project.id)])
+            .then((responses) => {
+                const members = responses[0].data;
+                const invitees = responses[1].data.map((inv) => {
+                    return {
+                        id: inv.user.id,
+                        username: inv.user.username,
+                        full_name: inv.user.full_name,
+                        role: inv.role,
+                        invitation_id: inv.id
+                    };
+                });
+                setProjMembers(members.concat(invitees));
+            });
     }, [project.id]);
 
     const showInviteDlg = () => setOpenInviteDlg(true);
@@ -252,11 +270,11 @@ export default function Members({project}) {
                 </Button>
             </Box>
             {
-                members && <MembersTable items={members} setItems={setMembers}/>
+                projMembers && <MembersTable items={projMembers} setItems={setProjMembers}/>
             }
             {
                 openInviteDlg &&
-                <InviteUsersDialog members={members} inviteHandler={handleInvite} closeHandler={hideInviteDlg}/>
+                <InviteUsersDialog members={projMembers} inviteHandler={handleInvite} closeHandler={hideInviteDlg}/>
             }
             {
                 alertMsg && <EnhancedAlert msg={alertMsg} severity="success" closeHandler={hideSuccessMsg}/>
