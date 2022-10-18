@@ -59,8 +59,8 @@ def sent_invitation(d):
         'id': d['id'],
         'project_id': d['project_id'],
         'role': d['role'],
-        'user': {
-            'id': d['user_id'],
+        'invitee': {
+            'id': d['invitee_id'],
             'username': d['username'],
             'full_name': d['full_name']
         }

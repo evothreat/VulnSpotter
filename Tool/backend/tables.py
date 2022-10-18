@@ -71,10 +71,10 @@ USER_NOTIFICATIONS_SCHEMA = '''
 INVITATIONS_SCHEMA = '''
     CREATE TABLE invitations (
         id          INTEGER PRIMARY KEY,
-        user_id     INTEGER,
+        invitee_id  INTEGER,
         project_id  INTEGER,
         role        TEXT,
-        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY(invitee_id) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
     )
 '''

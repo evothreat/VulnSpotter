@@ -385,13 +385,13 @@ def get_commit(commit_id):
 @jwt_required()
 def create_invitation(proj_id):
     owner_id = get_jwt_identity()
-    user_id = request.json.get('user_id')
+    invitee_id = request.json.get('invitee_id')
     role = request.json.get('role', Role.CONTRIBUTOR.value)  # role field if more roles implemented
 
     # insert only if the current user is owner of the project
-    entity_id = db_conn.execute('INSERT INTO invitations(user_id,project_id,role) '
+    entity_id = db_conn.execute('INSERT INTO invitations(invitee_id,project_id,role) '
                                 'SELECT ?,?,? WHERE EXISTS(SELECT * FROM projects p WHERE p.id=? AND p.owner_id=?)',
-                                (user_id, proj_id, role, proj_id, owner_id)).lastrowid
+                                (invitee_id, proj_id, role, proj_id, owner_id)).lastrowid
     if entity_id is None:
         return '', 422
 
@@ -406,10 +406,10 @@ def create_invitation(proj_id):
 @app.route('/api/users/me/projects/<proj_id>/invitations', methods=['GET'])
 @jwt_required()
 def get_sent_invitations(proj_id):
-    data = db_conn.execute('SELECT i.id,i.user_id,i.project_id,i.role,u.username,u.full_name FROM invitations i '
+    data = db_conn.execute('SELECT i.id,i.invitee_id,i.project_id,i.role,u.username,u.full_name FROM invitations i '
                            'JOIN users u ON i.project_id=? '
                            'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?) '
-                           'AND u.id=i.user_id',
+                           'AND u.id=i.invitee_id',
                            (proj_id, get_jwt_identity())).fetchall()
     return [sent_invitation(d) for d in data]
 
@@ -417,10 +417,10 @@ def get_sent_invitations(proj_id):
 @app.route('/api/users/me/sent-invitations/<invitation_id>', methods=['GET'])
 @jwt_required()
 def get_sent_invitation(invitation_id):
-    data = db_conn.execute('SELECT i.id,i.user_id,i.project_id,i.role,u.username,u.full_name FROM invitations i '
+    data = db_conn.execute('SELECT i.id,i.invitee_id,i.project_id,i.role,u.username,u.full_name FROM invitations i '
                            'JOIN users u ON i.id=? '
                            'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?) '
-                           'AND u.id=i.user_id LIMIT 1',
+                           'AND u.id=i.invitee_id LIMIT 1',
                            (invitation_id, get_jwt_identity())).fetchone()
     if not data:
         return '', 404
@@ -443,7 +443,7 @@ def delete_sent_invitation(invitation_id):
 @app.route('/api/users/me/invitations/<invitation_id>', methods=['GET'])
 @jwt_required()
 def get_invitation(invitation_id):
-    data = db_conn.execute('SELECT id,project_id,role FROM invitations WHERE id=? AND user_id=? LIMIT 1',
+    data = db_conn.execute('SELECT id,project_id,role FROM invitations WHERE id=? AND invitee_id=? LIMIT 1',
                            (invitation_id, get_jwt_identity())).fetchone()
     if not data:
         return '', 404
@@ -453,7 +453,7 @@ def get_invitation(invitation_id):
 @app.route('/api/users/me/invitations', methods=['GET'])
 @jwt_required()
 def get_invitations():
-    data = db_conn.execute('SELECT id,project_id,role FROM invitations WHERE user_id=?',
+    data = db_conn.execute('SELECT id,project_id,role FROM invitations WHERE invitee_id=?',
                            (get_jwt_identity(),)).fetchall()
     return [invitation(d) for d in data]
 
@@ -464,7 +464,8 @@ def accept_invitation(invitation_id):
     with transaction(db_conn):
         # 'starred' field missing
         entity_id = db_conn.execute('INSERT INTO membership(user_id,project_id,role) '
-                                    'SELECT user_id,project_id,role FROM invitations WHERE id=? AND user_id=? LIMIT 1',
+                                    'SELECT invitee_id,project_id,role FROM invitations WHERE id=? AND invitee_id=? '
+                                    'LIMIT 1',
                                     (invitation_id, get_jwt_identity())).lastrowid
         if entity_id is None:
             return '', 404
@@ -478,7 +479,7 @@ def accept_invitation(invitation_id):
 @app.route('/api/users/me/invitations/<invitation_id>', methods=['DELETE'])
 @jwt_required()
 def delete_invitation(invitation_id):
-    deleted = db_conn.execute('DELETE FROM invitations WHERE id=? AND user_id=?',
+    deleted = db_conn.execute('DELETE FROM invitations WHERE id=? AND invitee_id=?',
                               (invitation_id, get_jwt_identity())).rowcount
     if deleted == 0:
         return '', 404
@@ -499,17 +500,17 @@ def get_members(proj_id):
     return [member(d) for d in data]
 
 
-@app.route('/api/users/me/projects/members/<member_id>', methods=['DELETE'])
+@app.route('/api/users/me/projects/<proj_id>/members/<member_id>', methods=['DELETE'])
 @jwt_required()
-def delete_member(member_id):
+def delete_member(proj_id, member_id):
     owner_id = get_jwt_identity()
     # trying to delete self
     if owner_id == member_id:
         return '', 422
 
-    deleted = db_conn.execute('DELETE FROM membership WHERE user_id=? '
+    deleted = db_conn.execute('DELETE FROM membership WHERE user_id=? AND project_id=?'
                               'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?)',
-                              (member_id, owner_id)).rowcount
+                              (proj_id, member_id, owner_id)).rowcount
     if deleted == 0:
         return '', 404
     # TODO: notify deleted user
