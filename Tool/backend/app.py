@@ -374,9 +374,9 @@ def get_commits(proj_id):
     return [commit(d) for d in data]
 
 
-@app.route('/api/users/me/projects/<proj_id>/commits/<commit_id>', methods=['GET'])
+@app.route('/api/users/me/projects/commits/<commit_id>', methods=['GET'])
 @jwt_required()
-def get_commit(proj_id, commit_id):
+def get_commit(commit_id):
     return 'Not implemented yet', 200
 
 
@@ -398,29 +398,29 @@ def create_invitation(proj_id):
     return Response(
         status=204,
         headers={
-            'Location': url_for('get_sent_invitation', proj_id=proj_id, invitation_id=entity_id, _external=True)
+            'Location': url_for('get_sent_invitation', invitation_id=entity_id, _external=True)
         }
     )
 
 
-@app.route('/api/users/me/projects/<proj_id>/invitations/<invitation_id>', methods=['GET'])
+@app.route('/api/users/me/sent-invitations/<invitation_id>', methods=['GET'])
 @jwt_required()
-def get_sent_invitation(proj_id, invitation_id):
-    data = db_conn.execute('SELECT id,user_id,project_id FROM invitations WHERE id=? AND project_id=?'
+def get_sent_invitation(invitation_id):
+    data = db_conn.execute('SELECT id,user_id,project_id FROM invitations WHERE id=? '
                            'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?) LIMIT 1',
-                           (invitation_id, proj_id, get_jwt_identity())).fetchone()
+                           (invitation_id, get_jwt_identity())).fetchone()
     if not data:
         return '', 404
 
     return invitation(data)
 
 
-@app.route('/api/users/me/projects/<proj_id>/invitations/<invitation_id>', methods=['DELETE'])
+@app.route('/api/users/me/sent-invitations/<invitation_id>', methods=['DELETE'])
 @jwt_required()
-def delete_sent_invitation(proj_id, invitation_id):
-    deleted = db_conn.execute('DELETE FROM invitations WHERE id=? AND project_id=? '
+def delete_sent_invitation(invitation_id):
+    deleted = db_conn.execute('DELETE FROM invitations WHERE id=? '
                               'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?)',
-                              (invitation_id, proj_id, get_jwt_identity())).rowcount
+                              (invitation_id, get_jwt_identity())).rowcount
     if deleted == 0:
         return '', 404
 
@@ -486,17 +486,17 @@ def get_members(proj_id):
     return [member(d) for d in data]
 
 
-@app.route('/api/users/me/projects/<proj_id>/members/<member_id>', methods=['DELETE'])
+@app.route('/api/users/me/projects/members/<member_id>', methods=['DELETE'])
 @jwt_required()
-def delete_member(proj_id, member_id):
+def delete_member(member_id):
     owner_id = get_jwt_identity()
     # trying to delete self
     if owner_id == member_id:
         return '', 422
 
-    deleted = db_conn.execute('DELETE FROM membership WHERE project_id=? AND user_id=? '
+    deleted = db_conn.execute('DELETE FROM membership WHERE user_id=? '
                               'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?)',
-                              (proj_id, member_id, owner_id)).rowcount
+                              (member_id, owner_id)).rowcount
     if deleted == 0:
         return '', 404
     # TODO: notify deleted user
