@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Fragment, useEffect, useState} from "react";
+import {Fragment, useEffect, useRef, useState} from "react";
 import * as Utils from "../../utils";
 import Typography from "@mui/material/Typography";
 import TableContainer from "@mui/material/TableContainer";
@@ -17,6 +17,9 @@ import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import {Role} from "../../constants";
 import ConfirmDeleteDialog from "../../components/ConfirmDeleteDialog";
 import MembersService from "../../services/MembersService";
+import {Autocomplete, Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/material";
+import api from "../../services/api";
+import TextField from "@mui/material/TextField";
 
 
 const headCells = [
@@ -96,18 +99,12 @@ function MembersList({items, setItemToDelete}) {
     );
 }
 
-function MembersTable() {
-    const [items, setItems] = useState(null);
+function MembersTable({items, setItems}) {
     const [sorter, setSorter] = useState({
         order: 'asc',
         orderBy: 'full_name'
     });
     const [itemToDelete, setItemToDelete] = useState(null);
-
-    useEffect(() => {
-        MembersService.getAll()
-            .then((resp) => setItems(resp.data));
-    }, []);
 
     const sortItems = (key) => {
         const isAsc = sorter.orderBy === key && sorter.order === 'asc';
@@ -135,31 +132,90 @@ function MembersTable() {
     const clearItemToDelete = () => setItemToDelete(null);
 
     return (
-        items == null
-            ? <Typography variant="body2">Loading members...</Typography>
-            : <Fragment>
-                <TableContainer sx={{height: TABLE_HEIGHT}}>
-                    <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
-                        <EnhancedTableHead headCells={headCells}
-                                           order={sorter.order}
-                                           orderBy={sorter.orderBy}
-                                           sortReqHandler={sortItems}/>
-                        <MembersList items={getItems()} setItemToDelete={setItemToDelete}/>
-                    </Table>
-                </TableContainer>
-                {
-                    itemToDelete &&
-                    <ConfirmDeleteDialog title="Remove Member" closeHandler={clearItemToDelete}
-                                         deleteHandler={handleDelete}>
-                        Are you sure you want to remove "{itemToDelete.full_name}" from project?
-                    </ConfirmDeleteDialog>
-                }
-            </Fragment>
+        <Fragment>
+            <TableContainer sx={{height: TABLE_HEIGHT}}>
+                <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
+                    <EnhancedTableHead headCells={headCells}
+                                       order={sorter.order}
+                                       orderBy={sorter.orderBy}
+                                       sortReqHandler={sortItems}/>
+                    <MembersList items={getItems()} setItemToDelete={setItemToDelete}/>
+                </Table>
+            </TableContainer>
+            {
+                itemToDelete &&
+                <ConfirmDeleteDialog title="Remove Member" closeHandler={clearItemToDelete}
+                                     deleteHandler={handleDelete}>
+                    Are you sure you want to remove "{itemToDelete.full_name}" from project?
+                </ConfirmDeleteDialog>
+            }
+        </Fragment>
+    );
+}
 
+function InviteUsersDialog({members, inviteHandler, closeHandler}) {
+
+    const [allUsers, setAllUsers] = useState(null);
+    const selected = useRef(null);
+
+    useEffect(() => {
+        api.get('/users')
+            .then((resp) => {
+                const users = resp.data.filter((u) => !members.some((u2) => u.id === u2.id));
+                setAllUsers(users.sort(Utils.createComparator('full_name', 'asc')));
+            });
+    }, []);
+
+    const getFullName = (u) => u.full_name;
+
+    const checkEquality = (opt, val) => opt.id === val.id;
+
+    const changeHandler = (e, val) => selected.current = val;
+
+    return (
+        allUsers && (
+            <Dialog open={true} onClose={closeHandler} maxWidth="xs" fullWidth>
+                <DialogTitle>Invite Users</DialogTitle>
+                <DialogContent>
+                    <Autocomplete
+                        multiple
+                        disableCloseOnSelect
+                        noOptionsText="No users"
+                        options={allUsers}
+                        getOptionLabel={getFullName}
+                        isOptionEqualToValue={checkEquality}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                margin="dense"
+                                variant="outlined"
+                                label="Selected users"
+                            />
+                        )}
+                        onChange={changeHandler}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={closeHandler} variant="outlined">Cancel</Button>
+                    <Button variant="contained">Invite</Button>
+                </DialogActions>
+            </Dialog>
+        )
     );
 }
 
 export default function Members() {
+    const [members, setMembers] = useState(null);
+    const [openInviteDlg, setOpenInviteDlg] = useState(false);
+
+    useEffect(() => {
+        MembersService.getAll()
+            .then((resp) => setMembers(resp.data));
+    }, []);
+
+    const showInviteDlg = () => setOpenInviteDlg(true);
+    const hideInviteDlg = () => setOpenInviteDlg(false);
+
     return (
         <Fragment>
             <Box sx={{
@@ -172,11 +228,13 @@ export default function Members() {
                 <Typography variant="h6">
                     Members
                 </Typography>
-                <Button size="small" variant="contained" startIcon={<PersonAddAlt1Icon/>} sx={{textTransform: 'none'}}>
+                <Button size="small" variant="contained" startIcon={<PersonAddAlt1Icon/>}
+                        sx={{textTransform: 'none'}} onClick={showInviteDlg}>
                     Invite
                 </Button>
             </Box>
-            <MembersTable/>
+            {members && <MembersTable items={members} setItems={setMembers}/>}
+            {openInviteDlg && <InviteUsersDialog members={members} closeHandler={hideInviteDlg}/>}
         </Fragment>
     );
 }
