@@ -508,7 +508,7 @@ def delete_member(proj_id, member_id):
     if owner_id == member_id:
         return '', 422
 
-    deleted = db_conn.execute('DELETE FROM membership WHERE user_id=? AND project_id=?'
+    deleted = db_conn.execute('DELETE FROM membership WHERE project_id=? AND user_id=? '
                               'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?)',
                               (proj_id, member_id, owner_id)).rowcount
     if deleted == 0:
