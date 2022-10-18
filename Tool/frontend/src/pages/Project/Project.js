@@ -1,13 +1,11 @@
 import {useParams} from "react-router-dom";
+import * as React from "react";
 import {useEffect, useState} from "react";
 import ProjectsService from "../../services/ProjectsService";
-import CommitsService from "../../services/CommitsService";
 import Box from "@mui/material/Box";
-import * as React from "react";
 import Sidebar from "./Sidebar";
 import CommitsTable from "./CommitsTable";
 import Members from "./Members";
-import MembersService from "../../services/MembersService";
 
 
 function getView(key, props) {
@@ -29,12 +27,7 @@ export default function Project() {
 
     useEffect(() => {
         ProjectsService.get(projId)
-            .then((resp) => {
-                const proj = resp.data;
-                setProject(proj);
-                CommitsService.setProject(proj.id);
-                MembersService.setProject(proj.id);
-            });
+            .then((resp) => setProject(resp.data));
     }, [projId]);
 
     const handleViewChange = (viewId) => setViewKey(viewId);
@@ -43,7 +36,7 @@ export default function Project() {
         project
             ? <Box sx={{mt: '8%'}}>
                 <Sidebar project={project} viewKey={viewKey} viewChgHandler={handleViewChange}/>
-                {getView(viewKey, project)}
+                {getView(viewKey, {project: project})}
             </Box>
             : null
     )

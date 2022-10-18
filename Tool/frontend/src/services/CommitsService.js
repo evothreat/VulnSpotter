@@ -3,15 +3,7 @@ import api from "./api";
 class CommitsService {
 
     constructor() {
-        this.basePath = '';
-    }
-
-    setProject(projId) {
-        this.basePath = `/users/me/projects/${projId}/commits`;
-    }
-
-    getAll() {
-        return api.get(this.basePath);
+        this.basePath = '/users/me/projects/commits';
     }
 
     get(id) {

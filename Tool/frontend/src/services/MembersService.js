@@ -4,15 +4,7 @@ import api from "./api";
 class MembersService {
 
     constructor() {
-        this.basePath = '';
-    }
-
-    setProject(projId) {
-        this.basePath = `/users/me/projects/${projId}/members`;
-    }
-
-    getAll() {
-        return api.get(this.basePath);
+        this.basePath = '/users/me/projects/members';
     }
 
     get(id) {

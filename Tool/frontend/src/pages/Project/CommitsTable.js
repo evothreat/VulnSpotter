@@ -1,3 +1,4 @@
+import * as React from "react";
 import {Fragment, useEffect, useState} from "react";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
@@ -10,11 +11,10 @@ import Typography from "@mui/material/Typography";
 import * as Utils from "../../utils";
 import TableBody from "@mui/material/TableBody";
 import {Waypoint} from "react-waypoint";
-import CommitsService from "../../services/CommitsService";
 import TableContainer from "@mui/material/TableContainer";
 import Table from "@mui/material/Table";
 import EnhancedTableHead from "../../components/EnhancedTableHead";
-import * as React from "react";
+import ProjectsService from "../../services/ProjectsService";
 
 const cveDetailUrl = 'https://nvd.nist.gov/vuln/detail/';
 
@@ -153,7 +153,7 @@ function CommitsList({items}) {
     );
 }
 
-export default function CommitsTable() {
+export default function CommitsTable({project}) {
     const [items, setItems] = useState(null);
     const [sorter, setSorter] = useState({
         order: 'desc',
@@ -161,14 +161,14 @@ export default function CommitsTable() {
     });
 
     useEffect(() => {
-        CommitsService.getAll()
+        ProjectsService.getCommits(project.id)
             .then((resp) => {
                 resp.data.forEach((c) => {
                     c.cve = Utils.findCVEs(c.message);
                 });
                 setItems(resp.data);
             });
-    }, []);
+    }, [project.id]);
 
     const sortItems = (key) => {
         const isAsc = sorter.orderBy === key && sorter.order === 'asc';

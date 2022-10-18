@@ -215,9 +215,9 @@ export default function Members({project}) {
     const [alertMsg, setAlertMsg] = useState('');
 
     useEffect(() => {
-        MembersService.getAll()
+        ProjectsService.getMembers(project.id)
             .then((resp) => setMembers(resp.data));
-    }, []);
+    }, [project.id]);
 
     const showInviteDlg = () => setOpenInviteDlg(true);
     const hideInviteDlg = () => setOpenInviteDlg(false);

@@ -31,6 +31,14 @@ class ProjectsService {
         return api.patch(`${this.basePath}/${id}`, data);
     }
 
+    getMembers(id) {
+        return api.get(`${this.basePath}/${id}/members`);
+    }
+
+    getCommits(id) {
+        return api.get(`${this.basePath}/${id}/commits`);
+    }
+
     createInvitation(id, userId) {
         return api.post(`${this.basePath}/${id}/invitations`, {'user_id': userId});
     }
