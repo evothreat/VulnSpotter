@@ -166,7 +166,7 @@ function InviteUsersDialog({members, inviteHandler, closeHandler}) {
                 const users = resp.data.filter((u) => !members.some((u2) => u.id === u2.id));
                 setAllUsers(users.sort(Utils.createComparator('full_name', 'asc')));
             });
-    }, []);
+    }, [members]);
 
     const getFullName = (u) => u.full_name;
 
