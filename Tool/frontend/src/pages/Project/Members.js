@@ -22,6 +22,7 @@ import api from "../../services/api";
 import TextField from "@mui/material/TextField";
 import ProjectsService from "../../services/ProjectsService";
 import EnhancedAlert from "../../components/EnhancedAlert";
+import InvitationsService from "../../services/InvitationsService";
 
 
 const headCells = [
@@ -129,13 +130,13 @@ function MembersTable({items, setItems}) {
     };
 
     const handleDelete = () => {
-        const itemId = itemToDelete.id;
+        const item = itemToDelete;
         setItemToDelete(null);
 
-        MembersService.delete(itemId)
-            .then(() => {
-                setItems((curItems) => curItems.filter((it) => it.id !== itemId));
-            });
+        const req = item.active ? MembersService.delete(item.id) : InvitationsService.deleteSent(item.invitation_id);
+        req.then(() => {
+            setItems((curItems) => curItems.filter((it) => it.id !== item.id));
+        });
     };
 
     const clearItemToDelete = () => setItemToDelete(null);
@@ -227,9 +228,9 @@ export default function Members({project}) {
                 const members = responses[0].data;
                 const invitees = responses[1].data.map((inv) => {
                     return {
-                        id: inv.user.id,
-                        username: inv.user.username,
-                        full_name: inv.user.full_name,
+                        id: inv.invitee.id,
+                        username: inv.invitee.username,
+                        full_name: inv.invitee.full_name,
                         role: inv.role,
                         invitation_id: inv.id,
                         active: false
