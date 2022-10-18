@@ -46,7 +46,8 @@ const headCells = [
     {
         label: 'Status',
         width: '10%',
-        sortable: false
+        key: 'active',
+        sortable: true
     },
     {
         label: '',
@@ -81,7 +82,7 @@ function MembersList({items, setItemToDelete}) {
                             <TableCell>{it.full_name}</TableCell>
                             <TableCell>{it.username}</TableCell>
                             <TableCell>{Utils.capitalize(it.role)}</TableCell>
-                            <TableCell>{it.invitation_id ? 'pending' : 'active'}</TableCell>
+                            <TableCell>{it.active ? 'active' : 'pending'}</TableCell>
                             <TableCell align="right">
                                 {
                                     it.role === Role.OWNER
@@ -230,9 +231,11 @@ export default function Members({project}) {
                         username: inv.user.username,
                         full_name: inv.user.full_name,
                         role: inv.role,
-                        invitation_id: inv.id
+                        invitation_id: inv.id,
+                        active: false
                     };
                 });
+                members.forEach((m) => m.active = true);
                 setProjMembers(members.concat(invitees));
             });
     }, [project.id]);
