@@ -70,8 +70,16 @@ def sent_invitation(d):
 def invitation(d):
     return {
         'id': d['id'],
-        'project_id': d['project_id'],
-        'role': d['role']
+        'role': d['role'],
+        'project': {
+            'id': d['project_id'],
+            'name': d['name']
+        },
+        'owner': {
+            'id': d['owner_id'],
+            'full_name': d['full_name']
+        },
+        'is_seen': d['is_seen']
     }
 
 
