@@ -96,15 +96,15 @@ def setup_db():
                             ('venkman', 9, time_before(seconds=41)),
                         ])
     # members
-    db_conn.executemany('INSERT INTO membership(user_id,project_id,role,starred) VALUES (?,?,?,?)',
+    db_conn.executemany('INSERT INTO membership(user_id,project_id,role) VALUES (?,?,?)',
                         [
-                            (1, 1, Role.OWNER, False),
-                            (1, 4, Role.OWNER, False),
-                            (1, 5, Role.OWNER, False),
-                            (1, 9, Role.OWNER, False),
-                            (1, 3, Role.CONTRIBUTOR, False),
-                            (1, 7, Role.CONTRIBUTOR, False),
-                            (1, 6, Role.CONTRIBUTOR, False)
+                            (1, 1, Role.OWNER),
+                            (1, 4, Role.OWNER),
+                            (1, 5, Role.OWNER),
+                            (1, 9, Role.OWNER),
+                            (1, 3, Role.CONTRIBUTOR),
+                            (1, 7, Role.CONTRIBUTOR),
+                            (1, 6, Role.CONTRIBUTOR)
                         ])
 
 
@@ -132,8 +132,8 @@ def clone_n_parse_repo(user_id, repo_url, proj_name):
             proj_id = db_conn.execute('INSERT INTO projects(owner_id,name,repository,updated_at) VALUES (?,?,?,?)',
                                       (user_id, proj_name, repo_loc, unix_time())).lastrowid
 
-            db_conn.execute('INSERT INTO membership(user_id,project_id,role,starred) VALUES (?,?,?,?)',
-                            (user_id, proj_id, Role.OWNER, False))
+            db_conn.execute('INSERT INTO membership(user_id,project_id,role) VALUES (?,?,?)',
+                            (user_id, proj_id, Role.OWNER))
 
             commits = [(proj_id, v['commit-id'], v['message'], v['authored_date']) for v in vulns.values()]
             db_conn.executemany('INSERT INTO commits(project_id,hash,message,created_at) VALUES (?,?,?,?)', commits)
@@ -216,7 +216,7 @@ def create_project():
 @jwt_required()
 def get_projects():
     # also count number of commits?
-    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.updated_at,m.starred,p.owner_id,u.full_name '
+    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.updated_at,p.owner_id,u.full_name '
                            'FROM membership m '
                            'JOIN projects p ON m.user_id=? AND m.project_id=p.id '
                            'JOIN users u ON p.owner_id=u.id', (get_jwt_identity(),)).fetchall()
@@ -227,7 +227,7 @@ def get_projects():
 @app.route('/api/users/me/projects/<proj_id>', methods=['GET'])
 @jwt_required()
 def get_project(proj_id):
-    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.updated_at,m.starred,p.owner_id,u.full_name '
+    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.updated_at,p.owner_id,u.full_name '
                            'FROM membership m '
                            'JOIN projects p ON m.user_id=? AND m.project_id=? AND m.project_id=p.id '
                            'JOIN users u ON p.owner_id=u.id LIMIT 1', (get_jwt_identity(), proj_id)).fetchone()
@@ -456,7 +456,6 @@ def get_invitations():
 @jwt_required()
 def accept_invitation(invitation_id):
     with transaction(db_conn):
-        # 'starred' field missing
         entity_id = db_conn.execute('INSERT INTO membership(user_id,project_id,role) '
                                     'SELECT invitee_id,project_id,role FROM invitations WHERE id=? AND invitee_id=? '
                                     'LIMIT 1',

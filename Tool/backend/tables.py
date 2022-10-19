@@ -15,7 +15,6 @@ MEMBERSHIP_SCHEMA = '''
         user_id     INTEGER,
         project_id  INTEGER,
         role        TEXT,
-        starred     BOOLEAN,
         FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE,
         PRIMARY KEY(user_id, project_id)
