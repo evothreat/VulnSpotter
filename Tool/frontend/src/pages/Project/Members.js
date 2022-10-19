@@ -23,6 +23,7 @@ import ProjectsService from "../../services/ProjectsService";
 import EnhancedAlert from "../../components/EnhancedAlert";
 import InvitationsService from "../../services/InvitationsService";
 import {useParams} from "react-router-dom";
+import {actionBtnStyle} from "../../style";
 
 
 const headCells = [
@@ -57,14 +58,6 @@ const headCells = [
         align: 'right'
     }
 ];
-
-const TABLE_HEIGHT = '460px';
-
-const actionBtnStyle = {
-    fontSize: '22px',
-    padding: '4px 4px',
-    color: '#707070'
-};
 
 
 function MembersList({items, setItemToDelete}) {
@@ -145,7 +138,7 @@ function MembersTable({items, setItems}) {
 
     return (
         <Fragment>
-            <TableContainer sx={{height: TABLE_HEIGHT}}>
+            <TableContainer sx={{height: '460px'}}>
                 <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
                     <EnhancedTableHead headCells={headCells}
                                        order={sorter.order}

@@ -21,6 +21,7 @@ import Link from "@mui/material/Link";
 import EnhancedTableHead from "../../components/EnhancedTableHead";
 import TokenService from "../../services/TokenService";
 import ConfirmDeleteDialog from "../../components/ConfirmDeleteDialog";
+import {actionBtnStyle} from "../../style";
 
 
 const headCells = [
@@ -47,13 +48,6 @@ const headCells = [
         align: 'right'
     }
 ];
-
-
-const actionBtnStyle = {
-    fontSize: '22px',
-    padding: '4px 4px',
-    color: '#707070'
-};
 
 
 function ProjectTableList({items, setItemToDelete, setItemToRename}) {

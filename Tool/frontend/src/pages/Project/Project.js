@@ -1,17 +1,16 @@
 import {useParams} from "react-router-dom";
 import * as React from "react";
-import {useEffect, useState} from "react";
+import {Fragment, useEffect, useState} from "react";
 import ProjectsService from "../../services/ProjectsService";
-import Box from "@mui/material/Box";
 import Sidebar from "./Sidebar";
-import CommitsTable from "./CommitsTable";
+import Commits from "./Commits";
 import Members from "./Members";
 
 
 function getView(key, props) {
     switch (key) {
         case 'commits':
-            return <CommitsTable {...props}/>;
+            return <Commits {...props}/>;
         case 'members':
             return <Members {...props}/>            // bad approach, pass only children & required parameters
         default:
@@ -34,10 +33,10 @@ export default function Project() {
 
     return (
         project
-            ? <Box sx={{mt: '8%'}}>
+            ? <Fragment>
                 <Sidebar project={project} viewKey={viewKey} viewChgHandler={handleViewChange}/>
                 {getView(viewKey)}
-            </Box>
+            </Fragment>
             : null
     )
 }

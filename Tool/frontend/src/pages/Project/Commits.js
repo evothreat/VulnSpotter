@@ -16,6 +16,7 @@ import Table from "@mui/material/Table";
 import EnhancedTableHead from "../../components/EnhancedTableHead";
 import ProjectsService from "../../services/ProjectsService";
 import {useParams} from "react-router-dom";
+import {headerStyle} from "../../style";
 
 const cveDetailUrl = 'https://nvd.nist.gov/vuln/detail/';
 
@@ -154,7 +155,7 @@ function CommitsList({items}) {
     );
 }
 
-export default function CommitsTable() {
+function CommitsTable() {
     const [items, setItems] = useState(null);
     const [sorter, setSorter] = useState({
         order: 'desc',
@@ -197,5 +198,18 @@ export default function CommitsTable() {
                     <CommitsList items={getItems()}/>
                 </Table>
             </TableContainer>
+    );
+}
+
+export default function Commits() {
+    return (
+        <Fragment>
+            <Box sx={headerStyle}>
+                <Typography variant="h6">
+                    Commits
+                </Typography>
+            </Box>
+            <CommitsTable/>
+        </Fragment>
     );
 }
