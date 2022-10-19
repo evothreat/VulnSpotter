@@ -520,7 +520,7 @@ def delete_member(proj_id, member_id):
 
 if __name__ == '__main__':
     # setup_db()
-    app.run()
+    app.run(threaded=False)     # running in single-thread mode!
 
 # TODO: implement registration endpoint
 
