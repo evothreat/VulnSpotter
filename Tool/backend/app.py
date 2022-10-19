@@ -389,9 +389,11 @@ def create_invitation(proj_id):
     role = request.json.get('role', Role.CONTRIBUTOR.value)  # role field if more roles implemented
 
     # insert only if the current user is owner of the project
+    # and only if same invitation not already exist
     entity_id = db_conn.execute('INSERT INTO invitations(invitee_id,project_id,role) '
-                                'SELECT ?,?,? WHERE EXISTS(SELECT * FROM projects p WHERE p.id=? AND p.owner_id=?)',
-                                (invitee_id, proj_id, role, proj_id, owner_id)).lastrowid
+                                'SELECT ?,?,? WHERE EXISTS(SELECT * FROM projects p WHERE p.id=? AND p.owner_id=?) '
+                                'AND NOT EXISTS(SELECT * FROM invitations WHERE project_id=? AND invitee_id=?)',
+                                (invitee_id, proj_id, role, proj_id, owner_id, proj_id, invitee_id)).lastrowid
     if entity_id is None:
         return '', 422
 
@@ -480,9 +482,8 @@ def delete_invitation(invitation_id):
 @app.route('/api/users/me/projects/<proj_id>/members', methods=['GET'])
 @jwt_required()
 def get_members(proj_id):
-    # can only owner see the members??
-    exist = db_conn.execute('SELECT 1 FROM membership WHERE user_id=? AND project_id=? LIMIT 1',
-                            (get_jwt_identity(), proj_id)).fetchone()
+    exist = db_conn.execute('SELECT 1 FROM projects WHERE id=? AND owner_id=? LIMIT 1',
+                            (proj_id, get_jwt_identity())).fetchone()
     if not exist:
         return '', 404
 
