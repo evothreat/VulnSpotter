@@ -73,7 +73,6 @@ INVITATIONS_SCHEMA = '''
         invitee_id  INTEGER,
         project_id  INTEGER,
         role        TEXT,
-        is_seen     BOOLEAN,
         FOREIGN KEY(invitee_id) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
     )

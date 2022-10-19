@@ -77,8 +77,7 @@ def invitation(d):
         'owner': {
             'id': d['owner_id'],
             'full_name': d['full_name']
-        },
-        'is_seen': d['is_seen']
+        }
     }
 
 

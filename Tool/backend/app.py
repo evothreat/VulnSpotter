@@ -389,9 +389,9 @@ def create_invitation(proj_id):
     role = request.json.get('role', Role.CONTRIBUTOR.value)  # role field if more roles implemented
 
     # insert only if the current user is owner of the project
-    entity_id = db_conn.execute('INSERT INTO invitations(invitee_id,project_id,role,is_seen) '
-                                'SELECT ?,?,?,? WHERE EXISTS(SELECT * FROM projects p WHERE p.id=? AND p.owner_id=?)',
-                                (invitee_id, proj_id, role, False, proj_id, owner_id)).lastrowid
+    entity_id = db_conn.execute('INSERT INTO invitations(invitee_id,project_id,role) '
+                                'SELECT ?,?,? WHERE EXISTS(SELECT * FROM projects p WHERE p.id=? AND p.owner_id=?)',
+                                (invitee_id, proj_id, role, proj_id, owner_id)).lastrowid
     if entity_id is None:
         return '', 422
 
@@ -406,8 +406,8 @@ def create_invitation(proj_id):
 @app.route('/api/users/me/projects/<proj_id>/invitations', methods=['GET'])
 @jwt_required()
 def get_sent_invitations(proj_id):
-    data = db_conn.execute('SELECT i.id,i.invitee_id,i.project_id,i.role,u.username,u.full_name FROM invitations i '
-                           'JOIN users u ON i.project_id=? '
+    data = db_conn.execute('SELECT i.id,i.invitee_id,i.project_id,i.role,u.username,u.full_name '
+                           'FROM invitations i JOIN users u ON i.project_id=? '
                            'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?) '
                            'AND u.id=i.invitee_id',
                            (proj_id, get_jwt_identity())).fetchall()
@@ -417,8 +417,8 @@ def get_sent_invitations(proj_id):
 @app.route('/api/users/me/sent-invitations/<invitation_id>', methods=['GET'])
 @jwt_required()
 def get_sent_invitation(invitation_id):
-    data = db_conn.execute('SELECT i.id,i.invitee_id,i.project_id,i.role,u.username,u.full_name FROM invitations i '
-                           'JOIN users u ON i.id=? '
+    data = db_conn.execute('SELECT i.id,i.invitee_id,i.project_id,i.role,u.username,u.full_name '
+                           'FROM invitations i JOIN users u ON i.id=? '
                            'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?) '
                            'AND u.id=i.invitee_id LIMIT 1',
                            (invitation_id, get_jwt_identity())).fetchone()
@@ -443,11 +443,8 @@ def delete_sent_invitation(invitation_id):
 @app.route('/api/users/me/invitations', methods=['GET'])
 @jwt_required()
 def get_invitations():
-    # add is_seen field!
-    param = 'AND i.is_seen=0' if 'unseen' in request.args else ''
     data = db_conn.execute('SELECT i.id,i.project_id,i.role,p.name,p.owner_id,u.full_name FROM invitations i '
-                           'JOIN projects p ON i.invitee_id=? {} AND i.project_id=p.id '
-                           'JOIN users u on p.owner_id = u.id'.format(param),
+                           'JOIN projects p ON i.invitee_id=? AND i.project_id=p.id JOIN users u on p.owner_id = u.id',
                            (get_jwt_identity(),)).fetchall()
     return [invitation(d) for d in data]
 
@@ -483,13 +480,15 @@ def delete_invitation(invitation_id):
 @app.route('/api/users/me/projects/<proj_id>/members', methods=['GET'])
 @jwt_required()
 def get_members(proj_id):
-    exist = db_conn.execute('SELECT 1 FROM projects WHERE id=? AND owner_id=? LIMIT 1',
-                            (proj_id, get_jwt_identity())).fetchone()
+    # can only owner see the members??
+    exist = db_conn.execute('SELECT 1 FROM membership WHERE user_id=? AND project_id=? LIMIT 1',
+                            (get_jwt_identity(), proj_id)).fetchone()
     if not exist:
         return '', 404
 
     data = db_conn.execute('SELECT u.id,u.username,u.full_name,m.role FROM membership m '
-                           'JOIN users u ON m.project_id=? AND u.id = m.user_id', (proj_id,)).fetchall()
+                           'JOIN users u ON m.project_id=? AND u.id=m.user_id',
+                           (proj_id,)).fetchall()
     return [member(d) for d in data]
 
 
