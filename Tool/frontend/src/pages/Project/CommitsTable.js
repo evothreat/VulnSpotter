@@ -15,6 +15,7 @@ import TableContainer from "@mui/material/TableContainer";
 import Table from "@mui/material/Table";
 import EnhancedTableHead from "../../components/EnhancedTableHead";
 import ProjectsService from "../../services/ProjectsService";
+import {useParams} from "react-router-dom";
 
 const cveDetailUrl = 'https://nvd.nist.gov/vuln/detail/';
 
@@ -153,22 +154,23 @@ function CommitsList({items}) {
     );
 }
 
-export default function CommitsTable({project}) {
+export default function CommitsTable() {
     const [items, setItems] = useState(null);
     const [sorter, setSorter] = useState({
         order: 'desc',
         orderBy: 'created_at'
     });
+    const {projId} = useParams();
 
     useEffect(() => {
-        ProjectsService.getCommits(project.id)
+        ProjectsService.getCommits(projId)
             .then((resp) => {
                 resp.data.forEach((c) => {
                     c.cve = Utils.findCVEs(c.message);
                 });
                 setItems(resp.data);
             });
-    }, [project.id]);
+    }, [projId]);
 
     const sortItems = (key) => {
         const isAsc = sorter.orderBy === key && sorter.order === 'asc';

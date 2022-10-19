@@ -16,13 +16,13 @@ import Button from "@mui/material/Button";
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import {Role} from "../../constants";
 import ConfirmDeleteDialog from "../../components/ConfirmDeleteDialog";
-import MembersService from "../../services/MembersService";
 import {Autocomplete, Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/material";
 import api from "../../services/api";
 import TextField from "@mui/material/TextField";
 import ProjectsService from "../../services/ProjectsService";
 import EnhancedAlert from "../../components/EnhancedAlert";
 import InvitationsService from "../../services/InvitationsService";
+import {useParams} from "react-router-dom";
 
 
 const headCells = [
@@ -115,6 +115,7 @@ function MembersTable({items, setItems}) {
         orderBy: 'full_name'
     });
     const [itemToDelete, setItemToDelete] = useState(null);
+    const {projId} = useParams();
 
     const sortItems = (key) => {
         const isAsc = sorter.orderBy === key && sorter.order === 'asc';
@@ -133,7 +134,8 @@ function MembersTable({items, setItems}) {
         const item = itemToDelete;
         setItemToDelete(null);
 
-        const req = item.active ? MembersService.delete(item.id) : InvitationsService.deleteSent(item.invitation_id);
+        const req = item.active ? ProjectsService.removeMember(projId, item.id)
+                                : InvitationsService.deleteSent(item.invitation_id);
         req.then(() => {
             setItems((curItems) => curItems.filter((it) => it.id !== item.id));
         });
@@ -217,13 +219,14 @@ function InviteUsersDialog({members, inviteHandler, closeHandler}) {
     );
 }
 
-export default function Members({project}) {
+export default function Members() {
     const [projMembers, setProjMembers] = useState(null);
     const [openInviteDlg, setOpenInviteDlg] = useState(false);
     const [alertMsg, setAlertMsg] = useState('');
+    const {projId} = useParams();
 
     useEffect(() => {
-        Promise.all([ProjectsService.getMembers(project.id), ProjectsService.getInvitations(project.id)])
+        Promise.all([ProjectsService.getMembers(projId), ProjectsService.getInvitations(projId)])
             .then((responses) => {
                 const members = responses[0].data;
                 const invitees = responses[1].data.map((inv) => {
@@ -239,7 +242,7 @@ export default function Members({project}) {
                 members.forEach((m) => m.active = true);
                 setProjMembers(members.concat(invitees));
             });
-    }, [project.id]);
+    }, [projId]);
 
     const showInviteDlg = () => setOpenInviteDlg(true);
     const hideInviteDlg = () => setOpenInviteDlg(false);
@@ -251,9 +254,22 @@ export default function Members({project}) {
     const handleInvite = (selUsers) => {
         hideInviteDlg();
         Promise.all(
-            selUsers.map((u) => ProjectsService.createInvitation(project.id, u.id))
+            selUsers.map((u) => ProjectsService.createInvitation(projId, u.id))
         )
-            .then(() => showSuccessMsg('Invitations were successfully sent to users.'));
+            .then((responses) => {
+                showSuccessMsg('Invitations were successfully sent to users.');
+                const invitees = selUsers.map((u, i) => {
+                    return {
+                        id: u.id,
+                        username: u.username,
+                        full_name: u.full_name,
+                        role: Role.CONTRIBUTOR,
+                        active: false,
+                        invitation_id: responses[i].headers.location.split('/').at(-1)
+                    }
+                })
+                setProjMembers((prevMembers) => prevMembers.concat(invitees));
+            });
     };
 
     return (

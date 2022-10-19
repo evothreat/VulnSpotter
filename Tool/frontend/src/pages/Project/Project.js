@@ -22,7 +22,7 @@ function getView(key, props) {
 export default function Project() {
 
     const {projId} = useParams();
-    const [project, setProject] = useState(null);
+    const [project, setProject] = useState(null);       // move to sidebar?
     const [viewKey, setViewKey] = useState('commits');
 
     useEffect(() => {
@@ -36,7 +36,7 @@ export default function Project() {
         project
             ? <Box sx={{mt: '8%'}}>
                 <Sidebar project={project} viewKey={viewKey} viewChgHandler={handleViewChange}/>
-                {getView(viewKey, {project: project})}
+                {getView(viewKey)}
             </Box>
             : null
     )

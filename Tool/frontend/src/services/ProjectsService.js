@@ -35,6 +35,10 @@ class ProjectsService {
         return api.get(`${this.basePath}/${id}/members`);
     }
 
+    removeMember(projId, memberId) {
+        return api.delete(`${this.basePath}/${projId}/members/${memberId}`);
+    }
+
     getCommits(id) {
         return api.get(`${this.basePath}/${id}/commits`);
     }
