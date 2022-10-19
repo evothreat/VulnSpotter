@@ -167,8 +167,7 @@ export default function ProjectsTable() {
 
     const getItems = () => {
         return items.filter((it) => (group === 'all' ||
-                                    (group === 'personal' && it.owner.id === userId) ||
-                                    (group === 'starred' && it.starred)) &&
+                                    (group === 'personal' && it.owner.id === userId)) &&
                                     it.name.toLowerCase().includes(searchKw.toLowerCase()))
                     .sort(Utils.createComparator(sorter.orderBy, sorter.order));
     };
@@ -210,7 +209,6 @@ export default function ProjectsTable() {
                 <ToggleButtonGroup color="primary" value={group} exclusive size="small" onChange={handleGroupChg}>
                     <ToggleButton value="all">All</ToggleButton>
                     <ToggleButton value="personal">Personal</ToggleButton>
-                    <ToggleButton value="starred">Starred</ToggleButton>
                 </ToggleButtonGroup>
 
                 <SearchBar width="260px" placeholder="Search by name" changeHandler={searchItems}/>
