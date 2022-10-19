@@ -45,8 +45,8 @@ const headCells = [
 
 const MAX_ITEMS = 30;
 
-const TABLE_HEIGHT = '460px';
-const BOTTOM_OFFSET = '-90px';
+const TABLE_HEIGHT = '470px';
+const BOTTOM_OFFSET = '-70px';
 
 const commitMsgStyle = {
     fontSize: '13px',
