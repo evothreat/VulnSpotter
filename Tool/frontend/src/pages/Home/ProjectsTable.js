@@ -177,9 +177,7 @@ export default function ProjectsTable() {
         setItemToDelete(null);
 
         ProjectsService.delete(itemId)
-            .then(() => {
-                setItems((curItems) => curItems.filter((it) => it.id !== itemId));
-            });
+            .then(() => setItems((curItems) => Utils.remove(curItems, itemId)));
     };
 
     const handleRename = (newName) => {

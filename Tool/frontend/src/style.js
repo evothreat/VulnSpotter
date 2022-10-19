@@ -18,8 +18,15 @@ const mainActionBtnStyle = {
     fontSize: '14px'
 };
 
+const newMsgBadgeStyle = {
+    "& .MuiBadge-badge": {
+        backgroundColor: '#eb0014',
+    }
+}
+
 export {
     headerStyle,
     actionBtnStyle,
-    mainActionBtnStyle
+    mainActionBtnStyle,
+    newMsgBadgeStyle
 };

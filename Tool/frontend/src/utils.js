@@ -40,9 +40,25 @@ function findCVEs(str) {
     return [...new Set(str.match(/CVE-\d{4}-\d{4,7}/gmi))].map((v) => v.toUpperCase());
 }
 
+// require id key
+function complement(a, b) {
+    return a.filter((v1) => !b.some((v2) => v1.id === v2.id));
+}
+
+function equals(a, b) {
+    return a.length === b.length && a.every((v1) => b.some((v2) => v1.id === v2.id));
+}
+
+function remove(a, id) {
+    return a.filter((v) => v.id !== id);
+}
+
 export {
     fmtTimeSince,
     createComparator,
     capitalize,
-    findCVEs
+    findCVEs,
+    complement,
+    equals,
+    remove
 };

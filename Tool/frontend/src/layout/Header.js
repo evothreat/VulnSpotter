@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Fragment, useEffect, useState} from 'react';
+import {Fragment, useState} from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -9,183 +9,12 @@ import Menu from '@mui/material/Menu';
 import Avatar from '@mui/material/Avatar';
 import MenuItem from '@mui/material/MenuItem';
 import PolicyIcon from '@mui/icons-material/Policy';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import EmailIcon from '@mui/icons-material/Email';
-import DeleteIcon from '@mui/icons-material/Delete';
-import CircleIcon from '@mui/icons-material/Circle';
-import {Badge, Fade, List, ListItem, ListItemIcon, ListItemText, ListSubheader, Popover} from "@mui/material";
-import * as Utils from "../utils";
-import {getMessage} from "./message";
-import NotificationsService from "../services/NotificationsService";
-import ActionTooltip from "../components/ActionTooltip";
+import Notifications from "./Notifications";
+import Invitations from "./Invitations";
 
 // TODO: introduce path constants
 // TODO: add correct settings with icons
-
-
-const badgeStyle = {
-    "& .MuiBadge-badge": {
-        backgroundColor: '#eb0014',
-    }
-}
-
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
-
-function notifsComplement(a, b) {
-    return a.filter((n1) => !b.some((n2) => n1.id === n2.id));
-}
-
-function NotificationItem({notif, divider}) {
-    const msg = getMessage(notif);
-    return (
-        <ListItem divider={divider}
-                  alignItems="flex-start"
-                  secondaryAction={
-                      notif.is_seen ? null : <CircleIcon sx={{color: '#007FFF', width: '10px', height: '10px'}}/>
-                  }
-        >
-            <ListItemIcon>
-                {msg.icon}
-            </ListItemIcon>
-            <ListItemText
-                disableTypography
-                primary={msg.text}
-                secondary={
-                    <Typography variant="body2" color="gray" mt="4px">
-                        {Utils.fmtTimeSince(notif.created_at) + ' ago'}
-                    </Typography>
-                }
-            />
-        </ListItem>
-    );
-}
-
-function NotificationsHeader({deleteHandler}) {
-    return (
-        <ListSubheader sx={{pt: '6px', borderBottom: 'thin solid lightgray'}}>
-            <Box sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-            }}>
-                <Typography variant="subtitle1" sx={{color: '#505050'}}>Notifications</Typography>
-                <ActionTooltip title="Delete all" placement="left">
-                    <IconButton onClick={deleteHandler}>
-                        <DeleteIcon fontSize="small"/>
-                    </IconButton>
-                </ActionTooltip>
-            </Box>
-        </ListSubheader>
-    );
-}
-
-function EmptyListMsg() {
-    return (
-        <Typography align="center" sx={{color: '#808080', padding: '10px'}}>
-            No notifications
-        </Typography>
-    );
-}
-
-function Notifications() {
-    const [anchorEl, setAnchorEl] = useState(null);
-    const [notifs, setNotifs] = useState([]);
-
-    useEffect(() => {
-        let isMounted = true;
-        // fetch all notifications once
-        const comparator = Utils.createComparator('created_at', 'desc');
-        NotificationsService.getAll()
-            .then((resp) => {
-                if (isMounted) {
-                    setNotifs(resp.data.sort(comparator));
-                }
-            });
-        // every 30 seconds fetch only unseen notifications
-        const updateNotifs = () => {
-            NotificationsService.getAll({unseen: true})
-                .then((resp) => {
-                    if (isMounted) {
-                        setNotifs((curNotifs) => {
-                            const newNotifs = notifsComplement(resp.data, curNotifs).sort(comparator);
-                            return newNotifs.length > 0 ? newNotifs.concat(curNotifs) : curNotifs;
-                        });
-                    }
-                });
-        };
-        let interval = setInterval(updateNotifs, 30000);
-        return () => {
-            isMounted = false;
-            clearInterval(interval);
-        };
-    }, []);
-
-    const handleOpen = (e) => setAnchorEl(e.currentTarget);
-
-    const handleClose = () => {
-        setAnchorEl(null);
-        markAllAsSeen();
-    };
-
-    const markAllAsSeen = () => {
-        const ids = notifs.filter((n) => !n.is_seen).map((n) => {
-            n.is_seen = true;
-            return n.id;
-        });
-        if (ids.length > 0) {
-            NotificationsService.updateMany(ids, {'is_seen': true})
-                .then(() => {
-                    setNotifs(notifs.slice());
-                });
-        }
-    };
-
-    const deleteAll = () => {
-        if (notifs.length > 0) {
-            NotificationsService.deleteMany(notifs.map((n) => n.id))
-                .then(() => {
-                    setNotifs([]);
-                });
-        }
-    };
-
-    return (
-        <Fragment>
-            <IconButton color="inherit" onClick={handleOpen}>
-                <Badge sx={badgeStyle} overlap="circular" badgeContent={notifs.filter((n) => !n.is_seen).length}>
-                    <NotificationsIcon/>
-                </Badge>
-            </IconButton>
-
-            <Popover
-                keepMounted
-                open={anchorEl != null}
-                anchorEl={anchorEl}
-                onClose={handleClose}
-                anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'center',
-                }}
-                transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                }}
-                TransitionComponent={Fade}
-            >
-                <List sx={{width: '370px', maxHeight: '430px', overflowY: 'auto'}}
-                      subheader={<NotificationsHeader deleteHandler={deleteAll}/>}>
-                    {
-                        notifs.length > 0
-                            ? notifs.map((n, i) => {
-                                return <NotificationItem notif={n} key={n.id} divider={notifs.length > i + 1}/>
-                            })
-                            : <EmptyListMsg/>
-                    }
-                </List>
-            </Popover>
-        </Fragment>
-    );
-}
 
 
 function UserMenu() {
@@ -223,10 +52,9 @@ function UserMenu() {
     );
 }
 
-
 export default function Header() {
     return (
-        <AppBar position="relative" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+        <AppBar position="relative" sx={{zIndex: (theme) => theme.zIndex.drawer + 1}}>
             <Toolbar style={{minHeight: '56px', justifyContent: 'space-between'}}>
                 <Box sx={{display: 'flex'}}>
                     <PolicyIcon sx={{height: '32px', width: '32px', mr: '8px'}}/>
@@ -247,9 +75,7 @@ export default function Header() {
                     </Typography>
                 </Box>
                 <Box>
-                    <IconButton color="inherit">
-                        <EmailIcon/>
-                    </IconButton>
+                    <Invitations/>
                     <Notifications/>
                     <UserMenu/>
                 </Box>

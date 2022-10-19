@@ -8,6 +8,10 @@ class InvitationsService {
         this.basePathSent = '/users/me/sent-invitations';
     }
 
+    getAll(queryParams = {}) {
+        return api.get(this.basePath + (queryParams.unseen ? '?unseen' : ''));
+    }
+
     getSent(id) {
         return api.get(`${this.basePathSent}/${id}`);
     }
@@ -18,6 +22,10 @@ class InvitationsService {
 
     accept(id) {
         return api.patch(`${this.basePath}/${id}`);
+    }
+
+    decline(id) {
+        return api.delete(`${this.basePath}/${id}`);
     }
 }
 

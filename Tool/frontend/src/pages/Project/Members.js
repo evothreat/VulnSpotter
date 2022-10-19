@@ -129,9 +129,7 @@ function MembersTable({items, setItems}) {
 
         const req = item.active ? ProjectsService.removeMember(projId, item.id)
                                 : InvitationsService.deleteSent(item.invitation_id);
-        req.then(() => {
-            setItems((curItems) => curItems.filter((it) => it.id !== item.id));
-        });
+        req.then(() => setItems((curItems) => Utils.remove(curItems, item.id)));
     };
 
     const clearItemToDelete = () => setItemToDelete(null);
