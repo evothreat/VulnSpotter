@@ -8,6 +8,7 @@ import ProjectsService from "../../services/ProjectsService";
 import {Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from "@mui/material";
 import TextField from "@mui/material/TextField";
 import EnhancedAlert from "../../components/EnhancedAlert";
+import {mainActionBtnStyle} from "../../style";
 
 
 function CreateProjectDialog({open, closeHandler, createHandler}) {
@@ -68,7 +69,7 @@ export default function Home() {
                     Projects
                 </Typography>
                 <Button size="small" variant="contained" startIcon={<AddIcon/>} onClick={showCreateDlg}
-                        sx={{textTransform: 'none'}}>
+                        sx={mainActionBtnStyle}>
                     New
                 </Button>
             </Box>

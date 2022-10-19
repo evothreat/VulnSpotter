@@ -13,7 +13,13 @@ const actionBtnStyle = {
     color: '#707070'
 };
 
+const mainActionBtnStyle = {
+    textTransform: 'none',
+    fontSize: '14px'
+};
+
 export {
     headerStyle,
-    actionBtnStyle
+    actionBtnStyle,
+    mainActionBtnStyle
 };

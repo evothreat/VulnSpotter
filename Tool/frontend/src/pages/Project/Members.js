@@ -23,7 +23,7 @@ import ProjectsService from "../../services/ProjectsService";
 import EnhancedAlert from "../../components/EnhancedAlert";
 import InvitationsService from "../../services/InvitationsService";
 import {useParams} from "react-router-dom";
-import {actionBtnStyle} from "../../style";
+import {actionBtnStyle, mainActionBtnStyle} from "../../style";
 
 
 const headCells = [
@@ -278,7 +278,7 @@ export default function Members() {
                     Members
                 </Typography>
                 <Button size="small" variant="contained" startIcon={<PersonAddAlt1Icon/>}
-                        sx={{textTransform: 'none'}} onClick={showInviteDlg}>
+                        sx={mainActionBtnStyle} onClick={showInviteDlg}>
                     Invite
                 </Button>
             </Box>
