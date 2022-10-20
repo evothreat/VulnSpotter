@@ -12,7 +12,7 @@ def project(d):
         'id': d['id'],
         'name': d['name'],
         'repository': d['repository'],
-        'updated_at': d['updated_at'],
+        'commit_n': d['commit_n'],
         'owner': {
             'id': d['owner_id'],
             'full_name': d['full_name'],

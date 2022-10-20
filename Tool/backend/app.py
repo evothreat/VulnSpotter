@@ -80,20 +80,20 @@ def setup_db():
                         ])
 
     # projects
-    db_conn.executemany('INSERT INTO projects(name,owner_id,updated_at) VALUES (?,?,?)',
+    db_conn.executemany('INSERT INTO projects(name,repository,owner_id,commit_n) VALUES (?,?,?,?)',
                         [
-                            ('camino', 1, time_before(hours=3)),
-                            ('chatzilla', 2, time_before(minutes=1)),
-                            ('penelope', 3, time_before(seconds=45)),
-                            ('mobile-browser', 1, time_before(days=24)),
-                            ('graphs', 1, time_before(hours=16)),
-                            ('dom-inspector', 4, time_before(days=14)),
-                            ('cvs-trunk-mirror', 5, time_before(seconds=47)),
-                            ('comm-central', 6, time_before(days=29)),
-                            ('pyxpcom', 1, time_before(minutes=28)),
-                            ('schema-validation', 7, time_before(minutes=59)),
-                            ('tamarin-redux', 8, time_before(hours=13)),
-                            ('venkman', 9, time_before(seconds=41)),
+                            ('camino', 'github.com/mozilla/camino', 1, 0),
+                            ('chatzilla', 'github.com/mozilla/chatzilla', 2, 0),
+                            ('penelope', 'github.com/mozilla/penelope', 3, 0),
+                            ('mobile-browser', 'github.com/mozilla/mobile-browser', 1, 0),
+                            ('graphs', 'github.com/mozilla/graphs', 1, 0),
+                            ('dom-inspector', 'github.com/mozilla/dom-inspector', 4, 0),
+                            ('cvs-trunk-mirror', 'github.com/mozilla/cvs-trunk-mirror', 5, 0),
+                            ('comm-central', 'github.com/mozilla/comm-central', 6, 0),
+                            ('pyxpcom', 'github.com/mozilla/pyxpcom', 1, 0),
+                            ('schema-validation', 'github.com/mozilla/schema-validation', 7, 0),
+                            ('tamarin-redux', 'github.com/mozilla/tamarin-redux', 8, 0),
+                            ('venkman', 'github.com/mozilla/venkman', 9, 0),
                         ])
     # members
     db_conn.executemany('INSERT INTO membership(user_id,project_id,role) VALUES (?,?,?)',
@@ -129,8 +129,8 @@ def clone_n_parse_repo(user_id, repo_url, proj_name):
 
         vulns, _, _ = find_vulns(repo_dir)
         with transaction(db_conn):
-            proj_id = db_conn.execute('INSERT INTO projects(owner_id,name,repository,updated_at) VALUES (?,?,?,?)',
-                                      (user_id, proj_name, repo_loc, unix_time())).lastrowid
+            proj_id = db_conn.execute('INSERT INTO projects(owner_id,name,repository,commit_n) VALUES (?,?,?,?)',
+                                      (user_id, proj_name, repo_loc, len(vulns))).lastrowid
 
             db_conn.execute('INSERT INTO membership(user_id,project_id,role) VALUES (?,?,?)',
                             (user_id, proj_id, Role.OWNER))
@@ -216,7 +216,7 @@ def create_project():
 @jwt_required()
 def get_projects():
     # also count number of commits?
-    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.updated_at,p.owner_id,u.full_name '
+    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.owner_id,p.commit_n,u.full_name '
                            'FROM membership m '
                            'JOIN projects p ON m.user_id=? AND m.project_id=p.id '
                            'JOIN users u ON p.owner_id=u.id', (get_jwt_identity(),)).fetchall()
@@ -227,7 +227,7 @@ def get_projects():
 @app.route('/api/users/me/projects/<proj_id>', methods=['GET'])
 @jwt_required()
 def get_project(proj_id):
-    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.updated_at,p.owner_id,u.full_name '
+    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.owner_id,p.commit_n,u.full_name '
                            'FROM membership m '
                            'JOIN projects p ON m.user_id=? AND m.project_id=? AND m.project_id=p.id '
                            'JOIN users u ON p.owner_id=u.id LIMIT 1', (get_jwt_identity(), proj_id)).fetchone()

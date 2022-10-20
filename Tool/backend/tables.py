@@ -27,7 +27,7 @@ PROJECTS_SCHEMA = '''
         owner_id    INTEGER,
         name        TEXT,
         repository  TEXT,
-        updated_at  INTEGER,
+        commit_n    INTEGER,
         FOREIGN KEY(owner_id) REFERENCES users(id) ON DELETE CASCADE
     )
 '''
