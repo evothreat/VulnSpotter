@@ -374,10 +374,27 @@ def get_commits(proj_id):
     return [commit(d) for d in data]
 
 
-@app.route('/api/users/me/projects/commits/<commit_id>', methods=['GET'])
+@app.route('/api/users/me/projects/commits/<commit_id>/patch', methods=['GET'])
 @jwt_required()
 def get_commit(commit_id):
-    return 'Not implemented yet', 200
+    data = db_conn.execute('SELECT c.hash,p.repository FROM commits c '
+                           'JOIN projects p ON c.id=? AND c.project_id = p.id '
+                           'AND EXISTS(SELECT * FROM membership m WHERE m.user_id=? AND m.project_id=p.id) LIMIT 1',
+                           (commit_id, get_jwt_identity())).fetchone()
+    if not data:
+        return '', 404
+
+    comm_hash = data['hash']
+    repo = Repo(pathjoin(config.REPOS_DIR, data['repository']))
+    # comm = repo.commit(comm_hash)
+    # res = []
+    # for f in comm.stats.files:
+    #     res.append({
+    #         'content': repo.git.show(f'{comm_hash}:{f}')
+    #     })
+    return {
+        'patch': repo.git.diff(comm_hash + '~1', comm_hash, ignore_blank_lines=True, ignore_space_at_eol=True)
+    }
 
 
 # return conflict if invitation already exist?
