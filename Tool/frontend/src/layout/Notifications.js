@@ -21,7 +21,7 @@ function NotificationItem({notif, divider}) {
     return (
         <ListItem divider={divider}
                   alignItems="flex-start"
-                  secondaryAction={notif.is_seen && <NewMsgCircle/>}
+                  secondaryAction={!notif.is_seen && <NewMsgCircle/>}
         >
             <ListItemIcon>
                 {msg.icon}
