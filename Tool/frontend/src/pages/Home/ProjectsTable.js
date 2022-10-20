@@ -29,19 +29,25 @@ const headCells = [
         label: 'Name',
         key: 'name',
         sortable: true,
-        width: '35%'
+        width: '25%'
+    },
+    {
+        label: 'Repository',
+        key: 'repository',
+        sortable: true,
+        width: '25%'
     },
     {
         label: 'Owner',
         key: 'owner_name',
         sortable: true,
-        width: '35%'
+        width: '30%'
     },
     {
-        label: 'Updated',
-        key: 'updated_at',
+        label: 'Commits',
+        key: 'commit_n',
         sortable: true,
-        width: '20%'
+        width: '10%'
     },
     {
         width: '10%',
@@ -71,8 +77,9 @@ function ProjectTableList({items, setItemToDelete, setItemToRename}) {
                             <TableCell>
                                 <Link underline="hover" href={`/home/projects/${it.id}`}>{it.name}</Link>
                             </TableCell>
+                            <TableCell>{it.repository}</TableCell>
                             <TableCell>{it.owner_name}</TableCell>
-                            <TableCell>{Utils.fmtTimeSince(it.updated_at) + ' ago'}</TableCell>
+                            <TableCell>{it.commit_n}</TableCell>
                             <TableCell align="right">
                                 <Box sx={{display: 'flex', justifyContent: 'right'}}>
                                     <ActionTooltip title="Rename">
