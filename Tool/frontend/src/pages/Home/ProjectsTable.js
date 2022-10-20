@@ -32,16 +32,16 @@ const headCells = [
         width: '25%'
     },
     {
-        label: 'Repository',
-        key: 'repository',
-        sortable: true,
-        width: '30%'
-    },
-    {
         label: 'Owner',
         key: 'owner_name',
         sortable: true,
         width: '25%'
+    },
+    {
+        label: 'Repository',
+        key: 'repository',
+        sortable: true,
+        width: '30%'
     },
     {
         label: 'Commits',
@@ -77,8 +77,8 @@ function ProjectTableList({items, setItemToDelete, setItemToRename}) {
                             <TableCell>
                                 <Link underline="hover" href={`/home/projects/${it.id}`}>{it.name}</Link>
                             </TableCell>
-                            <TableCell>{it.repository.substring(it.repository.indexOf('/')+1)}</TableCell>
                             <TableCell>{it.owner_name}</TableCell>
+                            <TableCell>{it.repository.substring(it.repository.indexOf('/')+1)}</TableCell>
                             <TableCell>{it.commit_n}</TableCell>
                             <TableCell align="right">
                                 <Box sx={{display: 'flex', justifyContent: 'right'}}>
