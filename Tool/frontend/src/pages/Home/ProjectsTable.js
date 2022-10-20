@@ -135,8 +135,8 @@ export default function ProjectsTable() {
     const [items, setItems] = useState(null);
     const [group, setGroup] = useState('all');
     const [sorter, setSorter] = useState({
-        order: 'desc',
-        orderBy: 'updated_at'
+        order: 'asc',
+        orderBy: 'name'
     });
     const [searchKw, setSearchKw] = useState('');
     const [itemToDelete, setItemToDelete] = useState(null);
