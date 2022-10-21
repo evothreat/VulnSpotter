@@ -9,7 +9,7 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
 import IconButton from "@mui/material/IconButton";
 import {Dialog, DialogActions, DialogContent, DialogTitle, ToggleButton, ToggleButtonGroup,} from "@mui/material";
-import {SearchBar} from "./SearchBar";
+import {SearchBar} from "../../components/SearchBar";
 import Box from "@mui/material/Box";
 import * as Utils from "../../utils";
 import Button from "@mui/material/Button";
