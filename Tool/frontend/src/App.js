@@ -5,6 +5,7 @@ import Login from "./pages/Login/Login";
 import NotFound from "./pages/NotFound";
 import Layout from "./layout/Layout";
 import TokenService from "./services/TokenService";
+import Inspect from "./pages/Inspect/Inspect";
 
 
 function RequireAuth() {
@@ -24,7 +25,10 @@ export default function App() {
             <Routes>
                 <Route path="/home" element={<RequireAuth/>}>
                     <Route path="" element={<Home/>}/>
-                    <Route path="projects/:projId" element={<Project/>}/>
+                    <Route path="projects/:projId">
+                        <Route path="" element={<Project/>}/>
+                        <Route path="inspect" element={<Inspect/>}/>
+                    </Route>
                 </Route>
                 <Route path="/login" element={<Login/>}/>
                 <Route path="*" element={<NotFound/>}/>
