@@ -1,10 +1,11 @@
 import {useParams} from "react-router-dom";
 import * as React from "react";
-import {Fragment, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import ProjectsService from "../../services/ProjectsService";
 import Sidebar from "./Sidebar";
 import Commits from "./Commits";
 import Members from "./Members";
+import Box from "@mui/material/Box";
 
 
 function getView(key, props) {
@@ -33,10 +34,10 @@ export default function Project() {
 
     return (
         project
-            ? <Fragment>
+            ? <Box sx={{width: '990px', mr: 'auto', ml: 'auto'}}>
                 <Sidebar project={project} viewKey={viewKey} viewChgHandler={handleViewChange}/>
                 {getView(viewKey)}
-            </Fragment>
+            </Box>
             : null
     )
 }

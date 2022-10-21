@@ -1,4 +1,4 @@
-import {Fragment, useState} from "react";
+import {useState} from "react";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import AddIcon from '@mui/icons-material/Add';
@@ -57,7 +57,7 @@ export default function Home() {
     };
 
     return (
-        <Fragment>
+        <Box sx={{width: '990px', mr: 'auto', ml: 'auto'}}>
             <Box sx={{
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -80,6 +80,6 @@ export default function Home() {
             {
                 alertMsg && <EnhancedAlert msg={alertMsg} severity="info" closeHandler={hideInfo}/>
             }
-        </Fragment>
+        </Box>
     )
 }

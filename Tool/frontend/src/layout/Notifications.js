@@ -72,7 +72,7 @@ export default function Notifications() {
                     setNotifs(resp.data.sort(comparator));
                 }
             });
-        // every 30 seconds fetch only unseen notifications
+        // fetch only unseen notifications
         const updateNotifs = () => {
             NotificationsService.getAll({unseen: true})
                 .then((resp) => {
@@ -84,7 +84,7 @@ export default function Notifications() {
                     }
                 });
         };
-        let interval = setInterval(updateNotifs, 30000);
+        let interval = setInterval(updateNotifs, 180000);       // every 3 minutes
         return () => {
             isMounted = false;
             clearInterval(interval);
