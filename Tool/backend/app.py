@@ -4,16 +4,17 @@ from os.path import isdir
 from threading import Thread
 from urllib.parse import urlparse
 
+import git
 from flask import Flask, request, Response, url_for
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, create_refresh_token
-from git import Repo
 from git_vuln_finder import find as find_vulns
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask import send_file
 
 import config
 import tables
 from enums import *
-from utils import time_before, pathjoin, unix_time, normpath, sql_params_args
+from utils import pathjoin, unix_time, normpath, sql_params_args
 from views import *
 
 sqlite3.register_adapter(bool, int)
@@ -72,7 +73,8 @@ def setup_db():
                             # 6
                             ('chan', 'Jackie Chan', 'chan@gmail.com', generate_password_hash('chan')),
                             # 7
-                            ('vandamme', 'Jean Claude Van Damme', 'vandamme@gmail.com', generate_password_hash('vandamme')),
+                            ('vandamme', 'Jean Claude Van Damme', 'vandamme@gmail.com',
+                             generate_password_hash('vandamme')),
                             # 8
                             ('cage', 'Nicolas Cage', 'cage@gmail.com', generate_password_hash('cage')),
                             # 9
@@ -125,7 +127,7 @@ def clone_n_parse_repo(user_id, repo_url, proj_name):
     proj_id = None
     try:
         if not isdir(repo_dir):
-            Repo.clone_from(f'{parts.scheme}://:@{repo_loc}', repo_dir)
+            git.Repo.clone_from(f'{parts.scheme}://:@{repo_loc}', repo_dir).close()
 
         vulns, _, _ = find_vulns(repo_dir)
         with transaction(db_conn):
@@ -374,9 +376,9 @@ def get_commits(proj_id):
     return [commit(d) for d in data]
 
 
-@app.route('/api/users/me/projects/commits/<commit_id>/patch', methods=['GET'])
+@app.route('/api/users/me/commits/<commit_id>/patch', methods=['GET'])
 @jwt_required()
-def get_commit(commit_id):
+def get_commit_patch(commit_id):
     data = db_conn.execute('SELECT c.hash,p.repository FROM commits c '
                            'JOIN projects p ON c.id=? AND c.project_id = p.id '
                            'AND EXISTS(SELECT * FROM membership m WHERE m.user_id=? AND m.project_id=p.id) LIMIT 1',
@@ -385,19 +387,35 @@ def get_commit(commit_id):
         return '', 404
 
     comm_hash = data['hash']
-    repo = Repo(pathjoin(config.REPOS_DIR, data['repository']))
-    # comm = repo.commit(comm_hash)
-    # res = []
-    # for f in comm.stats.files:
-    #     res.append({
-    #         'content': repo.git.show(f'{comm_hash}:{f}')
-    #     })
-    return {
-        'patch': repo.git.diff(comm_hash + '~1', comm_hash, ignore_blank_lines=True, ignore_space_at_eol=True)
-    }
+    with git.Repo(pathjoin(config.REPOS_DIR, data['repository'])) as repo:
+        # includes only modified files!
+        return {
+            'patch': repo.git.diff(comm_hash + '~1', comm_hash, ignore_blank_lines=True, ignore_space_at_eol=True,
+                                   diff_filter='M')
+        }
 
 
-# return conflict if invitation already exist?
+@app.route('/api/users/me/commits/<commit_id>/files/<filepath>', methods=['GET'])
+@jwt_required()
+def get_commit_files(commit_id, filepath):
+    data = db_conn.execute('SELECT c.hash,p.repository FROM commits c '
+                           'JOIN projects p ON c.id=? AND c.project_id = p.id '
+                           'AND EXISTS(SELECT * FROM membership m WHERE m.user_id=? AND m.project_id=p.id) LIMIT 1',
+                           (commit_id, get_jwt_identity())).fetchone()
+    if not data:
+        return '', 404
+
+    comm_hash = data['hash']
+    filepath = filepath.replace(':', '/')
+
+    with git.Repo(pathjoin(config.REPOS_DIR, data['repository']), odbt=git.GitDB) as repo:
+        for diff in repo.commit(comm_hash).diff(comm_hash + '~1'):
+            if diff.change_type == 'M' and diff.a_path == filepath:
+                return send_file(diff.a_blob.data_stream, mimetype='text/plain')
+
+    return '', 404
+
+
 @app.route('/api/users/me/projects/<proj_id>/invitations', methods=['POST'])
 @jwt_required()
 def create_invitation(proj_id):
@@ -530,7 +548,7 @@ def delete_member(proj_id, member_id):
 
 if __name__ == '__main__':
     # setup_db()
-    app.run(threaded=False)     # running in single-thread mode!
+    app.run(threaded=False)  # running in single-thread mode!
 
 # TODO: implement registration endpoint
 
