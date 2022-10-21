@@ -17,11 +17,11 @@ import ProjectsService from "../../services/ProjectsService";
 import Typography from "@mui/material/Typography";
 import ActionTooltip from "../../components/ActionTooltip";
 import TextField from "@mui/material/TextField";
-import Link from "@mui/material/Link";
 import EnhancedTableHead from "../../components/EnhancedTableHead";
 import TokenService from "../../services/TokenService";
 import ConfirmDeleteDialog from "../../components/ConfirmDeleteDialog";
 import {actionBtnStyle} from "../../style";
+import RouterLink from "../../components/RouterLink";
 
 
 const headCells = [
@@ -75,7 +75,7 @@ function ProjectTableList({items, setItemToDelete, setItemToRename}) {
                     ? items.map((it) =>
                         <TableRow key={it.id} hover sx={{'& td': {height: '30px'}}}>
                             <TableCell>
-                                <Link underline="hover" href={`/home/projects/${it.id}`}>{it.name}</Link>
+                                <RouterLink underline="hover" to={`/home/projects/${it.id}`}>{it.name}</RouterLink>
                             </TableCell>
                             <TableCell>{it.owner_name}</TableCell>
                             <TableCell>{it.repository.substring(it.repository.indexOf('/')+1)}</TableCell>

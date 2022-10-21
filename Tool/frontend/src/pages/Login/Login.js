@@ -14,12 +14,13 @@ import Copyright from "./Copyright";
 import {Alert} from "@mui/material";
 import {useState} from "react";
 import AuthService from "../../services/AuthService";
+import {useNavigate} from "react-router-dom";
 
 
 const theme = createTheme();
 
 export default function Login() {
-
+    const navigate = useNavigate();
     const [showError, setShowError] = useState(false);
 
     const handleSubmit = (e) => {
@@ -27,7 +28,7 @@ export default function Login() {
 
         AuthService.login(e.target.username.value, e.target.password.value)
             .then(() => {
-                window.location.replace('/home');
+                navigate('/home');
 
             }).catch((err) => {
                 if (err.response?.status === 401) {

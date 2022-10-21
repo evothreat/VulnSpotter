@@ -11,7 +11,7 @@ import MenuItem from '@mui/material/MenuItem';
 import PolicyIcon from '@mui/icons-material/Policy';
 import Notifications from "./Notifications";
 import Invitations from "./Invitations";
-import Link from "@mui/material/Link";
+import RouterLink from "../components/RouterLink";
 
 // TODO: introduce path constants
 // TODO: add correct settings with icons
@@ -59,7 +59,7 @@ export default function Header() {
             <Toolbar style={{minHeight: '56px', justifyContent: 'space-between'}}>
                 <Box sx={{display: 'flex'}}>
                     <PolicyIcon sx={{height: '32px', width: '32px', mr: '8px'}}/>
-                    <Link variant="h6" noWrap href="/home" color="inherit"
+                    <RouterLink variant="h6" noWrap to="/home" color="inherit"
                           sx={{
                               fontFamily: 'monospace',
                               fontWeight: 'bolder',
@@ -69,7 +69,7 @@ export default function Header() {
                           }}
                     >
                         VulnDetector
-                    </Link>
+                    </RouterLink>
                 </Box>
                 <Box>
                     <Invitations/>
