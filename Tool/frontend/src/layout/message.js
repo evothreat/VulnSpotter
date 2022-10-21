@@ -1,8 +1,8 @@
 import * as React from "react";
 import Typography from "@mui/material/Typography";
-import Link from "@mui/material/Link";
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
+import RouterLink from "../components/RouterLink";
 
 const messageMap = {
     'create_project': createProject,
@@ -19,7 +19,7 @@ function NotifText({children}) {
 
 function NotifLink({href, label}) {
     return (
-        <Link href={href} underline="hover">{label}</Link>
+        <RouterLink to={href} underline="hover">{label}</RouterLink>
     );
 }
 
