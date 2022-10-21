@@ -23,7 +23,7 @@ import ProjectsService from "../../services/ProjectsService";
 import EnhancedAlert from "../../components/EnhancedAlert";
 import InvitationsService from "../../services/InvitationsService";
 import {useParams} from "react-router-dom";
-import {actionBtnStyle, mainActionBtnStyle} from "../../style";
+import {actionBtnStyle, headerStyle, mainActionBtnStyle} from "../../style";
 
 
 const headCells = [
@@ -265,13 +265,7 @@ export default function Members() {
 
     return (
         <Fragment>
-            <Box sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-end',
-                mt: '56px',
-                mb: '30px'
-            }}>
+            <Box sx={headerStyle}>
                 <Typography variant="h6">
                     Members
                 </Typography>

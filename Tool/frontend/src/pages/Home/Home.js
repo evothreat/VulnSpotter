@@ -8,7 +8,7 @@ import ProjectsService from "../../services/ProjectsService";
 import {Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from "@mui/material";
 import TextField from "@mui/material/TextField";
 import EnhancedAlert from "../../components/EnhancedAlert";
-import {mainActionBtnStyle} from "../../style";
+import {headerStyle, mainActionBtnStyle} from "../../style";
 
 
 function CreateProjectDialog({open, closeHandler, createHandler}) {
@@ -58,13 +58,7 @@ export default function Home() {
 
     return (
         <Box sx={{width: '990px', mr: 'auto', ml: 'auto'}}>
-            <Box sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-end',
-                mt: '56px',
-                mb: '30px'
-            }}>
+            <Box sx={headerStyle}>
                 <Typography variant="h6">
                     Projects
                 </Typography>

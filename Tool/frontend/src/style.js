@@ -3,8 +3,8 @@ const headerStyle = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
-    mt: '56px',
-    mb: '30px'
+    mt: '54px',
+    mb: '32px'
 };
 
 const actionBtnStyle = {
