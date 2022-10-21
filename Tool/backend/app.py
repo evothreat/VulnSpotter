@@ -389,10 +389,12 @@ def get_commit_patch(commit_id):
     comm_hash = data['hash']
     with git.Repo(pathjoin(config.REPOS_DIR, data['repository'])) as repo:
         # includes only modified files!
-        return {
-            'patch': repo.git.diff(comm_hash + '~1', comm_hash, ignore_blank_lines=True, ignore_space_at_eol=True,
-                                   diff_filter='M')
-        }
+        return Response(
+            response=repo.git.diff(comm_hash + '~1', comm_hash, ignore_blank_lines=True, ignore_space_at_eol=True,
+                                   diff_filter='M'),
+            mimetype='text/plain',
+            status=200
+        )
 
 
 @app.route('/api/users/me/commits/<commit_id>/files/<filepath>', methods=['GET'])
@@ -409,8 +411,8 @@ def get_commit_files(commit_id, filepath):
     filepath = filepath.replace(':', '/')
 
     with git.Repo(pathjoin(config.REPOS_DIR, data['repository']), odbt=git.GitDB) as repo:
-        for diff in repo.commit(comm_hash).diff(comm_hash + '~1'):
-            if diff.change_type == 'M' and diff.a_path == filepath:
+        for diff in repo.commit(comm_hash).diff(comm_hash + '~1').iter_change_type('M'):
+            if diff.a_path == filepath:
                 return send_file(diff.a_blob.data_stream, mimetype='text/plain')
 
     return '', 404
