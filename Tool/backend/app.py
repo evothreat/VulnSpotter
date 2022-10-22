@@ -399,7 +399,7 @@ def get_commit_patch(commit_id):
 
 @app.route('/api/users/me/commits/<commit_id>/files/<filepath>', methods=['GET'])
 @jwt_required()
-def get_commit_files(commit_id, filepath):
+def get_commit_file(commit_id, filepath):
     data = db_conn.execute('SELECT c.hash,p.repository FROM commits c '
                            'JOIN projects p ON c.id=? AND c.project_id = p.id '
                            'AND EXISTS(SELECT * FROM membership m WHERE m.user_id=? AND m.project_id=p.id) LIMIT 1',
@@ -408,11 +408,11 @@ def get_commit_files(commit_id, filepath):
         return '', 404
 
     with git.Repo(pathjoin(config.REPOS_DIR, data['repository']), odbt=git.GitDB) as repo:
-        blob = repo.commit(data['hash']).tree / filepath.replace(':', '/')
-        if blob:
+        try:
+            blob = repo.commit(data['hash']).tree / filepath.replace(':', '/')
             return send_file(blob.data_stream, mimetype='text/plain')
-
-    return '', 404
+        except KeyError:
+            return '', 404
 
 
 @app.route('/api/users/me/projects/<proj_id>/invitations', methods=['POST'])
