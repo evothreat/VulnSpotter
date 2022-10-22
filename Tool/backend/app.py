@@ -407,13 +407,10 @@ def get_commit_files(commit_id, filepath):
     if not data:
         return '', 404
 
-    comm_hash = data['hash']
-    filepath = filepath.replace(':', '/')
-
     with git.Repo(pathjoin(config.REPOS_DIR, data['repository']), odbt=git.GitDB) as repo:
-        for diff in repo.commit(comm_hash).diff(comm_hash + '~1').iter_change_type('M'):
-            if diff.a_path == filepath:
-                return send_file(diff.a_blob.data_stream, mimetype='text/plain')
+        blob = repo.commit(data['hash']).tree / filepath.replace(':', '/')
+        if blob:
+            return send_file(blob.data_stream, mimetype='text/plain')
 
     return '', 404
 
