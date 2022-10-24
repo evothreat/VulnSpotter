@@ -56,71 +56,40 @@ function remove(a, id) {
 }
 
 // to compute side-by-side diff
-function calcSplitDiff(oldCode, newCode) {
+function calcDiff(oldCode, newCode) {
     const lineDiff = DiffLib.diffLines(oldCode, newCode);
     const diff = [];
     let ix = 0;
     while (lineDiff.length > ix) {
-        const {removed, added, value, count} = lineDiff[ix];
-        const lines = value.split('\n', count);
-        if (removed) {
+        const cur = lineDiff[ix];
+        const lines = cur.value.split('\n', cur.count);
+        if (cur.removed) {
             if (lineDiff[ix+1].added) {
                 const next = lineDiff[ix+1];
                 const nextLines = next.value.split('\n', next.count);
 
-                const maxN = Math.max(count, next.count);   // use min & add rest after?
+                const maxN = Math.max(cur.count, next.count);
                 for (let i = 0; maxN > i; i++) {
-                    diff.push({left: lines[i], right: nextLines[i]});
+                    if (cur.count > i && next.count > i) {
+                        diff.push({changed: DiffLib.diffWords(lines[i], nextLines[i])});
+
+                    } else if (cur.count > i) {
+                        diff.push({removed: lines[i]});
+
+                    } else if (next.count > i) {
+                        diff.push({added: nextLines[i]});
+                    }
                 }
                 ix++;
             } else {
-                lines.forEach((l) => diff.push({left: l}));
+                lines.forEach((l) => diff.push({removed: l}));
             }
         }
-        else if (added) {
-            lines.forEach((l) => diff.push({right: l}));
+        else if (cur.added) {
+            lines.forEach((l) => diff.push({added: l}));
         }
         else {
-            lines.forEach((l) => diff.push({neutral: l}));
-        }
-        ix++;
-    }
-    return diff;
-}
-
-function calcSplitDiffCompact(oldCode, newCode) {
-    const lineDiff = DiffLib.diffLines(oldCode, newCode);
-    const diff = [];
-    let ix = 0;
-    while (lineDiff.length > ix) {
-        const {removed, added, value, count} = lineDiff[ix];
-        if (removed) {
-            if (lineDiff[ix+1].added) {
-                const lines = value.split('\n');
-
-                const next = lineDiff[ix+1];
-                const nextLines = next.value.split('\n');
-
-                const minN = Math.min(count, next.count);
-                for (let i = 0; minN > i; i++) {
-                    diff.push({left: lines[i], right: nextLines[i]});
-                }
-                if (count > minN) {
-                    diff.push({left: lines.slice(minN).join('\n')});
-                }
-                if (next.count > minN) {
-                    diff.push({right: nextLines.slice(minN).join('\n')});
-                }
-                ix++;
-            } else {
-                diff.push({left: value});
-            }
-        }
-        else if (added) {
-            diff.push({right: value});
-        }
-        else {
-            diff.push({neutral: value});
+            lines.forEach((l) => diff.push({none: l}));
         }
         ix++;
     }
@@ -135,6 +104,5 @@ export {
     complement,
     equals,
     remove,
-    calcSplitDiff,
-    calcSplitDiffCompact
+    calcDiff
 };
