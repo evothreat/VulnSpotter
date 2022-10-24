@@ -1,0 +1,62 @@
+
+.removed {
+    background-color: #ffeef0 !important;
+}
+
+.content {
+    padding: 0 1.5em;
+    position: relative;
+}
+
+.content.removed::before, .content.added::before {
+    position: absolute;
+    left: 0.6em;
+    color: #9bb0a1;
+}
+
+.added {
+    background-color: #e6ffed !important;
+}
+
+.content.removed::before {
+    content: '-';
+}
+
+.content.added::before {
+    content: '+';
+}
+
+.removedWord {
+    background-color: #fdb8c0 !important;
+}
+
+.addedWord {
+    background-color: #acf2bd !important;
+}
+
+.lineNumberBox {
+    padding: 0 10px 0 5px;
+    border-right-width: 1px;
+    border-right-style: solid;
+    line-height: 1.6;
+    width: 46px;
+    text-align: right;
+    border-color: #f0f0f0;
+    background-color: #fafafa;
+    color: rgba(0,0,0,0.3);
+}
+
+.table {
+    border-spacing: 0;
+}
+
+.table > tbody > tr > td {
+    font-size: 15px;
+    line-height: 1.6;
+    font-family: "Consolas", "Monaco", "Lucida Console", "Liberation Mono", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace;
+}
+
+.tableBox {
+    max-width: 70%;
+    overflow-x: auto;
+}
