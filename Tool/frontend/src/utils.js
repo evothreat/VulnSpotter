@@ -71,7 +71,17 @@ function calcDiff(oldCode, newCode) {
                 const maxN = Math.max(cur.count, next.count);
                 for (let i = 0; maxN > i; i++) {
                     if (cur.count > i && next.count > i) {
-                        diff.push({changed: DiffLib.diffWords(lines[i], nextLines[i])});
+                        const wordDiff = DiffLib.diffWords(lines[i], nextLines[i])
+                            .map((w) => {
+                                if (w.removed) {
+                                    return {removed: w.value};
+                                } else if (w.added) {
+                                    return {added: w.value};
+                                } else {
+                                    return {constant: w.value};
+                                }
+                            });
+                        diff.push({changed: wordDiff});
 
                     } else if (cur.count > i) {
                         diff.push({removed: lines[i]});
@@ -84,12 +94,10 @@ function calcDiff(oldCode, newCode) {
             } else {
                 lines.forEach((l) => diff.push({removed: l}));
             }
-        }
-        else if (cur.added) {
+        } else if (cur.added) {
             lines.forEach((l) => diff.push({added: l}));
-        }
-        else {
-            lines.forEach((l) => diff.push({none: l}));
+        } else {
+            lines.forEach((l) => diff.push({constant: l}));
         }
         ix++;
     }
