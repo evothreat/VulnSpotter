@@ -110,7 +110,7 @@ function hunksOnCondition(items, valid, ctxSize = 3, hunkSize = 10) {
     while (items.length > i) {
         if (valid(items[i])) {
             const left = Math.max(i - ctxSize, 0);
-            const right = i + ctxSize + 1;
+            const right = i + ctxSize + 1;                  // maybe add Math.min(i + ctxSize + 1, items.length)
 
             if (cutIx.length > 1 && cutIx.at(-1) >= left) {
                 cutIx[cutIx.length - 1] = right;
@@ -124,15 +124,19 @@ function hunksOnCondition(items, valid, ctxSize = 3, hunkSize = 10) {
     cutIx.push(items.length);
 
     const res = [];
-    for (let i = 0; cutIx.length-1 > i; i++) {
+    for (let i = 0; cutIx.length - 1 > i; i++) {
         const begin = cutIx[i];
         const end = cutIx[i + 1];
         if (i % 2 !== 0) {
             res.push(items.slice(begin, end));
         } else if (end > begin) {
-            const min = Math.min(hunkSize, end - begin);
-            for (let j = begin; end > j; j += min) {
-                res.push(items.slice(j, j + min));
+            const hunkN = ~~((end - begin) / hunkSize);
+            for (let k = 0; hunkN > k; k++) {
+                res.push(items.slice(begin + k * hunkSize, begin + (k + 1) * hunkSize));
+            }
+            const rest = (end - begin) % hunkSize;
+            if (rest > 0) {
+                cutIx[i + 1] -= rest;            // the rest will be added to the next modified hunk
             }
         }
     }
