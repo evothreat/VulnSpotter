@@ -64,8 +64,8 @@ function calcDiff(oldCode, newCode) {
         const cur = lineDiff[ix];
         const lines = cur.value.split('\n', cur.count);
         if (cur.removed) {
-            if (lineDiff[ix+1].added) {
-                const next = lineDiff[ix+1];
+            if (lineDiff[ix + 1].added) {
+                const next = lineDiff[ix + 1];
                 const nextLines = next.value.split('\n', next.count);
 
                 const maxN = Math.max(cur.count, next.count);
@@ -104,6 +104,41 @@ function calcDiff(oldCode, newCode) {
     return diff;
 }
 
+function partOnCondition(items, valid, n = 3) {
+    const cutIx = [0];
+    let i = 0;
+    while (items.length > i) {
+        if (valid(items[i])) {
+            const left = Math.max(i - n, 0);
+            const right = i + n + 1;
+
+            if (cutIx.length > 1 && cutIx.at(-1) >= left) {
+                cutIx[cutIx.length - 1] = right;
+            } else {
+                cutIx.push(left);
+                cutIx.push(right);
+            }
+        }
+        i++;
+    }
+    cutIx.push(items.length);
+
+    const res = [];
+    for (let i = 0; cutIx.length-1 > i; i++) {
+        const begin = cutIx[i];
+        const end = cutIx[i + 1];
+        if (i % 2 !== 0) {
+            res.push(items.slice(begin, end));
+        } else if (end > begin) {
+            const min = Math.min(n, end - begin);
+            for (let j = begin; end > j; j += min) {
+                res.push(items.slice(begin, j + min));
+            }
+        }
+    }
+    return res;
+}
+
 export {
     fmtTimeSince,
     createComparator,
@@ -112,5 +147,6 @@ export {
     complement,
     equals,
     remove,
-    calcDiff
+    calcDiff,
+    partOnCondition
 };
