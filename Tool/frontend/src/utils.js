@@ -132,7 +132,7 @@ function partOnCondition(items, valid, n = 3) {
         } else if (end > begin) {
             const min = Math.min(n, end - begin);
             for (let j = begin; end > j; j += min) {
-                res.push(items.slice(begin, j + min));
+                res.push(items.slice(j, j + min));
             }
         }
     }
