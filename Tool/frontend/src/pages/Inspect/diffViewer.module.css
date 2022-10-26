@@ -59,3 +59,7 @@
     max-width: 70%;
     overflow-x: auto;
 }
+
+:global(.token.operator) {
+    background: none;
+}
