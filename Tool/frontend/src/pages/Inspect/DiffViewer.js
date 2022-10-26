@@ -3,18 +3,19 @@ import Prism from "prismjs";
 import "../../prism.css";
 import style from "./diffViewer.module.css"
 import classnames from "classnames";
+import {useState} from "react";
 
 
-function highlight(str='') {
+function highlight(str = '') {
     return <pre
-        style={{ display: 'inline'}}
+        style={{display: 'inline'}}
         dangerouslySetInnerHTML={{
             __html: Prism.highlight(str, Prism.languages.clike, 'clike'),
         }}
     />;
 }
 
-function renderDiffRow(i, {removed, added, changed, constant}) {
+function renderDiffLine(i, {removed, added, changed, constant}) {
     let leftLine = [];
     let rightLine = [];
     let lStyle, rStyle;
@@ -63,17 +64,26 @@ function renderDiffRow(i, {removed, added, changed, constant}) {
 
 export default function DiffViewer({oldCode, newCode}) {
 
-    const diff = Utils.calcDiff(oldCode, newCode);
+    const [lineHunks, setLineHunks] = useState(Utils.hunksOnCondition(
+        Utils.calcDiff(oldCode, newCode),
+        (l) => l.removed || l.added || l.changed
+    ));
 
     return (
         <div className={style.tableBox}>
-        <table className={style.table}>
-            <tbody>
-            {
-                diff.map((l, i) => renderDiffRow(i, l))
-            }
-            </tbody>
-        </table>
+            <table className={style.table}>
+                <tbody>
+                {
+                    lineHunks.reduce((prev, cur, i) => {
+                        if (cur.some((l) => l.removed || l.added || l.changed)) {
+                            cur.forEach((l, j) => prev.push(renderDiffLine(i + j, l)));
+                            return prev;
+                        }
+                        return prev;
+                    }, [])
+                }
+                </tbody>
+            </table>
         </div>
     );
 }
