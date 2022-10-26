@@ -75,9 +75,15 @@ function isNotConstant(l) {
 
 export default function DiffViewer({oldCode, newCode}) {
 
-    const [lineHunks, setLineHunks] = useState(hunksOnCondition(
-        calcDiff(oldCode, newCode), isNotConstant
-    ));
+    const [lineHunks, setLineHunks] = useState(
+        hunksOnCondition(calcDiff(oldCode, newCode), isNotConstant)
+            .map((h) => {
+                return {
+                    visible: h.some(isNotConstant),
+                    value: h
+                }
+            })
+    );
 
     //console.log(lineHunks)
 
@@ -87,8 +93,8 @@ export default function DiffViewer({oldCode, newCode}) {
                 <tbody>
                 {
                     lineHunks.reduce((prev, cur) => {
-                        if (cur.some(isNotConstant)) {
-                            cur.forEach((l) => prev.push(renderDiffLine(l)));
+                        if (cur.visible) {
+                            cur.value.forEach((l) => prev.push(renderDiffLine(l)));
                             return prev;
                         }
                         return prev;
