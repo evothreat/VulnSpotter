@@ -1,60 +1,67 @@
-import * as Utils from "../../utils";
 import Prism from "prismjs";
 import "../../prism.css";
 import style from "./diffViewer.module.css"
 import classnames from "classnames";
 import {useState} from "react";
+import {calcDiff, DiffType, hunksOnCondition} from "../../diffUtils";
 
 
-function highlight(str = '') {
-    return <pre
-        style={{display: 'inline'}}
-        dangerouslySetInnerHTML={{
-            __html: Prism.highlight(str, Prism.languages.clike, 'clike'),
-        }}
-    />;
+function highlight(str) {
+    return (
+        typeof str === 'string'
+            ? <pre
+                style={{display: 'inline'}}
+                dangerouslySetInnerHTML={{
+                    __html: Prism.highlight(str, Prism.languages.clike, 'clike'),
+                }}
+            />
+            : str
+    );
 }
 
-function renderDiffLine(i, {removed, added, changed, constant}) {
+function renderDiffLine({linenoLeft, linenoRight, diffType, value}) {
     let leftLine = [];
     let rightLine = [];
     let lStyle, rStyle;
-    const value = highlight(removed || added || constant);
-    if (removed) {
-        leftLine.push(<>{value}</>);
+    const lineVal = highlight(value);
+    if (diffType === DiffType.REMOVED) {
+        leftLine.push(<>{lineVal}</>);
         lStyle = style.removed;
 
-    } else if (added) {
-        rightLine.push(<>{value}</>);
+    } else if (diffType === DiffType.ADDED) {
+        rightLine.push(<>{lineVal}</>);
         rStyle = style.added;
 
-    } else if (changed) {
+    } else if (diffType === DiffType.UPDATED) {
         lStyle = style.removed;
         rStyle = style.added;
 
-        changed.forEach((w) => {
-            const wordVal = highlight(w.removed || w.added || w.constant);
-            if (w.removed) {
+        value.forEach((w) => {
+            const wordVal = highlight(w.value);
+            if (w.diffType === DiffType.REMOVED) {
                 leftLine.push(<span className={style.removedWord}>{wordVal}</span>);
-            } else if (w.added) {
+
+            } else if (w.diffType === DiffType.ADDED) {
                 rightLine.push(<span className={style.addedWord}>{wordVal}</span>);
+
             } else {
                 leftLine.push(<>{wordVal}</>);
                 rightLine.push(<>{wordVal}</>);
             }
         });
     } else {
-        leftLine.push(<>{value}</>);
-        rightLine.push(<>{value}</>);
+        leftLine.push(<>{lineVal}</>);
+        rightLine.push(<>{lineVal}</>);
     }
+
     return (
-        <tr key={i}>
-            <td className={classnames(style.lineNumberBox, lStyle)}>{i}</td>
+        <tr key={linenoLeft + linenoRight}>
+            <td className={classnames(style.lineNumberBox, lStyle)}>{linenoLeft}</td>
             <td className={classnames(style.content, lStyle)}>
                 {leftLine}
             </td>
 
-            <td className={classnames(style.lineNumberBox, rStyle)}>{i}</td>
+            <td className={classnames(style.lineNumberBox, rStyle)}>{linenoRight}</td>
             <td className={classnames(style.content, rStyle)}>
                 {rightLine}
             </td>
@@ -62,21 +69,26 @@ function renderDiffLine(i, {removed, added, changed, constant}) {
     );
 }
 
+function isNotConstant(l) {
+    return l.diffType !== DiffType.CONSTANT;
+}
+
 export default function DiffViewer({oldCode, newCode}) {
 
-    const [lineHunks, setLineHunks] = useState(Utils.hunksOnCondition(
-        Utils.calcDiff(oldCode, newCode),
-        (l) => l.removed || l.added || l.changed
+    const [lineHunks, setLineHunks] = useState(hunksOnCondition(
+        calcDiff(oldCode, newCode), isNotConstant
     ));
+
+    //console.log(lineHunks)
 
     return (
         <div className={style.tableBox}>
             <table className={style.table}>
                 <tbody>
                 {
-                    lineHunks.reduce((prev, cur, i) => {
-                        if (cur.some((l) => l.removed || l.added || l.changed)) {
-                            cur.forEach((l, j) => prev.push(renderDiffLine(i + j, l)));
+                    lineHunks.reduce((prev, cur) => {
+                        if (cur.some(isNotConstant)) {
+                            cur.forEach((l) => prev.push(renderDiffLine(l)));
                             return prev;
                         }
                         return prev;
