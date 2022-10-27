@@ -2,10 +2,10 @@ import Prism from "prismjs";
 import "../../prism.css";
 import style from "./diffViewer.module.css"
 import classnames from "classnames";
-import {useState} from "react";
+import {Fragment, useState} from "react";
 import {calcDiff, DiffType, hunksOnCondition} from "../../diffUtils";
 import {nanoid} from "nanoid";
-import {VerticalAlignBottomIcon, VerticalAlignCenterIcon, VerticalAlignTopIcon} from "./Icons";
+import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "./Icons";
 
 
 function isNotConstant(l) {
@@ -80,24 +80,39 @@ function renderDiffLine({linenoLeft, linenoRight, diffType, value}) {
     );
 }
 
-function renderExpander(direction, hunkId, expandHandler) {
-    // TODO: add bidirectional
+function renderExpander(foldUpHunkId, foldDownHunkId, expandHandler) {
+    const handleClick = (e) => {
+        expandHandler(
+            e.currentTarget.dataset.direction,
+            e.currentTarget.dataset.hunkId
+        );
+    }
+
+    const foldDownIcon = foldDownHunkId &&
+        <span data-hunk-id={foldDownHunkId} data-direction={-1} onClick={handleClick}>
+            <VerticalExpandMoreIcon/>
+        </span>;
+
+    const foldUpIcon = foldUpHunkId &&
+        <span data-hunk-id={foldUpHunkId} data-direction={1} onClick={handleClick}>
+            <VerticalExpandLessIcon/>
+        </span>;
+
     return (
-        <tr key={hunkId} className={style.expander}>
-            <td colSpan="1"
-                className={style.expIconBox}
-                data-hunk-id={hunkId}
-                data-direction={direction}
-                onClick={(e) => expandHandler(e.currentTarget.dataset.direction, e.currentTarget.dataset.hunkId)}   // replace with local variables?
-            >
+        <tr key={foldUpHunkId || foldDownHunkId} className={style.expander}>
+            <td colSpan="1" className={style.expIconBox}>
                 {
-                    direction === 0
-                        ? <VerticalAlignCenterIcon/>
-                        : (direction > 0 ? <VerticalAlignTopIcon/> : <VerticalAlignBottomIcon/>)
+                    foldDownIcon && foldUpIcon
+                        ? (
+                            <Fragment>
+                                {foldDownIcon}
+                                {foldUpIcon}
+                            </Fragment>
+                        )
+                        : foldUpIcon || foldDownIcon
                 }
             </td>
-            <td colSpan="3" className={style.expTextBox}>
-            </td>
+            <td colSpan="3" className={style.expTextBox}/>
         </tr>
     );
 }
@@ -109,10 +124,10 @@ function renderDiff(lineHunks, expandHandler) {
         if (lineHunks[i].visible) {
             const cur = lineHunks[i];
             if (!prevVisible && cur.lines[0].linenoLeft > 1) {
-                res.push(renderExpander(1, cur.id, expandHandler));    // expander up
+                res.push(renderExpander(cur.id, null, expandHandler));    // expander up
 
             } else if (prevVisible && !isPredecessor(prevVisible, cur)) {
-                res.push(renderExpander(0, cur.id, expandHandler));     // expander between
+                res.push(renderExpander(cur.id, prevVisible.id, expandHandler));     // expander between
             }
             cur.lines.forEach((l) => res.push(renderDiffLine(l)));
             prevVisible = cur;
@@ -139,46 +154,28 @@ export default function DiffViewer({oldCode, newCode}) {
     //console.log(lineHunks)
 
     const handleExpand = (direction, hunkId) => {
-        // maybe put this code into setLineHunks to avoid race condition?
-        let prevVisibleIx = -1;
         for (let i = 0; lineHunks.length > i; i++) {
-            const cur = lineHunks[i];
-            if (cur.id === hunkId) {
-                const prev = lineHunks[i - 1];
-                const next = lineHunks[i + 1];
-
+            if (lineHunks[i].id === hunkId) {
+                const cur = lineHunks[i];
                 if (direction < 0) {
+                    const next = lineHunks[i + 1];
                     if (isPredecessor(cur, next)) {
                         next.visible = true;
                     } else {
                         console.log('load more down');
                         return;
                     }
+
                 } else if (direction > 0) {
+                    const prev = lineHunks[i - 1];
                     if (isPredecessor(prev, cur)) {
                         prev.visible = true;
                     } else {
                         console.log('load more up');
                         return;
                     }
-                } else {
-                    let any = false;
-                    if (isPredecessor(prev, cur)) {
-                        prev.visible = true;
-                        any = true;
-                    }
-                    if (isPredecessor(lineHunks[prevVisibleIx], lineHunks[prevVisibleIx + 1])) {
-                        lineHunks[prevVisibleIx + 1].visible = true;
-                        any = true;
-                    }
-                    if (!any) {
-                        console.log('load more between');
-                        return;
-                    }
                 }
-                setLineHunks(lineHunks.slice());
-            } else if (cur.visible) {
-                prevVisibleIx = i;
+                setLineHunks(lineHunks.slice());    // maybe pass function
             }
         }
     };

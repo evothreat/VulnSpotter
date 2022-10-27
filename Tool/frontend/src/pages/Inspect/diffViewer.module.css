@@ -46,23 +46,31 @@
 }
 
 .expander > td {
-    line-height: 1.4 !important;
+    line-height: normal !important;
 }
 
 .expIconBox {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+}
+
+.expIconBox > span {
     background-color: #BBB4B480;
     color: #444444;
-    padding: 4px 0;
     cursor: pointer;
+    width: 100%;
 }
 
-.expIconBox:hover {
+.expIconBox > span > svg {
+    height: 20px;
+    width: 100%;
+}
+
+.expIconBox > span:hover {
     background-color: #bbb4b4;
-}
-
-.expIconBox > svg {
-    display: block;
-    margin: auto;
 }
 
 .expTextBox {

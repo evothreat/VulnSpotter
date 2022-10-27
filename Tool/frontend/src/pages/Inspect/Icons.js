@@ -1,32 +1,21 @@
-function VerticalAlignBottomIcon(props) {
+function VerticalExpandMoreIcon(props) {
     return (
         <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" {...props}>
             <path d="M0 0h24v24H0z" fill="none"/>
-            <path d="M16 13h-3V3h-2v10H8l4 4 4-4zM4 19v2h16v-2H4z"/>
+            <path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/>
         </svg>
     );
 }
 
-function VerticalAlignTopIcon(props) {
+function VerticalExpandLessIcon(props) {
     return (
         <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" {...props}>
             <path d="M0 0h24v24H0z" fill="none"/>
-            <path d="M8 11h3v10h2V11h3l-4-4-4 4zM4 3v2h16V3H4z"/>
+            <path d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"/>
         </svg>
     );
 }
-
-function VerticalAlignCenterIcon(props) {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" {...props}>
-            <path d="M0 0h24v24H0z" fill="none"/>
-            <path d="M8 19h3v4h2v-4h3l-4-4-4 4zm8-14h-3V1h-2v4H8l4 4 4-4zM4 11v2h16v-2H4z"/>
-        </svg>
-    );
-}
-
 export {
-    VerticalAlignBottomIcon,
-    VerticalAlignTopIcon,
-    VerticalAlignCenterIcon
+    VerticalExpandMoreIcon,
+    VerticalExpandLessIcon,
 }
