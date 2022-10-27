@@ -34,7 +34,7 @@
     background-color: #acf2bd !important;
 }
 
-.lineNumberBox {
+.linenoBox {
     padding: 0 10px 0 5px;
     border-right-width: 1px;
     border-right-style: solid;
@@ -43,6 +43,30 @@
     border-color: #f0f0f0;
     background-color: #fafafa;
     color: rgba(0,0,0,0.3);
+}
+
+.expander > td {
+    line-height: 1 !important;
+    padding: 0;
+    margin: 0;
+}
+
+.expIconBox {
+    background-color: #BBB4B499;
+    color: #444444;
+    cursor: pointer;
+}
+
+.expIconBox:hover {
+    background-color: #bbb4b4;
+}
+
+.expIconBox > svg {
+    width: 100%;
+}
+
+.expTextBox {
+    background-color: #F0F0F0;
 }
 
 .table {
