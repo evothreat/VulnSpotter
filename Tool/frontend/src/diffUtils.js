@@ -25,7 +25,7 @@ function createWordDiff(diffType, value) {
 }
 
 function calcDiff(oldCode, newCode) {
-    const lineDiff = DiffLib.diffLines(oldCode, newCode);
+    const lineDiff = DiffLib.diffLines(oldCode.trim(), newCode.trim());
     const diff = [];
     let lnLeft = 1;
     let lnRight = 1;
