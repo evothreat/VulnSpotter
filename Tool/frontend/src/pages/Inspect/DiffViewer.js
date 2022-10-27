@@ -2,7 +2,7 @@ import Prism from "prismjs";
 import "../../prism.css";
 import style from "./diffViewer.module.css"
 import classnames from "classnames";
-import {Fragment, useState} from "react";
+import {useState} from "react";
 import {calcDiff, DiffType, hunksOnCondition} from "../../diffUtils";
 import {nanoid} from "nanoid";
 import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "./Icons";
@@ -80,7 +80,7 @@ function renderDiffLine({linenoLeft, linenoRight, diffType, value}) {
     );
 }
 
-function renderExpander(foldUpHunkId, foldDownHunkId, expandHandler) {
+function renderExpander(direction, hunkId, expandHandler) {
     const handleClick = (e) => {
         expandHandler(
             e.currentTarget.dataset.direction,
@@ -88,29 +88,16 @@ function renderExpander(foldUpHunkId, foldDownHunkId, expandHandler) {
         );
     }
 
-    const foldDownIcon = foldDownHunkId &&
-        <span data-hunk-id={foldDownHunkId} data-direction={-1} onClick={handleClick}>
-            <VerticalExpandMoreIcon/>
-        </span>;
-
-    const foldUpIcon = foldUpHunkId &&
-        <span data-hunk-id={foldUpHunkId} data-direction={1} onClick={handleClick}>
-            <VerticalExpandLessIcon/>
-        </span>;
-
     return (
-        <tr key={foldUpHunkId || foldDownHunkId} className={style.expander}>
+        <tr key={hunkId + direction} className={style.expander}>
             <td colSpan="1" className={style.expIconBox}>
-                {
-                    foldDownIcon && foldUpIcon
-                        ? (
-                            <Fragment>
-                                {foldDownIcon}
-                                {foldUpIcon}
-                            </Fragment>
-                        )
-                        : foldUpIcon || foldDownIcon
-                }
+                    <span data-hunk-id={hunkId} data-direction={direction} onClick={handleClick}>
+                        {
+                            direction > 0
+                                ? <VerticalExpandLessIcon/>
+                                : <VerticalExpandMoreIcon/>
+                        }
+                    </span>
             </td>
             <td colSpan="3" className={style.expTextBox}/>
         </tr>
@@ -124,10 +111,12 @@ function renderDiff(lineHunks, expandHandler) {
         if (lineHunks[i].visible) {
             const cur = lineHunks[i];
             if (!prevVisible && cur.lines[0].linenoLeft > 1) {
-                res.push(renderExpander(cur.id, null, expandHandler));    // expander up
+                res.push(renderExpander(1, cur.id, expandHandler));
 
             } else if (prevVisible && !isPredecessor(prevVisible, cur)) {
-                res.push(renderExpander(cur.id, prevVisible.id, expandHandler));     // expander between
+                res.push(renderExpander(-1, prevVisible.id, expandHandler));
+                // maybe render this one only if difference is 1
+                res.push(renderExpander(1, cur.id, expandHandler));
             }
             cur.lines.forEach((l) => res.push(renderDiffLine(l)));
             prevVisible = cur;
