@@ -4,14 +4,17 @@ import style from "./diffViewer.module.css"
 import classnames from "classnames";
 import {useState} from "react";
 import {calcDiff, DiffType, hunksOnCondition} from "../../diffUtils";
-import VerticalAlignBottomIcon from '@mui/icons-material/VerticalAlignBottom';
-import VerticalAlignTopIcon from '@mui/icons-material/VerticalAlignTop';
 import {nanoid} from "nanoid";
+import {VerticalAlignBottomIcon, VerticalAlignCenterIcon, VerticalAlignTopIcon} from "./Icons";
 
 
 function isNotConstant(l) {
     return l.diffType !== DiffType.CONSTANT;
 }
+
+const isPredecessor = (prevHunk, curHunk) => {
+    return prevHunk?.lines.at(-1).linenoLeft + 1 === curHunk?.lines.at(0).linenoLeft;  // no need chaining operator?
+};
 
 function highlight(str) {
     return (
@@ -87,7 +90,11 @@ function renderExpander(direction, hunkId, expandHandler) {
                 data-direction={direction}
                 onClick={(e) => expandHandler(e.currentTarget.dataset.direction, e.currentTarget.dataset.hunkId)}   // replace with local variables?
             >
-                {direction > 0 ? <VerticalAlignTopIcon/> : <VerticalAlignBottomIcon/>}
+                {
+                    direction === 0
+                        ? <VerticalAlignCenterIcon/>
+                        : (direction > 0 ? <VerticalAlignTopIcon/> : <VerticalAlignBottomIcon/>)
+                }
             </td>
             <td colSpan="3" className={style.expTextBox}>
             </td>
@@ -96,18 +103,23 @@ function renderExpander(direction, hunkId, expandHandler) {
 }
 
 function renderDiff(lineHunks, expandHandler) {
-    return lineHunks.reduce((prev, cur) => {
-        if (cur.visible) {
-            if (prev.length === 0 && cur.lines[0].linenoLeft > 1) {              // expander up
-                prev.push(renderExpander(1, cur.id, expandHandler));
+    const res = [];
+    let prevVisible = null;
+    for (let i = 0; lineHunks.length > i; i++) {
+        if (lineHunks[i].visible) {
+            const cur = lineHunks[i];
+            if (!prevVisible && cur.lines[0].linenoLeft > 1) {
+                res.push(renderExpander(1, cur.id, expandHandler));    // expander up
+
+            } else if (prevVisible && !isPredecessor(prevVisible, cur)) {
+                res.push(renderExpander(0, cur.id, expandHandler));     // expander between
             }
-            // first, we need to push unfolder if needed
-            cur.lines.forEach((l) => prev.push(renderDiffLine(l)));
-            return prev;
+            cur.lines.forEach((l) => res.push(renderDiffLine(l)));
+            prevVisible = cur;
         }
-        return prev;
-    }, []);
+    }
     // to add bottom expander we need to know size of file!
+    return res;
 }
 
 
@@ -126,18 +138,14 @@ export default function DiffViewer({oldCode, newCode}) {
 
     //console.log(lineHunks)
 
-    const isPredecessor = (prevHunk, curHunk) => {
-        return prevHunk?.lines.at(-1).linenoLeft + 1 === curHunk?.lines.at(0).linenoLeft;  // no need chaining operator?
-    };
-
     const handleExpand = (direction, hunkId) => {
-        // find the one, which is predecessor of clicked hunk
         // maybe put this code into setLineHunks to avoid race condition?
+        let prevVisibleIx = -1;
         for (let i = 0; lineHunks.length > i; i++) {
-            if (hunkId === lineHunks[i].id) {
-                const cur = lineHunks[i];
-                const prev = lineHunks[i-1];
-                const next = lineHunks[i+1];
+            const cur = lineHunks[i];
+            if (cur.id === hunkId) {
+                const prev = lineHunks[i - 1];
+                const next = lineHunks[i + 1];
 
                 if (direction < 0) {
                     if (isPredecessor(cur, next)) {
@@ -154,11 +162,23 @@ export default function DiffViewer({oldCode, newCode}) {
                         return;
                     }
                 } else {
-                    // handle bidirectional here
-                    // PROBLEM: from which hunk to begin
-                    return;
+                    let any = false;
+                    if (isPredecessor(prev, cur)) {
+                        prev.visible = true;
+                        any = true;
+                    }
+                    if (isPredecessor(lineHunks[prevVisibleIx], lineHunks[prevVisibleIx + 1])) {
+                        lineHunks[prevVisibleIx + 1].visible = true;
+                        any = true;
+                    }
+                    if (!any) {
+                        console.log('load more between');
+                        return;
+                    }
                 }
                 setLineHunks(lineHunks.slice());
+            } else if (cur.visible) {
+                prevVisibleIx = i;
             }
         }
     };

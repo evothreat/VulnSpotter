@@ -46,14 +46,13 @@
 }
 
 .expander > td {
-    line-height: 1 !important;
-    padding: 0;
-    margin: 0;
+    line-height: 1.4 !important;
 }
 
 .expIconBox {
-    background-color: #BBB4B499;
+    background-color: #BBB4B480;
     color: #444444;
+    padding: 4px 0;
     cursor: pointer;
 }
 
@@ -62,7 +61,8 @@
 }
 
 .expIconBox > svg {
-    width: 100%;
+    display: block;
+    margin: auto;
 }
 
 .expTextBox {
