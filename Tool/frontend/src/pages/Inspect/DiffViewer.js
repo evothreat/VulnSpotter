@@ -35,7 +35,9 @@ function renderDiffLine({linenoLeft, linenoRight, diffType, value}) {
     let leftLine = [];
     let rightLine = [];
     let lStyle, rStyle;
+
     const lineVal = highlight(value);
+
     if (diffType === DiffType.REMOVED) {
         leftLine.push(<>{lineVal}</>);
         lStyle = style.removed;
@@ -69,12 +71,11 @@ function renderDiffLine({linenoLeft, linenoRight, diffType, value}) {
 
     return (
         <tr key={linenoLeft + linenoRight}>
-            <td className={classnames(style.linenoBox, lStyle)}>{linenoLeft}</td>
+            <td className={classnames(style.linenoBox, lStyle)}>{diffType === DiffType.ADDED ? null : linenoLeft}</td>
             <td className={classnames(style.content, lStyle)}>
                 {leftLine}
             </td>
-
-            <td className={classnames(style.linenoBox, rStyle)}>{linenoRight}</td>
+            <td className={classnames(style.linenoBox, rStyle)}>{diffType === DiffType.REMOVED ? null : linenoRight}</td>
             <td className={classnames(style.content, rStyle)}>
                 {rightLine}
             </td>
