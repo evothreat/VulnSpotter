@@ -24,6 +24,21 @@ function createWordDiff(diffType, value) {
     }
 }
 
+function calcWordDiff(oldLine, newLine) {
+    return (
+        DiffLib.diffWords(oldLine, newLine)
+            .map((w) => {
+                if (w.removed) {
+                    return createWordDiff(DiffType.REMOVED, w.value);
+                } else if (w.added) {
+                    return createWordDiff(DiffType.ADDED, w.value);
+                } else {
+                    return createWordDiff(DiffType.CONSTANT, w.value);
+                }
+            })
+    );
+}
+
 function calcDiff(oldCode, newCode) {
     const lineDiff = DiffLib.diffLines(oldCode.trim(), newCode.trim());
     const diff = [];
@@ -34,24 +49,16 @@ function calcDiff(oldCode, newCode) {
         const cur = lineDiff[ix];
         const lines = cur.value.split('\n', cur.count);
         if (cur.removed) {
-            if (lineDiff[ix + 1].added) {
+            if (lineDiff[ix + 1]?.added) {
                 const next = lineDiff[ix + 1];
                 const nextLines = next.value.split('\n', next.count);
 
                 const maxN = Math.max(cur.count, next.count);
                 for (let i = 0; maxN > i; i++) {
                     if (cur.count > i && next.count > i) {
-                        const wordDiff = DiffLib.diffWords(lines[i], nextLines[i])
-                            .map((w) => {
-                                if (w.removed) {
-                                    return createWordDiff(DiffType.REMOVED, w.value);
-                                } else if (w.added) {
-                                    return createWordDiff(DiffType.ADDED, w.value);
-                                } else {
-                                    return createWordDiff(DiffType.CONSTANT, w.value);
-                                }
-                            });
-                        diff.push(createLineDiff(lnLeft++, lnRight++, DiffType.UPDATED, wordDiff));
+                        diff.push(
+                            createLineDiff(lnLeft++, lnRight++, DiffType.UPDATED, calcWordDiff(lines[i], nextLines[i]))
+                        );
 
                     } else if (cur.count > i) {
                         diff.push(createLineDiff(lnLeft++, lnRight, DiffType.REMOVED, lines[i]));
@@ -72,6 +79,50 @@ function calcDiff(oldCode, newCode) {
         ix++;
     }
     return diff;
+}
+
+function parsePatch(patch) {
+    const res = [];
+    const commitDiffs = DiffLib.parsePatch(patch);
+
+    for (let i = 0; commitDiffs.length > i; i++) {
+        const diff = commitDiffs[i];
+        const parsedDiff = {
+            oldFileName: diff.oldFileName,
+            newFileName: diff.newFileName,
+            lines: []
+        };
+        const parsedLines = parsedDiff.lines;
+
+        diff.hunks.forEach(({oldStart, newStart, lines}) => {
+            let ix = 0;
+            while (lines.length > ix) {
+                const marker = lines[ix][0];
+                const line = lines[ix].slice(1);
+
+                if (marker === '-') {
+                    if (lines[ix + 1]?.startsWith('+')) {
+                        while (lines[ix]?.startsWith('-') && lines[ix + 1]?.startsWith('+')) {
+                            parsedLines.push(
+                                createLineDiff(oldStart++, newStart++, DiffType.UPDATED,
+                                    calcWordDiff(lines[ix].slice(1), lines[ix + 1].slice(1)))
+                            );
+                            ix++;
+                        }
+                    } else {
+                        parsedLines.push(createLineDiff(oldStart++, newStart, DiffType.REMOVED, line));
+                    }
+                } else if (marker === '+') {
+                    parsedLines.push(createLineDiff(oldStart, newStart++, DiffType.ADDED, line));
+                } else {
+                    parsedLines.push(createLineDiff(oldStart++, newStart++, DiffType.CONSTANT, line));
+                }
+                ix++;
+            }
+        });
+        res.push(parsedDiff);
+    }
+    return res;
 }
 
 function hunksOnCondition(items, valid, ctxSize = 3, hunkSize = 10) {
@@ -116,5 +167,6 @@ function hunksOnCondition(items, valid, ctxSize = 3, hunkSize = 10) {
 export {
     DiffType,
     calcDiff,
+    parsePatch,
     hunksOnCondition
 };
