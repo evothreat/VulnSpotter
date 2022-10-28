@@ -13,7 +13,9 @@ function isNotConstant(l) {
 }
 
 const isPredecessor = (prevHunk, curHunk) => {
-    return prevHunk?.lines.at(-1).linenoLeft + 1 === curHunk?.lines.at(0).linenoLeft;  // no need chaining operator?
+    const lastLn = prevHunk?.lines.at(-1).linenoLeft;
+    const firstLn = curHunk?.lines.at(0).linenoLeft;
+    return lastLn && firstLn && (lastLn + 1 === firstLn || lastLn === firstLn);
 };
 
 function highlight(str) {

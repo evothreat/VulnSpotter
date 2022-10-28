@@ -39,8 +39,13 @@ function calcWordDiff(oldLine, newLine) {
     );
 }
 
+// doesn't create copy if string doesn't have space at begin/end
+function trim(str) {
+    return 32 >= str.charCodeAt(0) || 32 >= str.charCodeAt(str.length - 1) ? str.trim() : str;
+}
+
 function calcDiff(oldCode, newCode) {
-    const lineDiff = DiffLib.diffLines(oldCode.trim(), newCode.trim());
+    const lineDiff = DiffLib.diffLines(trim(oldCode), trim(newCode));
     const diff = [];
     let lnLeft = 1;
     let lnRight = 1;
@@ -94,7 +99,7 @@ function parsePatch(patch) {
         };
         const parsedLines = parsedDiff.lines;
 
-        diff.hunks.forEach(({oldStart, newStart, lines}) => {
+        for (let {oldStart, newStart, lines} of diff.hunks) {
             let ix = 0;
             while (lines.length > ix) {
                 const marker = lines[ix][0];
@@ -119,7 +124,7 @@ function parsePatch(patch) {
                 }
                 ix++;
             }
-        });
+        }
         res.push(parsedDiff);
     }
     return res;
@@ -155,9 +160,11 @@ function hunksOnCondition(items, valid, ctxSize = 3, hunkSize = 10) {
             for (let k = 0; hunkN > k; k++) {
                 res.push(items.slice(begin + k * hunkSize, begin + (k + 1) * hunkSize));
             }
+            // the rest will be added to the next modified hunk
+            // this allows to show whole content if only a few lines left
             const rest = (end - begin) % hunkSize;
             if (rest > 0) {
-                cutIx[i + 1] -= rest;            // the rest will be added to the next modified hunk
+                cutIx[i + 1] -= rest;
             }
         }
     }
