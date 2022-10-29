@@ -452,9 +452,7 @@ def create_vote(commit_id):
 @jwt_required()
 def get_vote(vote_id):
     data = db_conn.execute('SELECT v.id,v.user_id,v.commit_id,v.filepath,v.vote FROM votes v '
-                           'WHERE v.id=? AND v.user_id=? '
-                           'AND EXISTS(SELECT * FROM commits c WHERE c.id=v.commit_id AND '
-                           'EXISTS(SELECT * FROM membership m WHERE m.user_id=v.user_id AND m.project_id=c.project_id))',
+                           'WHERE v.id=? AND v.user_id=? LIMIT 1',
                            (vote_id, get_jwt_identity())).fetchone()
 
     return vote_v(data) if data else ('', 404)
@@ -475,10 +473,7 @@ def update_vote(vote_id):
     args.append(vote_id)
     args.append(get_jwt_identity())
 
-    updated = db_conn.execute(f'UPDATE votes SET {params} WHERE id=? AND user_id=? '
-                              f'AND EXISTS(SELECT * FROM commits c WHERE c.id=commit_id AND '
-                              f'EXISTS(SELECT * FROM membership m WHERE m.user_id=user_id AND m.project_id=c.project_id))',
-                              args).rowcount
+    updated = db_conn.execute(f'UPDATE votes SET {params} WHERE id=? AND user_id=?', args).rowcount
     if updated == 0:
         return '', 404
 
