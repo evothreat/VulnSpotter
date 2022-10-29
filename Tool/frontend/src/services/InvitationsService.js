@@ -8,8 +8,8 @@ class InvitationsService {
         this.basePathSent = '/users/me/sent-invitations';
     }
 
-    getAll(queryParams = {}) {
-        return api.get(this.basePath + (queryParams.unseen ? '?unseen' : ''));
+    getAll() {
+        return api.get(this.basePath);
     }
 
     getSent(id) {

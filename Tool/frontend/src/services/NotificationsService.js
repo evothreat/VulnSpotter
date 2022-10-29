@@ -6,8 +6,12 @@ class NotificationsService {
         this.basePath = '/users/me/notifications';
     }
 
-    getAll(queryParams = {}) {
-        return api.get(this.basePath + (queryParams.unseen ? '?unseen' : ''));
+    getAll() {
+        return api.get(this.basePath);
+    }
+
+    getUnseen() {
+        return api.get(this.basePath + '?unseen');
     }
 
     updateMany(ids, data) {

@@ -74,7 +74,7 @@ export default function Notifications() {
             });
         // fetch only unseen notifications
         const updateNotifs = () => {
-            NotificationsService.getAll({unseen: true})
+            NotificationsService.getUnseen()
                 .then((resp) => {
                     if (isMounted) {
                         setNotifs((curNotifs) => {
