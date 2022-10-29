@@ -430,6 +430,8 @@ def create_vote(commit_id):
 
     filepath = request.json.get('filepath')
     vote = request.json.get('vote')
+    if not (filepath and vote):
+        return '', 400
 
     entry_id = db_conn.execute('INSERT INTO votes(user_id,commit_id,filepath,vote) '
                                'SELECT ?,?,?,? '
@@ -464,7 +466,7 @@ def update_vote(vote_id):
     params, args = sql_params_args(
         request.json,
         {
-            'vote': bool
+            'vote': int
         }
     )
     if not params:
@@ -519,7 +521,10 @@ def get_votes_for_project(proj_id):
 @jwt_required()
 def create_invitation(proj_id):
     owner_id = get_jwt_identity()
+
     invitee_id = request.json.get('invitee_id')
+    if not invitee_id:
+        return '', 400
     role = request.json.get('role', Role.CONTRIBUTOR.value)  # role field if more roles implemented
 
     # insert only if the current user is owner of the project
@@ -648,4 +653,4 @@ if __name__ == '__main__':
 # TODO: implement registration endpoint
 
 # PROBLEMS
-# 1. types aren't in explicit table
+# 1. input-value semantics aren't checked
