@@ -43,6 +43,7 @@ COMMITS_SCHEMA = '''
     )
 '''
 # we can not cascade on object_id, because it's type is variable...
+# TODO: remove object type & replace object_id with project_id, because we don't have other notification types
 NOTIFICATIONS_SCHEMA = '''
     CREATE TABLE notifications (
         id          INTEGER PRIMARY KEY,
@@ -66,7 +67,7 @@ USER_NOTIFICATIONS_SCHEMA = '''
     )
 '''
 
-# avoid duplicated invitations
+# (invitee_id, project_id) should be unique
 INVITATIONS_SCHEMA = '''
     CREATE TABLE invitations (
         id          INTEGER PRIMARY KEY,
@@ -75,6 +76,20 @@ INVITATIONS_SCHEMA = '''
         role        TEXT,
         FOREIGN KEY(invitee_id) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
+    )
+'''
+
+# cascade on commit deletion?
+# (commit_id,filepath) should be unique?
+VOTES_SCHEMA = '''
+    CREATE TABLE votes (
+        id          INTEGER PRIMARY KEY,
+        user_id     INTEGER,
+        commit_id   INTEGER,
+        filepath    TEXT,
+        vote        BOOLEAN,
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY(commit_id) REFERENCES commits(id)
     )
 '''
 

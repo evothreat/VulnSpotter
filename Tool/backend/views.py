@@ -1,4 +1,4 @@
-def user(d):
+def user_v(d):
     return {
         'id': d['id'],
         'username': d['username'],
@@ -7,7 +7,7 @@ def user(d):
     }
 
 
-def project(d):
+def project_v(d):
     return {
         'id': d['id'],
         'name': d['name'],
@@ -20,7 +20,7 @@ def project(d):
     }
 
 
-def commit(d):
+def commit_v(d):
     return {
         'id': d['id'],
         'hash': d['hash'],
@@ -29,7 +29,7 @@ def commit(d):
     }
 
 
-def notification(d):
+def notification_v(d):
     return {
         'id': d['id'],
         'actor': {
@@ -44,8 +44,8 @@ def notification(d):
     }
 
 
-def project_notif(d):
-    res = notification(d)
+def project_notif_v(d):
+    res = notification_v(d)
     res['object'] = {
         'id': d['project_id'],
         'name': d['name']
@@ -53,7 +53,7 @@ def project_notif(d):
     return res
 
 
-def sent_invitation(d):
+def sent_invitation_v(d):
     return {
         'id': d['id'],
         'project_id': d['project_id'],
@@ -66,7 +66,7 @@ def sent_invitation(d):
     }
 
 
-def invitation(d):
+def invitation_v(d):
     return {
         'id': d['id'],
         'role': d['role'],
@@ -81,10 +81,20 @@ def invitation(d):
     }
 
 
-def member(d):
+def member_v(d):
     return {
         'id': d['id'],
         'full_name': d['full_name'],
         'username': d['username'],
         'role': d['role']
+    }
+
+
+def vote_v(d):
+    return {
+        'id': d['id'],
+        'user_id': d['user_id'],
+        'commit_id': d['commit_id'],
+        'filepath': d['filepath'],
+        'vote': d['vote']
     }
