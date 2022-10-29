@@ -5,7 +5,7 @@ import AddIcon from '@mui/icons-material/Add';
 import Button from "@mui/material/Button";
 import ProjectsTable from "./ProjectsTable";
 import ProjectsService from "../../services/ProjectsService";
-import {Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle} from "@mui/material";
+import {Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/material";
 import TextField from "@mui/material/TextField";
 import EnhancedAlert from "../../components/EnhancedAlert";
 import {headerStyle, mainActionBtnStyle} from "../../style";
@@ -23,11 +23,7 @@ function CreateProjectDialog({open, closeHandler, createHandler}) {
             <form onSubmit={handleSubmit}>
                 <DialogTitle>New Project</DialogTitle>
                 <DialogContent>
-                    <DialogContentText>
-                        Specify the Git repository to parse.
-                    </DialogContentText>
-                    <TextField sx={{mt: '20px'}} name="repoUrl" margin="dense" label="Repository URL"
-                               fullWidth required autoFocus/>
+                    <TextField name="repoUrl" margin="dense" label="Repository URL" fullWidth required autoFocus/>
                     <TextField name="projName" margin="dense" label="Project name" fullWidth required/>
                 </DialogContent>
                 <DialogActions>
