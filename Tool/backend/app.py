@@ -374,7 +374,12 @@ def get_commits(proj_id):
     if not is_member(get_jwt_identity(), proj_id):
         return '', 404
 
-    data = db_conn.execute('SELECT id,hash,message,created_at FROM commits WHERE project_id=?', (proj_id,)).fetchall()
+    if 'unrated' in request.args:
+        data = db_conn.execute('SELECT c.id,c.hash,c.message,c.created_at FROM commits c WHERE c.project_id=? '
+                               'AND NOT EXISTS(SELECT * FROM votes v WHERE v.commit_id=c.id)', (proj_id,)).fetchall()
+    else:
+        data = db_conn.execute('SELECT id,hash,message,created_at FROM commits WHERE project_id=?',
+                               (proj_id,)).fetchall()
 
     return [commit_v(d) for d in data]
 
