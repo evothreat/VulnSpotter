@@ -17,7 +17,7 @@ import EnhancedTableHead from "../../components/EnhancedTableHead";
 import ProjectsService from "../../services/ProjectsService";
 import {useNavigate, useParams} from "react-router-dom";
 import Button from "@mui/material/Button";
-import ForwardIcon from '@mui/icons-material/Forward';
+import FindInPageIcon from '@mui/icons-material/FindInPage';
 
 const cveDetailUrl = 'https://nvd.nist.gov/vuln/detail/';
 
@@ -205,7 +205,7 @@ function CommitsTable() {
 export default function Commits() {
     const navigate = useNavigate();
 
-    const gotoInspect = () => navigate(`./inspect`);
+    const gotoExplorer = () => navigate(`./inspect`);
 
     return (
         <Fragment>
@@ -215,8 +215,8 @@ export default function Commits() {
                 </Typography>
             </Box>
             <Box mb="10px" sx={{'& button': {textTransform: 'none'}}}>
-                <Button variant="contained" size="small" startIcon={<ForwardIcon/>} onClick={gotoInspect}>
-                    Inspect
+                <Button variant="contained" size="small" startIcon={<FindInPageIcon/>} onClick={gotoExplorer}>
+                    Explore
                 </Button>
             </Box>
             <CommitsTable/>
