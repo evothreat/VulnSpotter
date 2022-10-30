@@ -205,7 +205,7 @@ function CommitsTable() {
 export default function Commits() {
     const navigate = useNavigate();
 
-    const gotoExplorer = () => navigate(`./inspect`);
+    const gotoExplorer = () => navigate(`./explorer`);
 
     return (
         <Fragment>
