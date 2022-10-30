@@ -2,8 +2,8 @@ import Prism from "prismjs";
 import "../../prism.css";
 import style from "./diffViewer.module.css"
 import classnames from "classnames";
-import {useState} from "react";
-import {calcDiff, DiffType, hunksOnCondition} from "../../diffUtils";
+import {useEffect, useState} from "react";
+import {DiffType, hunksOnCondition} from "../../diffUtils";
 import {nanoid} from "nanoid";
 import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "./Icons";
 
@@ -130,18 +130,22 @@ function renderDiff(lineHunks, expandHandler) {
 }
 
 
-export default function DiffViewer({oldCode, newCode}) {
+export default function DiffViewer({codeLines}) {
 
-    const [lineHunks, setLineHunks] = useState(
-        hunksOnCondition(calcDiff(oldCode, newCode), isNotConstant)
-            .map((h) => {
-                return {
-                    id: nanoid(10),
-                    visible: h.some(isNotConstant),
-                    lines: h
-                }
-            })
-    );
+    const [lineHunks, setLineHunks] = useState(null);
+
+    useEffect(() => {
+        setLineHunks(
+            hunksOnCondition(codeLines, isNotConstant)
+                .map((h) => {
+                    return {
+                        id: nanoid(10),
+                        visible: h.some(isNotConstant),
+                        lines: h
+                    }
+                })
+        );
+    }, [codeLines]);
 
     //console.log(lineHunks)
 
@@ -177,7 +181,7 @@ export default function DiffViewer({oldCode, newCode}) {
             <table className={style.table}>
                 <tbody>
                 {
-                    renderDiff(lineHunks, handleExpand)
+                    lineHunks && renderDiff(lineHunks, handleExpand)
                 }
                 </tbody>
             </table>

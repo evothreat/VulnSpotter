@@ -17,6 +17,10 @@ class CommitsService {
     update(id, data) {
         return api.patch(`${this.basePath}/${id}`, data);
     }
+
+    getPatch(id) {
+        return api.get(`${this.basePath}/${id}/patch`);
+    }
 }
 
 export default new CommitsService();
