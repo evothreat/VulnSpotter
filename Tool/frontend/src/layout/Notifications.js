@@ -67,18 +67,18 @@ export default function Notifications() {
         // fetch all notifications once
         const comparator = Utils.createComparator('created_at', 'desc');
         NotificationsService.getAll()
-            .then((resp) => {
+            .then((data) => {
                 if (isMounted) {
-                    setNotifs(resp.data.sort(comparator));
+                    setNotifs(data.sort(comparator));
                 }
             });
         // fetch only unseen notifications
         const updateNotifs = () => {
             NotificationsService.getUnseen()
-                .then((resp) => {
+                .then((data) => {
                     if (isMounted) {
                         setNotifs((curNotifs) => {
-                            const newNotifs = Utils.complement(resp.data, curNotifs).sort(comparator);
+                            const newNotifs = Utils.complement(data, curNotifs).sort(comparator);
                             return newNotifs.length > 0 ? newNotifs.concat(curNotifs) : curNotifs;
                         });
                     }

@@ -166,11 +166,11 @@ function CommitsTable() {
 
     useEffect(() => {
         ProjectsService.getCommits(projId)
-            .then((resp) => {
-                resp.data.forEach((c) => {
+            .then((data) => {
+                data.forEach((c) => {
                     c.cve = Utils.findCVEs(c.message);
                 });
-                setItems(resp.data);
+                setItems(data);
             });
     }, [projId]);
 

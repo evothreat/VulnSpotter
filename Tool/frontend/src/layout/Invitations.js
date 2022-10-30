@@ -83,10 +83,9 @@ export default function Invitations() {
         let isMounted = true;
         const updateInvitations = () => {
             InvitationsService.getAll()
-                .then((resp) => {
-                    const invites = resp.data;
+                .then((data) => {
                     if (isMounted) {
-                        setInvitations((curInvites) => Utils.equals(curInvites, invites) ? curInvites : invites);
+                        setInvitations((curInvites) => Utils.equals(curInvites, data) ? curInvites : data);
                     }
                 });
         };

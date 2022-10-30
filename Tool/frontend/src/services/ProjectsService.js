@@ -43,6 +43,10 @@ class ProjectsService {
         return api.get(`${this.basePath}/${id}/commits`);
     }
 
+    getUnratedCommits(id) {
+        return api.get(`${this.basePath}/${id}/commits?unrated`);
+    }
+
     getInvitations(id) {
         return api.get(`${this.basePath}/${id}/invitations`);
     }

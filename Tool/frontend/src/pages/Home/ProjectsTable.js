@@ -146,11 +146,11 @@ export default function ProjectsTable() {
 
     useEffect(() => {
         ProjectsService.getAll()
-            .then((resp) => {
-                resp.data.forEach((p) => {
+            .then((data) => {
+                data.forEach((p) => {
                     p.owner_name = p.owner.full_name;
                 });
-                setItems(resp.data);
+                setItems(data);
             });
     }, []);
 

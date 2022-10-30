@@ -12,7 +12,7 @@ const onRequestError = (err) => {
 };
 
 const onResponse = (resp) => {
-    return resp;
+    return resp.data;
 };
 
 // on error invalidate authentication data & redirect!

@@ -26,8 +26,7 @@ export default function Project() {
     const [viewKey, setViewKey] = useState('commits');
 
     useEffect(() => {
-        ProjectsService.get(projId)
-            .then((resp) => setProject(resp.data));
+        ProjectsService.get(projId).then(setProject);
     }, [projId]);
 
     const handleViewChange = (viewId) => setViewKey(viewId);

@@ -163,8 +163,8 @@ function InviteUsersDialog({members, inviteHandler, closeHandler}) {
 
     useEffect(() => {
         api.get('/users')
-            .then((resp) => {
-                const users = resp.data.filter((u) => !members.some((u2) => u.id === u2.id));
+            .then((data) => {
+                const users = data.filter((u) => !members.some((u2) => u.id === u2.id));
                 setAllUsers(users.sort(Utils.createComparator('full_name', 'asc')));
             });
     }, [members]);
@@ -218,9 +218,9 @@ export default function Members() {
 
     useEffect(() => {
         Promise.all([ProjectsService.getMembers(projId), ProjectsService.getInvitations(projId)])
-            .then((responses) => {
-                const members = responses[0].data;
-                const invitees = responses[1].data.map((inv) => {
+            .then((data) => {
+                const members = data[0];
+                const invitees = data[1].map((inv) => {
                     return {
                         id: inv.invitee.id,
                         username: inv.invitee.username,
