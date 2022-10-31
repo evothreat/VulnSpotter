@@ -22,7 +22,7 @@ function highlight(str) {
     return (
         typeof str === 'string'
             ? <pre
-                style={{display: 'inline'}}
+                className={cssStyle.highlighter}
                 dangerouslySetInnerHTML={{
                     __html: Prism.highlight(str, Prism.languages.clike, 'clike'),
                 }}
