@@ -78,7 +78,7 @@ export default function Explorer() {
         <Box display="flex" justifyContent="flex-end" height="92vh">
             {
                 // recreate DiffViewer when diffs changes!
-                diffs && <DiffViewer codeLines={cur(diffs).lines}/>
+                diffs && <DiffViewer codeLines={cur(diffs).lines} style={{width: '70%'}}/>
             }
         </Box>
     );

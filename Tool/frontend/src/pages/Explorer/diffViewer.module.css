@@ -38,7 +38,7 @@
     padding: 0 10px 0 5px;
     border-right-width: 1px;
     border-right-style: solid;
-    width: 46px;
+    width: 50px;
     text-align: right;
     border-color: #f0f0f0;
     background-color: #fafafa;
@@ -79,16 +79,21 @@
 
 .table {
     border-spacing: 0;
+    border: 0;
+    border-collapse: separate;
+    margin: 0;
+    padding: 0;
+    width: 100%;
 }
 
 .table > tbody > tr > td {
+    box-sizing: border-box;
     font-size: 14px;
     line-height: 1.6;
     font-family: "Consolas", "Monaco", "Lucida Console", "Liberation Mono", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace;
 }
 
 .tableBox {
-    max-width: 70%;
     overflow-x: auto;
 }
 

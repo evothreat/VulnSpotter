@@ -1,6 +1,6 @@
 import Prism from "prismjs";
 import "../../prism.css";
-import style from "./diffViewer.module.css"
+import cssStyle from "./diffViewer.module.css"
 import classnames from "classnames";
 import {useEffect, useState} from "react";
 import {DiffType, hunksOnCondition} from "../../diffUtils";
@@ -40,24 +40,24 @@ function renderDiffLine({linenoLeft, linenoRight, diffType, value}) {
 
     if (diffType === DiffType.REMOVED) {
         leftLine.push(<>{lineVal}</>);
-        lStyle = style.removed;
+        lStyle = cssStyle.removed;
 
     } else if (diffType === DiffType.ADDED) {
         rightLine.push(<>{lineVal}</>);
-        rStyle = style.added;
+        rStyle = cssStyle.added;
 
     } else if (diffType === DiffType.UPDATED) {
-        lStyle = style.removed;
-        rStyle = style.added;
+        lStyle = cssStyle.removed;
+        rStyle = cssStyle.added;
 
         value.forEach((w) => {
             // maybe extract to renderDiffWord
             const wordVal = highlight(w.value);
             if (w.diffType === DiffType.REMOVED) {
-                leftLine.push(<span className={style.removedWord}>{wordVal}</span>);
+                leftLine.push(<span className={cssStyle.removedWord}>{wordVal}</span>);
 
             } else if (w.diffType === DiffType.ADDED) {
-                rightLine.push(<span className={style.addedWord}>{wordVal}</span>);
+                rightLine.push(<span className={cssStyle.addedWord}>{wordVal}</span>);
 
             } else {
                 leftLine.push(<>{wordVal}</>);
@@ -71,12 +71,12 @@ function renderDiffLine({linenoLeft, linenoRight, diffType, value}) {
 
     return (
         <tr key={linenoLeft + linenoRight}>
-            <td className={classnames(style.linenoBox, lStyle)}>{diffType === DiffType.ADDED ? null : linenoLeft}</td>
-            <td className={classnames(style.content, lStyle)}>
+            <td className={classnames(cssStyle.linenoBox, lStyle)}>{diffType === DiffType.ADDED ? null : linenoLeft}</td>
+            <td className={classnames(cssStyle.content, lStyle)}>
                 {leftLine}
             </td>
-            <td className={classnames(style.linenoBox, rStyle)}>{diffType === DiffType.REMOVED ? null : linenoRight}</td>
-            <td className={classnames(style.content, rStyle)}>
+            <td className={classnames(cssStyle.linenoBox, rStyle)}>{diffType === DiffType.REMOVED ? null : linenoRight}</td>
+            <td className={classnames(cssStyle.content, rStyle)}>
                 {rightLine}
             </td>
         </tr>
@@ -92,8 +92,8 @@ function renderExpander(direction, hunkId, expandHandler) {
     }
 
     return (
-        <tr key={hunkId + direction} className={style.expander}>
-            <td colSpan="1" className={style.expIconBox}>
+        <tr key={hunkId + direction} className={cssStyle.expander}>
+            <td colSpan="1" className={cssStyle.expIconBox}>
                     <span data-hunk-id={hunkId} data-direction={direction} onClick={handleClick}>
                         {
                             direction > 0
@@ -102,7 +102,7 @@ function renderExpander(direction, hunkId, expandHandler) {
                         }
                     </span>
             </td>
-            <td colSpan="3" className={style.expTextBox}/>
+            <td colSpan="3" className={cssStyle.expTextBox}/>
         </tr>
     );
 }
@@ -130,7 +130,7 @@ function renderDiff(lineHunks, expandHandler) {
 }
 
 
-export default function DiffViewer({codeLines}) {
+export default function DiffViewer({codeLines, style}) {
 
     const [lineHunks, setLineHunks] = useState(null);
 
@@ -177,8 +177,8 @@ export default function DiffViewer({codeLines}) {
     };
 
     return (
-        <div className={style.tableBox}>
-            <table className={style.table}>
+        <div className={cssStyle.tableBox} style={style}>
+            <table className={cssStyle.table}>
                 <tbody>
                 {
                     lineHunks && renderDiff(lineHunks, handleExpand)
