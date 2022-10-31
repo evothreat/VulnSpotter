@@ -6,6 +6,7 @@ import {useParams} from "react-router-dom";
 import * as Utils from "../../utils";
 import CommitsService from "../../services/CommitsService";
 import {parsePatch} from "../../diffUtils";
+import { useHotkeys } from 'react-hotkeys-hook'
 
 
 // TODO: load only specific commits
@@ -19,11 +20,6 @@ export default function Explorer() {
 
     const [commits, setCommits] = useState(null);
     const [diffs, setDiffs] = useState(null);
-
-
-    useEffect(() => {
-
-    }, []);
 
     useEffect(() => {
         ProjectsService.getUnratedCommits(projId)
@@ -48,8 +44,38 @@ export default function Explorer() {
             });
     }, [commits]);
 
+
+    const gotoPrevDiff = (e) => {
+        e.preventDefault();
+        if (diffs.ix - 1 > 0) {
+            diffs.ix--;
+            setDiffs({...diffs});
+        } else if (commits.ix - 1 > 0) {
+            commits.ix--;
+            setCommits({...commits});
+        } else {
+            console.log('no more commits available')
+        }
+    };
+
+    const gotoNextDiff = (e) => {
+        e.preventDefault();
+        if (diffs.data.length > diffs.ix + 1) {
+            diffs.ix++;
+            setDiffs({...diffs});
+        } else if (commits.data.length > commits.ix + 1) {
+            commits.ix++;
+            setCommits({...commits});
+        } else {
+            console.log('no more commits available')
+        }
+    };
+
+    useHotkeys('shift+left', gotoPrevDiff, {}, [diffs, commits]);
+    useHotkeys('shift+right', gotoNextDiff, {}, [diffs, commits]);
+
     return (
-        <Box display="flex" justifyContent="flex-end" maxHeight="92vh">
+        <Box display="flex" justifyContent="flex-end" height="92vh">
             {
                 // recreate DiffViewer when diffs changes!
                 diffs && <DiffViewer codeLines={cur(diffs).lines}/>
