@@ -3,7 +3,7 @@ import "../../prism.css";
 import cssStyle from "./diffViewer.module.css"
 import classnames from "classnames";
 import {useEffect, useState} from "react";
-import {DiffType, hunksOnCondition} from "../../diffUtils";
+import {areHunksSequent, calcHunks, DiffType} from "../../diffUtils";
 import {nanoid} from "nanoid";
 import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "./Icons";
 
@@ -11,12 +11,6 @@ import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "./Icons";
 function isNotConstant(l) {
     return l.diffType !== DiffType.CONSTANT;
 }
-
-const isPredecessor = (prevHunk, curHunk) => {
-    const lastLn = prevHunk?.lines.at(-1).linenoLeft;
-    const firstLn = curHunk?.lines.at(0).linenoLeft;
-    return lastLn && firstLn && (lastLn + 1 === firstLn || lastLn === firstLn);
-};
 
 function highlight(str) {
     return (
@@ -107,6 +101,7 @@ function renderExpander(direction, hunkId, expandHandler) {
 }
 
 function renderDiff(lineHunks, expandHandler) {
+    console.log(lineHunks)
     const res = [];
     let prevVisible = null;
     for (let i = 0; lineHunks.length > i; i++) {
@@ -115,7 +110,7 @@ function renderDiff(lineHunks, expandHandler) {
             if (!prevVisible && cur.lines[0].linenoLeft > 1) {
                 res.push(renderExpander(1, cur.id, expandHandler));
 
-            } else if (prevVisible && !isPredecessor(prevVisible, cur)) {
+            } else if (prevVisible && !areHunksSequent(prevVisible, cur)) {
                 res.push(renderExpander(-1, prevVisible.id, expandHandler));
                 // maybe render this one only if difference is 1
                 res.push(renderExpander(1, cur.id, expandHandler));
@@ -135,7 +130,7 @@ export default function DiffViewer({codeLines, style}) {
 
     useEffect(() => {
         setLineHunks(
-            hunksOnCondition(codeLines, isNotConstant)
+            calcHunks(codeLines)
                 .map((h) => {
                     return {
                         id: nanoid(10),
@@ -154,7 +149,7 @@ export default function DiffViewer({codeLines, style}) {
                 const cur = lineHunks[i];
                 if (direction < 0) {
                     const next = lineHunks[i + 1];
-                    if (isPredecessor(cur, next)) {
+                    if (areHunksSequent(cur, next)) {
                         next.visible = true;
                     } else {
                         console.log('load more down');
@@ -163,7 +158,7 @@ export default function DiffViewer({codeLines, style}) {
 
                 } else if (direction > 0) {
                     const prev = lineHunks[i - 1];
-                    if (isPredecessor(prev, cur)) {
+                    if (areHunksSequent(prev, cur)) {
                         prev.visible = true;
                     } else {
                         console.log('load more up');

@@ -51,7 +51,7 @@
 }
 
 .expButton {
-    background-color: #BBB4B480;
+    background-color: rgba(186, 223, 255, 0.75);
     color: #444444;
     cursor: pointer;
     text-align: center;
@@ -62,11 +62,11 @@
 }
 
 .expButton:hover {
-    background-color: #bbb4b4;
+    background-color: rgba(0, 111, 255, 0.8);
 }
 
 .expTextBox {
-    background-color: #F0F0F0;
+    background-color: rgba(221, 244, 255, 0.5);
 }
 
 .diffTable {

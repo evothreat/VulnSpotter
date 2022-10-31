@@ -8,6 +8,7 @@ const DiffType = Object.freeze({
     UPDATED: 2
 });
 
+
 function createLineDiff(linenoLeft, linenoRight, diffType, value) {
     return {
         linenoLeft: linenoLeft,
@@ -43,6 +44,16 @@ function calcWordDiff(oldLine, newLine) {
 function trim(str) {
     return 32 >= str.charCodeAt(0) || 32 >= str.charCodeAt(str.length - 1) ? str.trim() : str;
 }
+
+function areLinesSequent(prev, cur) {
+    return prev && cur && (prev.linenoLeft + 1 === cur.linenoLeft || prev.linenoLeft === cur.linenoLeft);
+}
+
+const areHunksSequent = (prev, cur) => {
+    const lastLn = prev?.lines.at(-1).linenoLeft;
+    const firstLn = cur?.lines.at(0).linenoLeft;
+    return lastLn && firstLn && (lastLn + 1 === firstLn || lastLn === firstLn);
+};
 
 function calcDiff(oldCode, newCode) {
     const lineDiff = DiffLib.diffLines(trim(oldCode), trim(newCode));
@@ -130,50 +141,58 @@ function parsePatch(patch) {
     return res;
 }
 
-function hunksOnCondition(items, valid, ctxSize = 3, hunkSize = 10) {
+function calcHunks(lines, ctxSize = 3, hunkSize = 10) {
     const cutIx = [0];
     let i = 0;
-    while (items.length > i) {
-        if (valid(items[i])) {
-            const left = Math.max(i - ctxSize, 0);
-            const right = i + ctxSize + 1;                  // maybe add Math.min(i + ctxSize + 1, items.length)
+    while (lines.length > i) {
+        if (lines[i].diffType !== DiffType.CONSTANT) {
+            // if left & right lines ares consecutive - add them to context
+            let leftBound = i;
+            while (ctxSize > i - leftBound && areLinesSequent(lines[leftBound - 1], lines[leftBound])) {
+                leftBound--;
+            }
 
-            if (cutIx.length > 1 && cutIx.at(-1) >= left) {
-                cutIx[cutIx.length - 1] = right;
+            let rightBound = i;
+            while (ctxSize > rightBound - i && areLinesSequent(lines[rightBound], lines[rightBound + 1])) {
+                rightBound++;
+            }
+            rightBound++;
+
+            const prevBound = cutIx.at(-1);
+            // if previous bound exceeds current left bound AND is consecutive - merge them
+            if (cutIx.length > 1 && (prevBound > leftBound || areLinesSequent(lines[prevBound - 1], lines[leftBound]))) {
+                cutIx[cutIx.length - 1] = rightBound;
             } else {
-                cutIx.push(left);
-                cutIx.push(right);
+                cutIx.push(leftBound);
+                cutIx.push(rightBound);
             }
         }
         i++;
     }
-    cutIx.push(items.length);
+    cutIx.push(lines.length);
 
     const res = [];
     for (let i = 0; cutIx.length - 1 > i; i++) {
         const begin = cutIx[i];
         const end = cutIx[i + 1];
         if (i % 2 !== 0) {
-            res.push(items.slice(begin, end));
+            res.push(lines.slice(begin, end));
         } else if (end > begin) {
-            const hunkN = ~~((end - begin) / hunkSize);
-            for (let k = 0; hunkN > k; k++) {
-                res.push(items.slice(begin + k * hunkSize, begin + (k + 1) * hunkSize));
-            }
-            // the rest will be added to the next modified hunk
-            // this allows to show whole content if only a few lines left
-            const rest = (end - begin) % hunkSize;
-            if (rest > 0) {
-                cutIx[i + 1] -= rest;
+            for (let j = begin; end > j; j += hunkSize) {
+                res.push(lines.slice(j, Math.min(j + hunkSize, end)));
             }
         }
     }
     return res;
 }
 
+
+
 export {
     DiffType,
     calcDiff,
     parsePatch,
-    hunksOnCondition
+    calcHunks,
+    areLinesSequent,
+    areHunksSequent
 };
