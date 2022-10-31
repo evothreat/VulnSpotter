@@ -93,14 +93,13 @@ function renderExpander(direction, hunkId, expandHandler) {
 
     return (
         <tr key={hunkId + direction} className={cssStyle.expander}>
-            <td colSpan="1" className={cssStyle.expIconBox}>
-                    <span data-hunk-id={hunkId} data-direction={direction} onClick={handleClick}>
-                        {
-                            direction > 0
-                                ? <VerticalExpandLessIcon/>
-                                : <VerticalExpandMoreIcon/>
-                        }
-                    </span>
+            <td colSpan="1" className={cssStyle.expButton} data-hunk-id={hunkId} data-direction={direction}
+                onClick={handleClick}>
+                {
+                    direction > 0
+                        ? <VerticalExpandLessIcon/>
+                        : <VerticalExpandMoreIcon/>
+                }
             </td>
             <td colSpan="3" className={cssStyle.expTextBox}/>
         </tr>
@@ -176,9 +175,10 @@ export default function DiffViewer({codeLines, style}) {
         }
     };
 
+    // remove table container!
     return (
         <div className={cssStyle.tableBox} style={style}>
-            <table className={cssStyle.table}>
+            <table className={cssStyle.diffTable}>
                 <tbody>
                 {
                     lineHunks && renderDiff(lineHunks, handleExpand)
