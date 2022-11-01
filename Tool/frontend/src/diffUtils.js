@@ -114,26 +114,30 @@ function parsePatch(patch) {
             let ix = 0;
             while (lines.length > ix) {
                 const marker = lines[ix][0];
-                const line = lines[ix].slice(1);
 
                 if (marker === '-') {
-                    if (lines[ix + 1]?.startsWith('+')) {
-                        while (lines[ix]?.startsWith('-') && lines[ix + 1]?.startsWith('+')) {
-                            parsedLines.push(
-                                createLineDiff(oldStart++, newStart++, DiffType.UPDATED,
-                                    calcWordDiff(lines[ix].slice(1), lines[ix + 1].slice(1)))
-                            );
-                            ix++;
-                        }
-                    } else {
-                        parsedLines.push(createLineDiff(oldStart++, newStart, DiffType.REMOVED, line));
+                    let j = ix;
+                    while (lines[++j]?.startsWith('-')) {}
+                    while (lines[ix]?.startsWith('-') && lines[j]?.startsWith('+')) {
+                        parsedLines.push(
+                            createLineDiff(oldStart++, newStart++, DiffType.UPDATED,
+                                calcWordDiff(lines[ix].slice(1), lines[j].slice(1)))
+                        );
+                        ix++;
+                        j++;
                     }
+                    while (lines[ix]?.startsWith('-')) {
+                        parsedLines.push(createLineDiff(oldStart++, newStart, DiffType.REMOVED, lines[ix].slice(1)));
+                        ix++;
+                    }
+                    ix = j;
                 } else if (marker === '+') {
-                    parsedLines.push(createLineDiff(oldStart, newStart++, DiffType.ADDED, line));
+                    parsedLines.push(createLineDiff(oldStart, newStart++, DiffType.ADDED, lines[ix].slice(1)));
+                    ix++;
                 } else {
-                    parsedLines.push(createLineDiff(oldStart++, newStart++, DiffType.CONSTANT, line));
+                    parsedLines.push(createLineDiff(oldStart++, newStart++, DiffType.CONSTANT, lines[ix].slice(1)));
+                    ix++;
                 }
-                ix++;
             }
         }
         res.push(parsedDiff);
