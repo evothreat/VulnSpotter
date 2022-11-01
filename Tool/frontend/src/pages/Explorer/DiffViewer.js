@@ -6,6 +6,7 @@ import React, {useEffect, useState} from "react";
 import {areHunksSequent, calcHunks, DiffType, getStats} from "../../diffUtils";
 import {nanoid} from "nanoid";
 import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "./Icons";
+import {ScrollSync, ScrollSyncPane} from "react-scroll-sync";
 
 
 function isNotConstant(l) {
@@ -73,18 +74,20 @@ function renderDiffLine({linenoLeft, linenoRight, diffType, value}) {
         rightLine.push(<>{lineVal}</>);
     }
 
-    return (
-        <tr key={linenoLeft + linenoRight}>
+    return [
+        <tr>
             <td className={classnames(cssStyle.linenoBox, lStyle)}>{diffType === DiffType.ADDED ? null : linenoLeft}</td>
             <td className={classnames(cssStyle.content, lStyle)}>
-                {leftLine}
+                {leftLine.length > 0 ? leftLine : <>&#0;</>}
             </td>
+        </tr>,
+        <tr>
             <td className={classnames(cssStyle.linenoBox, rStyle)}>{diffType === DiffType.REMOVED ? null : linenoRight}</td>
             <td className={classnames(cssStyle.content, rStyle)}>
-                {rightLine}
+                {rightLine.length > 0 ? rightLine : <>&#0;</>}
             </td>
         </tr>
-    );
+    ];
 }
 
 function renderExpander(direction, hunkId, expandHandler) {
@@ -97,7 +100,7 @@ function renderExpander(direction, hunkId, expandHandler) {
 
     return (
         <tr key={hunkId + direction} className={cssStyle.expander}>
-            <td colSpan="1" className={cssStyle.expButton} data-hunk-id={hunkId} data-direction={direction}
+            <td className={cssStyle.expButton} data-hunk-id={hunkId} data-direction={direction}
                 onClick={handleClick}>
                 {
                     direction > 0
@@ -105,31 +108,69 @@ function renderExpander(direction, hunkId, expandHandler) {
                         : <VerticalExpandMoreIcon/>
                 }
             </td>
-            <td colSpan="3" className={cssStyle.expTextBox}/>
+            <td className={cssStyle.expTextBox}/>
         </tr>
     );
 }
 
-function renderDiff(lineHunks, expandHandler) {
-    const res = [];
-    let prevVisible = null;
+function renderDiffWindow(lineHunks, expandHandler) {
+    // to add bottom expander we need to know size of file!
+    const leftLines = [];
+    const rightLines = [];
+
+    let prevVisible;
     for (let i = 0; lineHunks.length > i; i++) {
         if (lineHunks[i].visible) {
             const cur = lineHunks[i];
+            let expander;
+
             if (!prevVisible && cur.lines[0].linenoLeft > 1) {
-                res.push(renderExpander(1, cur.id, expandHandler));
+                expander = renderExpander(1, cur.id, expandHandler);
 
             } else if (prevVisible && !areHunksSequent(prevVisible, cur)) {
-                res.push(renderExpander(-1, prevVisible.id, expandHandler));
-                // maybe render this one only if difference is 1
-                res.push(renderExpander(1, cur.id, expandHandler));
+                expander =
+                    <>
+                        {renderExpander(-1, prevVisible.id, expandHandler)}
+                        {renderExpander(1, cur.id, expandHandler)}
+                    </>;
             }
-            cur.lines.forEach((l) => res.push(renderDiffLine(l)));
+            if (expander) {
+                leftLines.push(expander);
+                rightLines.push(expander);
+            }
+            for (const l of cur.lines) {
+                const diffLines = renderDiffLine(l);
+                leftLines.push(diffLines[0]);
+                rightLines.push(diffLines[1]);
+            }
             prevVisible = cur;
         }
     }
-    // to add bottom expander we need to know size of file!
-    return res;
+    return (
+        <ScrollSync>
+            <div className={cssStyle.tablesContainer}>
+                <ScrollSyncPane>
+                    <div className={cssStyle.tableBox}>
+                        <table className={cssStyle.diffTable}>
+                            <tbody>
+                            {leftLines}
+                            </tbody>
+                        </table>
+                    </div>
+                </ScrollSyncPane>
+
+                <ScrollSyncPane>
+                    <div className={cssStyle.tableBox}>
+                        <table className={cssStyle.diffTable}>
+                            <tbody>
+                            {rightLines}
+                            </tbody>
+                        </table>
+                    </div>
+                </ScrollSyncPane>
+            </div>
+        </ScrollSync>
+    );
 }
 
 
@@ -185,15 +226,7 @@ export default function DiffViewer({codeLines, fileName, style}) {
                 <strong>{fileName}</strong>
                 {renderStats(codeLines)}
             </div>
-            <div className={cssStyle.tableBox}>
-                <table className={cssStyle.diffTable}>
-                    <tbody>
-                    {
-                        lineHunks && renderDiff(lineHunks, handleExpand)
-                    }
-                    </tbody>
-                </table>
-            </div>
+            {lineHunks && renderDiffWindow(lineHunks, handleExpand)}
         </div>
     );
 }

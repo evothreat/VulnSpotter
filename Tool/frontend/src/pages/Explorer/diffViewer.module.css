@@ -98,6 +98,13 @@
 .tableBox {
     overflow: auto;
     height: 100%;
+    width: 50%;
+}
+
+.tablesContainer {
+    display: flex;
+    height: 100%;
+    width: 100%;
 }
 
 
