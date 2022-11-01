@@ -116,6 +116,19 @@
     font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
+.diffStats {
+    display: flex;
+    gap: 8px;
+}
+
+.diffStats > .deletion {
+    color: #dd2b0e;
+}
+
+.diffStats > .addition {
+    color: #217645;
+}
+
 .diffBox {
     display: flex;
     flex-direction: column;

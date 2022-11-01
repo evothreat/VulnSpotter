@@ -187,12 +187,31 @@ function calcHunks(lines, ctxSize = 3, hunkSize = 10) {
 }
 
 
+function getStats(lines) {
+    const stats = {
+        deletions: 0,
+        additions: 0,
+    };
+    for (const l of lines) {
+        if (l.diffType === DiffType.REMOVED) {
+            stats.deletions++;
+        } else if (l.diffType === DiffType.ADDED) {
+            stats.additions++;
+        } else if (l.diffType === DiffType.UPDATED) {
+            stats.additions++;
+            stats.deletions++;
+        }
+    }
+    return stats;
+}
+
 
 export {
     DiffType,
     calcDiff,
     parsePatch,
     calcHunks,
+    getStats,
     areLinesSequent,
     areHunksSequent
 };

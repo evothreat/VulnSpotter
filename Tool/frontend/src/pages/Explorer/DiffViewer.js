@@ -3,13 +3,23 @@ import "../../prism.css";
 import cssStyle from "./diffViewer.module.css"
 import classnames from "classnames";
 import React, {useEffect, useState} from "react";
-import {areHunksSequent, calcHunks, DiffType} from "../../diffUtils";
+import {areHunksSequent, calcHunks, DiffType, getStats} from "../../diffUtils";
 import {nanoid} from "nanoid";
 import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "./Icons";
 
 
 function isNotConstant(l) {
     return l.diffType !== DiffType.CONSTANT;
+}
+
+function renderStats(lines) {
+    const stats = getStats(lines);
+    return (
+        <div className={cssStyle.diffStats}>
+            <span className={cssStyle.deletion}>-{stats.deletions}</span>
+            <span className={cssStyle.addition}>+{stats.additions}</span>
+        </div>
+    )
 }
 
 function highlight(str) {
@@ -168,11 +178,12 @@ export default function DiffViewer({codeLines, fileName, style}) {
             }
         }
     };
-
+    // memoize renderStats...
     return (
         <div style={style}>
             <div className={cssStyle.diffHeader}>
                 <strong>{fileName}</strong>
+                {renderStats(codeLines)}
             </div>
             <div className={cssStyle.tableBox}>
                 <table className={cssStyle.diffTable}>
