@@ -146,12 +146,12 @@
     box-sizing: border-box;
 }
 
-.stickyColumn {
+.stickyCol {
     /* Stick to the left */
     left: 0;
     position: sticky;
     /* Displayed on top of other rows when scrolling */
-    z-index: 9999;
+    z-index: 1;
 }
 
 :global(.token.operator) {
