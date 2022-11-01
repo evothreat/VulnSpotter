@@ -75,10 +75,10 @@ export default function Explorer() {
     useHotkeys('shift+right', gotoNextDiff, {}, [diffs, commits]);
 
     return (
-        <Box display="flex" justifyContent="flex-end" height="92vh">
+        <Box display="flex" height="85vh" justifyContent="flex-end">
             {
                 // recreate DiffViewer when diffs changes!
-                diffs && <DiffViewer codeLines={cur(diffs).lines} style={{width: '70%'}}/>
+                diffs && <DiffViewer codeLines={cur(diffs).lines} fileName={cur(diffs).oldFileName} style={{width: '70%'}}/>
             }
         </Box>
     );

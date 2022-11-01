@@ -2,7 +2,7 @@ import Prism from "prismjs";
 import "../../prism.css";
 import cssStyle from "./diffViewer.module.css"
 import classnames from "classnames";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {areHunksSequent, calcHunks, DiffType} from "../../diffUtils";
 import {nanoid} from "nanoid";
 import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "./Icons";
@@ -124,7 +124,7 @@ function renderDiff(lineHunks, expandHandler) {
 }
 
 
-export default function DiffViewer({codeLines, style}) {
+export default function DiffViewer({codeLines, fileName, style}) {
 
     const [lineHunks, setLineHunks] = useState(null);
 
@@ -170,16 +170,20 @@ export default function DiffViewer({codeLines, style}) {
         }
     };
 
-    // remove table container!
     return (
-        <div className={cssStyle.tableBox} style={style}>
-            <table className={cssStyle.diffTable}>
-                <tbody>
-                {
-                    lineHunks && renderDiff(lineHunks, handleExpand)
-                }
-                </tbody>
-            </table>
+        <div style={style}>
+            <div className={cssStyle.diffHeader}>
+                <strong>{fileName}</strong>
+            </div>
+            <div className={cssStyle.tableBox}>
+                <table className={cssStyle.diffTable}>
+                    <tbody>
+                    {
+                        lineHunks && renderDiff(lineHunks, handleExpand)
+                    }
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }

@@ -84,10 +84,6 @@
     font-family: "Consolas", "Monaco", "Lucida Console", "Liberation Mono", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace;
 }
 
-.diffTable * {
-    box-sizing: border-box;
-}
-
 .highlighter {
     display: inline;
     margin: 0;
@@ -96,7 +92,34 @@
 }
 
 .tableBox {
-    overflow-x: auto;
+    overflow: auto;
+    height: 100%;
+}
+
+
+.diffHeader {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #fafafa;
+    border-bottom: 1px solid #dbdbdb;
+    padding: 8px 16px;
+    margin: 0;
+    line-height: 1.2;
+    font-size: 14px;
+    color: rgba(58, 54, 54, 0.9);
+    font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.diffBox {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+:global(*) {
+    box-sizing: border-box;
 }
 
 :global(.token.operator) {
