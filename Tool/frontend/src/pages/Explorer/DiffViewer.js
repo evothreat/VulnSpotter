@@ -101,7 +101,6 @@ function renderExpander(direction, hunkId, expandHandler) {
 }
 
 function renderDiff(lineHunks, expandHandler) {
-    console.log(lineHunks)
     const res = [];
     let prevVisible = null;
     for (let i = 0; lineHunks.length > i; i++) {
