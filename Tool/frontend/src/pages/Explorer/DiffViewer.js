@@ -37,8 +37,10 @@ function highlight(str) {
 }
 
 function renderDiffLine({linenoLeft, linenoRight, diffType, value}) {
-    let leftLine = [];
-    let rightLine = [];
+    // NULL-character, cause React doesn't render element if it doesn't have any valid value
+    let leftLine = [<>&#0;</>];
+    let rightLine = [<>&#0;</>];
+
     let lStyle, rStyle;
 
     const lineVal = highlight(value);
@@ -78,13 +80,13 @@ function renderDiffLine({linenoLeft, linenoRight, diffType, value}) {
         <tr>
             <td className={classnames(cssStyle.linenoBox, lStyle)}>{diffType === DiffType.ADDED ? null : linenoLeft}</td>
             <td className={classnames(cssStyle.content, lStyle)}>
-                {leftLine.length > 0 ? leftLine : <>&#0;</>}
+                {leftLine}
             </td>
         </tr>,
         <tr>
             <td className={classnames(cssStyle.linenoBox, rStyle)}>{diffType === DiffType.REMOVED ? null : linenoRight}</td>
             <td className={classnames(cssStyle.content, rStyle)}>
-                {rightLine.length > 0 ? rightLine : <>&#0;</>}
+                {rightLine}
             </td>
         </tr>
     ];

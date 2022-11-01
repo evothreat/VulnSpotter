@@ -117,26 +117,26 @@ function parsePatch(patch) {
 
                 if (marker === '-') {
                     let j = ix;
-                    while (lines[++j]?.startsWith('-')) {}
-                    while (lines[ix]?.startsWith('-') && lines[j]?.startsWith('+')) {
+                    let count = 1;
+                    while (lines[++j]?.startsWith('-')) {
+                        count++;
+                    }
+                    while (count > 0 && lines[j]?.startsWith('+')) {
                         parsedLines.push(
                             createLineDiff(oldStart++, newStart++, DiffType.UPDATED,
-                                calcWordDiff(lines[ix].slice(1), lines[j].slice(1)))
+                                calcWordDiff(lines[ix++].slice(1), lines[j++].slice(1)))
                         );
-                        ix++;
-                        j++;
+                        count--;
                     }
-                    while (lines[ix]?.startsWith('-')) {
-                        parsedLines.push(createLineDiff(oldStart++, newStart, DiffType.REMOVED, lines[ix].slice(1)));
-                        ix++;
+                    while (count > 0) {
+                        parsedLines.push(createLineDiff(oldStart++, newStart, DiffType.REMOVED, lines[ix++].slice(1)));
+                        count--;
                     }
                     ix = j;
                 } else if (marker === '+') {
-                    parsedLines.push(createLineDiff(oldStart, newStart++, DiffType.ADDED, lines[ix].slice(1)));
-                    ix++;
+                    parsedLines.push(createLineDiff(oldStart, newStart++, DiffType.ADDED, lines[ix++].slice(1)));
                 } else {
-                    parsedLines.push(createLineDiff(oldStart++, newStart++, DiffType.CONSTANT, lines[ix].slice(1)));
-                    ix++;
+                    parsedLines.push(createLineDiff(oldStart++, newStart++, DiffType.CONSTANT, lines[ix++].slice(1)));
                 }
             }
         }
