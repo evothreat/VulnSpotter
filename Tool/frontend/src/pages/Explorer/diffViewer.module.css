@@ -84,6 +84,10 @@
     font-family: "Consolas", "Monaco", "Lucida Console", "Liberation Mono", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace;
 }
 
+.diffTable * {
+    box-sizing: border-box;
+}
+
 .highlighter {
     display: inline;
     margin: 0;
@@ -118,7 +122,7 @@
     height: 100%;
 }
 
-:global(*) {
+.diffBox * {
     box-sizing: border-box;
 }
 
