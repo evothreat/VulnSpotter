@@ -1,12 +1,12 @@
 import Box from "@mui/material/Box";
 import DiffViewer from "./DiffViewer";
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import ProjectsService from "../../services/ProjectsService";
 import {useParams} from "react-router-dom";
 import * as Utils from "../../utils";
 import CommitsService from "../../services/CommitsService";
 import {parsePatch} from "../../diffUtils";
-import { useHotkeys } from 'react-hotkeys-hook'
+import {useHotkeys} from 'react-hotkeys-hook'
 
 
 // TODO: load only specific commits
@@ -20,6 +20,7 @@ export default function Explorer() {
 
     const [commits, setCommits] = useState(null);
     const [diffs, setDiffs] = useState(null);
+    const reverse = useRef(false);
 
     useEffect(() => {
         ProjectsService.getUnratedCommits(projId)
@@ -37,20 +38,26 @@ export default function Explorer() {
     useEffect(() => {
         commits && CommitsService.getPatch(cur(commits).id)
             .then((data) => {
-                setDiffs({
+                const newDiffs = {
                     data: parsePatch(data),
                     ix: 0
-                });
+                };
+                if (reverse.current) {
+                    reverse.current = false;
+                    newDiffs.ix = newDiffs.data.length - 1;
+                }
+                setDiffs(newDiffs);
             });
     }, [commits]);
 
 
     const gotoPrevDiff = (e) => {
         e.preventDefault();
-        if (diffs.ix - 1 > 0) {
+        if (diffs.ix - 1 >= 0) {
             diffs.ix--;
             setDiffs({...diffs});
-        } else if (commits.ix - 1 > 0) {
+        } else if (commits.ix - 1 >= 0) {
+            reverse.current = true;
             commits.ix--;
             setCommits({...commits});
         } else {
