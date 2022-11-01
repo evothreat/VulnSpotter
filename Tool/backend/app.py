@@ -399,7 +399,7 @@ def get_commit_patch(commit_id):
         # includes only modified files!
         return Response(
             response=repo.git.diff(comm_hash + '~1', comm_hash, ignore_blank_lines=True, ignore_space_at_eol=True,
-                                   diff_filter='M'),
+                                   diff_filter='M', no_prefix=True),
             mimetype='text/plain',
             status=200
         )
