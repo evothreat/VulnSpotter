@@ -29,9 +29,9 @@ class SafeSql(sqlite3.Connection):
 
     def executemany(self, *args, **kwargs):
         if self._transaction:
-            return super().execute(*args, **kwargs)
+            return super().executemany(*args, **kwargs)
 
         self._lock.acquire()
-        cur = super().execute(*args, **kwargs)
+        cur = super().executemany(*args, **kwargs)
         self._lock.release()
         return cur
