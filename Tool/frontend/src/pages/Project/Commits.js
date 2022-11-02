@@ -51,7 +51,7 @@ const BOTTOM_OFFSET = '-70px';
 
 const commitMsgStyle = {
     fontSize: '13px',
-    color: '#666',
+    color: '#505a5f',
     padding: '8px 0 14px 8px',
     display: 'block',
     marginTop: '8px',
