@@ -7,11 +7,10 @@ class AuthService {
         return api.post('/login', {
             'username': username,
             'password': password
-        }).then((resp) => {
-            const authData = resp.data;
-            TokenService.setRefreshToken(authData.refresh_token);
-            TokenService.setAccessToken(authData.access_token);
-            TokenService.setUserId(authData.user_id);
+        }).then((data) => {
+            TokenService.setRefreshToken(data.refresh_token);
+            TokenService.setAccessToken(data.access_token);
+            TokenService.setUserId(data.user_id);
         });
     }
 

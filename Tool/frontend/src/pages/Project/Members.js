@@ -247,7 +247,7 @@ export default function Members() {
         Promise.all(
             selUsers.map((u) => ProjectsService.createInvitation(projId, u.id))
         )
-            .then((responses) => {
+            .then((data) => {
                 showSuccessMsg('Invitations were successfully sent to users.');
                 const invitees = selUsers.map((u, i) => {
                     return {
@@ -256,7 +256,7 @@ export default function Members() {
                         full_name: u.full_name,
                         role: Role.CONTRIBUTOR,
                         active: false,
-                        invitation_id: responses[i].headers.location.split('/').at(-1)
+                        invitation_id: data[i].resource_id
                     }
                 })
                 setProjMembers((prevMembers) => prevMembers.concat(invitees));
