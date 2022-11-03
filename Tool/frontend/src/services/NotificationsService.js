@@ -11,15 +11,15 @@ class NotificationsService {
     }
 
     getUnseen() {
-        return api.get(this.basePath + '?unseen');
+        return api.get(`${this.basePath}?unseen`);
     }
 
-    updateMany(ids, data) {
-        return api.patch(`${this.basePath}?ids=${ids}`, data);
+    markAsSeen(id) {
+        return api.patch(`${this.basePath}/${id}`, {'is_seen': true});
     }
 
-    deleteMany(ids) {
-        return api.delete(`${this.basePath}?ids=${ids}`);
+    delete(id) {
+        return api.delete(`${this.basePath}/${id}`);
     }
 }
 

@@ -98,24 +98,28 @@ export default function Notifications() {
     };
 
     const markAllAsSeen = () => {
-        const ids = notifs.filter((n) => !n.is_seen).map((n) => {
-            n.is_seen = true;
-            return n.id;
-        });
-        // TODO: check if only one id
+        const ids = notifs.filter((n) => !n.is_seen).map((n) => n.id);
         if (ids.length > 0) {
-            NotificationsService.updateMany(ids, {'is_seen': true})
+            Promise.all(ids.map((id) => NotificationsService.markAsSeen(id)))
                 .then(() => {
-                    setNotifs(notifs.slice());
+                    setNotifs((curNotifs) => {
+                        curNotifs.forEach((n) => {
+                            if (ids.some((id) => id === n.id)) {
+                                n.is_seen = true;
+                            }
+                        })
+                        return curNotifs.slice();
+                    });
                 });
         }
     };
 
     const deleteAll = () => {
-        if (notifs.length > 0) {
-            NotificationsService.deleteMany(notifs.map((n) => n.id))
+        const ids = notifs.map((n) => n.id);
+        if (ids.length > 0) {
+            Promise.all(ids.map((id) => NotificationsService.delete(id)))
                 .then(() => {
-                    setNotifs([]);
+                    setNotifs((curNotifs) => curNotifs.filter((n) => !ids.some((id) => id === n.id)));
                 });
         }
     };
