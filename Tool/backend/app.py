@@ -319,54 +319,15 @@ def update_notification(notif_id):
     return '', 204
 
 
-@app.route('/api/users/me/notifications', methods=['PATCH'])
-@jwt_required()
-def update_notifications():
-    ids = request.args.get('ids')
-    if not all(i.isdigit() for i in ids.split(',')):
-        return '', 400
-
-    params, args = sql_params_args(
-        request.json,
-        {
-            'is_seen': bool
-        }
-    )
-    if not params:
-        return '', 400
-
-    args.append(get_jwt_identity())
-    # warning: using raw data directly avoiding bind-variables, decreases performance (try to create prepared stmt)
-    with db_conn:
-        db_conn.execute(f'UPDATE user_notifications SET {params} WHERE user_id=? AND notif_id IN ({ids})', args)
-    # verify rowcount to ensure that every specified resource was updated?
-    return '', 204
-
-
 @app.route('/api/users/me/notifications/<notif_id>', methods=['DELETE'])
 @jwt_required()
 def delete_notification(notif_id):
     with db_conn:
-        deleted = db_conn.execute('DELETE FROM notifications WHERE id=? '
-                                  'AND EXISTS(SELECT * FROM user_notifications un WHERE un.notif_id=id AND un.user_id=?)',
+        deleted = db_conn.execute('DELETE FROM notifications WHERE id=? AND '
+                                  'EXISTS(SELECT * FROM user_notifications un WHERE un.notif_id=id AND un.user_id=?)',
                                   (notif_id, get_jwt_identity())).rowcount
     if deleted == 0:
         return '', 404
-
-    return '', 204
-
-
-@app.route('/api/users/me/notifications', methods=['DELETE'])
-@jwt_required()
-def delete_notifications():
-    ids = request.args.get('ids')
-    if not all(i.isdigit() for i in ids.split(',')):
-        return '', 400
-
-    with db_conn:
-        db_conn.execute(f'DELETE FROM notifications WHERE id IN ({ids}) '
-                        f'AND EXISTS(SELECT * FROM user_notifications un WHERE un.notif_id=id AND un.user_id=?)',
-                        (get_jwt_identity(),))
 
     return '', 204
 
