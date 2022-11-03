@@ -21,6 +21,10 @@ class NotificationsService {
     delete(id) {
         return api.delete(`${this.basePath}/${id}`);
     }
+
+    deleteAllUntil(maxAge) {
+        return api.delete(`${this.basePath}?max_age=${maxAge}`);
+    }
 }
 
 export default new NotificationsService();

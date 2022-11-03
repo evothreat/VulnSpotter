@@ -116,12 +116,10 @@ export default function Notifications() {
     };
 
     const deleteAll = () => {
-        const ids = notifs.map((n) => n.id);
-        if (ids.length > 0) {
-            Promise.all(ids.map((id) => NotificationsService.delete(id)))
-                .then(() => {
-                    setNotifs((curNotifs) => curNotifs.filter((n) => !ids.some((id) => id === n.id)));
-                });
+        if (notifs.length > 0) {
+            const maxAge = notifs[0].created_at;
+            NotificationsService.deleteAllUntil(maxAge)
+                .then(() => setNotifs((curNotifs) => curNotifs.filter((n) => n.created_at > maxAge)));
         }
     };
 
