@@ -332,6 +332,26 @@ def delete_notification(notif_id):
     return '', 204
 
 
+@app.route('/api/users/me/notifications', methods=['DELETE'])
+@jwt_required()
+def delete_notifications():
+    args = []
+    param = ''
+    max_age = request.args.get('max_age')
+    if max_age:
+        param = 'AND ? >= created_at' if max_age else ''
+        args.append(max_age)
+
+    args.append(get_jwt_identity())
+
+    with db_conn:
+        db_conn.execute(f'DELETE FROM notifications WHERE '
+                        f'EXISTS(SELECT * FROM user_notifications un WHERE un.notif_id=id AND un.user_id=?) {param}',
+                        args)
+
+    return '', 204
+
+
 @app.route('/api/users/me/projects/<proj_id>/commits', methods=['GET'])
 @jwt_required()
 def get_commits(proj_id):
