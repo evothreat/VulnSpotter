@@ -16,6 +16,8 @@ import {EmptyListMsg, NewMsgCircle} from "./common";
 
 // TODO: delete notifications after seeing them automatically?
 
+const cmpByCreationTime = Utils.createComparator('created_at', 'desc');
+
 function NotificationItem({notif, divider}) {
     const msg = getMessage(notif);
     return (
@@ -65,11 +67,10 @@ export default function Notifications() {
     useEffect(() => {
         let isMounted = true;
         // fetch all notifications once
-        const comparator = Utils.createComparator('created_at', 'desc');
         NotificationsService.getAll()
             .then((data) => {
                 if (isMounted) {
-                    setNotifs(data.sort(comparator));
+                    setNotifs(data.sort(cmpByCreationTime));
                 }
             });
         // fetch only unseen notifications
@@ -78,7 +79,7 @@ export default function Notifications() {
                 .then((data) => {
                     if (isMounted) {
                         setNotifs((curNotifs) => {
-                            const newNotifs = Utils.complement(data, curNotifs).sort(comparator);
+                            const newNotifs = Utils.complement(data, curNotifs).sort(cmpByCreationTime);
                             return newNotifs.length > 0 ? newNotifs.concat(curNotifs) : curNotifs;
                         });
                     }
