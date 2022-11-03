@@ -335,14 +335,13 @@ def delete_notification(notif_id):
 @app.route('/api/users/me/notifications', methods=['DELETE'])
 @jwt_required()
 def delete_notifications():
-    args = []
-    param = ''
-    max_age = request.args.get('max_age')
-    if max_age:
-        param = 'AND ? >= created_at' if max_age else ''
-        args.append(max_age)
+    args = [get_jwt_identity()]
 
-    args.append(get_jwt_identity())
+    max_age = request.args.get('max_age')
+    param = ''
+    if max_age:
+        param = 'AND ? >= created_at'
+        args.append(max_age)
 
     with db_conn:
         db_conn.execute(f'DELETE FROM notifications WHERE '
