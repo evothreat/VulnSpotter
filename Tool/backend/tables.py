@@ -89,7 +89,7 @@ VOTES_SCHEMA = '''
         filepath    TEXT,
         vote        TINYINT,
         FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
-        FOREIGN KEY(commit_id) REFERENCES commits(id)
+        FOREIGN KEY(commit_id) REFERENCES commits(id) ON DELETE CASCADE
     )
 '''
 

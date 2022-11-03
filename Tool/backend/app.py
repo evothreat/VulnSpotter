@@ -122,7 +122,11 @@ def clone_n_parse_repo(user_id, repo_url, proj_name):
     repo_dir = pathjoin(config.REPOS_DIR, repo_loc)
     proj_id = None
     try:
-        if not isdir(repo_dir):
+        if isdir(repo_dir):
+            repo = git.Repo(repo_dir)
+            repo.remotes.origin.pull()
+            repo.close()
+        else:
             git.Repo.clone_from(f'{parts.scheme}://:@{repo_loc}', repo_dir).close()
 
         vulns, _, _ = find_vulns(repo_dir)
