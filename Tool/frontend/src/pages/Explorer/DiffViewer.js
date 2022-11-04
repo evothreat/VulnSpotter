@@ -241,7 +241,7 @@ export default function DiffViewer({codeLines, fileName, style}) {
     };
     // memoize renderStats...
     return (
-        <div style={style}>
+        <div className={cssStyle.diffViewer} style={style}>
             <div className={cssStyle.diffHeader}>
                 <strong>{fileName}</strong>
                 {renderStats(codeLines)}
