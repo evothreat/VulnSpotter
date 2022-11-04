@@ -7,6 +7,7 @@ import {areHunksSequent, calcHunks, DiffType, getStats} from "../../diffUtils";
 import {nanoid} from "nanoid";
 import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "./Icons";
 import {ScrollSync, ScrollSyncPane} from "react-scroll-sync";
+import {hashStrings} from "../../utils";
 
 
 function isNotConstant(l) {
@@ -36,7 +37,7 @@ function highlight(str) {
     );
 }
 
-function renderDiffLine({linenoLeft, linenoRight, diffType, value}) {
+function renderDiffLine({linenoLeft, linenoRight, diffType, value}, hunkId) {
     // NULL-character, cause React doesn't render element if it doesn't have any valid value
     let leftLine = [<>&#0;</>];
     let rightLine = [<>&#0;</>];
@@ -75,15 +76,15 @@ function renderDiffLine({linenoLeft, linenoRight, diffType, value}) {
         leftLine.push(<>{lineVal}</>);
         rightLine.push(<>{lineVal}</>);
     }
-
+    const rowId = hunkId + linenoLeft + linenoRight;
     return [
-        <tr>
+        <tr key={rowId}>
             <td className={classnames(cssStyle.linenoBox, lStyle)}>{diffType === DiffType.ADDED ? null : linenoLeft}</td>
             <td className={classnames(cssStyle.content, lStyle)}>
                 {leftLine}
             </td>
         </tr>,
-        <tr>
+        <tr key={rowId}>
             <td className={classnames(cssStyle.linenoBox, rStyle)}>{diffType === DiffType.REMOVED ? null : linenoRight}</td>
             <td className={classnames(cssStyle.content, rStyle)}>
                 {rightLine}
@@ -115,8 +116,7 @@ function renderExpander(direction, hunkId, expandHandler) {
     );
 }
 
-function renderDiffWindow(lineHunks, expandHandler) {
-    // to add bottom expander we need to know size of file!
+function renderDiffLines(lineHunks, expandHandler) {
     const leftLines = [];
     const rightLines = [];
 
@@ -141,21 +141,40 @@ function renderDiffWindow(lineHunks, expandHandler) {
                 rightLines.push(expander);
             }
             for (const l of cur.lines) {
-                const diffLines = renderDiffLine(l);
+                const diffLines = renderDiffLine(l, cur.id);
                 leftLines.push(diffLines[0]);
                 rightLines.push(diffLines[1]);
             }
             prevVisible = cur;
         }
     }
+    return [leftLines, rightLines];
+}
+
+function DiffWindow({lineHunks, expandHandler}) {
+    // to add bottom expander we need to know size of file!
+    const [lines, setLines] = useState(null);
+
+    useEffect(() => {
+        const diffLines = renderDiffLines(lineHunks, expandHandler);
+        if (diffLines.length > 0) {
+            setLines({
+                left: diffLines[0],
+                right: diffLines[1]
+            });
+        }
+    }, [lineHunks, expandHandler]);
+
+    const contentId = hashStrings(...lineHunks.map((lh) => lh.id));
     return (
+        lines &&
         <ScrollSync>
             <div className={cssStyle.tablesContainer}>
                 <ScrollSyncPane>
                     <div className={cssStyle.tableBox}>
                         <table className={cssStyle.diffTable}>
-                            <tbody>
-                            {leftLines}
+                            <tbody key={contentId}>
+                                {lines.left}
                             </tbody>
                         </table>
                     </div>
@@ -164,8 +183,8 @@ function renderDiffWindow(lineHunks, expandHandler) {
                 <ScrollSyncPane>
                     <div className={cssStyle.tableBox}>
                         <table className={cssStyle.diffTable}>
-                            <tbody>
-                            {rightLines}
+                            <tbody key={contentId}>
+                                {lines.right}
                             </tbody>
                         </table>
                     </div>
@@ -207,7 +226,6 @@ export default function DiffViewer({codeLines, fileName, style}) {
                         console.log('load more down');
                         return;
                     }
-
                 } else if (direction > 0) {
                     const prev = lineHunks[i - 1];
                     if (areHunksSequent(prev, cur)) {
@@ -228,7 +246,7 @@ export default function DiffViewer({codeLines, fileName, style}) {
                 <strong>{fileName}</strong>
                 {renderStats(codeLines)}
             </div>
-            {lineHunks && renderDiffWindow(lineHunks, handleExpand)}
+            {lineHunks && <DiffWindow lineHunks={lineHunks} expandHandler={handleExpand}/>}
         </div>
     );
 }
