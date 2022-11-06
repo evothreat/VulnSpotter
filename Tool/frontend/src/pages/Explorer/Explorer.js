@@ -14,10 +14,10 @@ import {capitalize} from "../../utils";
 // TODO: load only specific commits
 
 const severityColor = {
-    low: 'green',
-    medium: 'yellow',
-    high: 'orange',
-    critical: 'red'
+    low: '#bfbfbf',
+    medium: '#f9b602',
+    high: '#f68831',
+    critical: '#e73025'
 }
 
 function cur(obj) {
@@ -27,14 +27,12 @@ function cur(obj) {
 function renderDetail(title, content) {
     return (
         <Box>
-            <Typography sx={{fontWeight: 'bold'}}>
+            <Typography sx={{fontWeight: 'bold', fontSize: '15px', mb: '5px'}}>
                 {title}
             </Typography>
-            <Box>
-                <Typography sx={{fontSize: '14px'}}>
-                    {content}
-                </Typography>
-            </Box>
+            <Typography sx={{fontSize: '14px'}}>
+                {content}
+            </Typography>
         </Box>
     );
 }
@@ -43,28 +41,28 @@ function CVEDetails() {
 
     const cve = {
         id: 'CVE-2019-3822',
-        severity: 'high',   // or score
+        severity: 'medium',   // or score
         summary: 'Requirement to use TLS not properly enforced for IMAP, POP3, and FTP protocols',
         description: 'A user can tell curl >= 7.20.0 and <= 7.78.0 to require a successful upgrade to TLS when speaking to an IMAP, POP3 or FTP server (`--ssl-reqd` on the command line or`CURLOPT_USE_SSL` set to `CURLUSESSL_CONTROL` or `CURLUSESSL_ALL` withlibcurl). This requirement could be bypassed if the server would return a properly crafted but perfectly legitimate response.This flaw would then make curl silently continue its operations **withoutTLS** contrary to the instructions and expectations, exposing possibly sensitive data in clear text over the network.'
     };
 
     return (
         <Fragment>
-            <Box display="flex" justifyContent="space-between" alignItems="center" padding="16px 25px"
-                 backgroundColor="#eaf0f7" borderBottom="1px solid #ccc" position="sticky" top="0">
+            <Box display="flex" justifyContent="space-between" alignItems="center" padding="15px 25px"
+                 backgroundColor="#eaf0f7" borderBottom="1px solid #ccc">
                 <Typography variant="subtitle1" sx={{fontWeight: 'bold'}}>
                     {cve.id}
                 </Typography>
-                <Box display="flex" justifyContent="center" alignItems="center" padding="8px 18px" borderRadius="10px"
+                <Box display="flex" justifyContent="center" alignItems="center" padding="5px 12px" borderRadius="15px"
                      style={{backgroundColor: severityColor[cve.severity]}}>
-                    <Typography variant="body2">
+                    <Typography fontSize="small" color="white">
                         {capitalize(cve.severity)}
                     </Typography>
                 </Box>
             </Box>
-            <Box display="flex" flexDirection="column" gap="10px" padding="20px 25px" height="100%">
-                {renderDetail('Summary:', cve.summary)}
-                {renderDetail('Description:', cve.description)}
+            <Box display="flex" flexDirection="column" gap="14px" padding="16px 25px">
+                {renderDetail('Summary', cve.summary)}
+                {renderDetail('Description', cve.description)}
             </Box>
         </Fragment>
     );
@@ -151,7 +149,8 @@ export default function Explorer() {
             {
                 // recreate DiffViewer when diffs changes!
                 diffs &&
-                <DiffViewer codeLines={cur(diffs).lines} fileName={cur(diffs).oldFileName} style={{width: '70%'}}/>
+                <DiffViewer codeLines={cur(diffs).lines} fileName={cur(diffs).oldFileName}
+                            style={{minWidth: '70%', width: '70%'}}/>
             }
         </Box>
     );
