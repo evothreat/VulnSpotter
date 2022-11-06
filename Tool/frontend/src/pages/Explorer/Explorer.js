@@ -60,7 +60,7 @@ function CVEDetails() {
                     </Typography>
                 </Box>
             </Box>
-            <Box display="flex" flexDirection="column" gap="14px" padding="16px 25px">
+            <Box display="flex" flexDirection="column" gap="13px" padding="16px 25px">
                 {renderDetail('Summary', cve.summary)}
                 {renderDetail('Description', cve.description)}
             </Box>
