@@ -27,7 +27,7 @@ function cur(obj) {
 function renderDetail(title, content) {
     return (
         <Box>
-            <Typography sx={{fontWeight: 'bold', fontSize: '15px', mb: '5px'}}>
+            <Typography sx={{fontWeight: 'bold', fontSize: '15px', mb: '4px'}}>
                 {title}
             </Typography>
             <Typography sx={{fontSize: '14px'}}>
@@ -48,7 +48,7 @@ function CVEDetails() {
 
     return (
         <Fragment>
-            <Box display="flex" justifyContent="space-between" alignItems="center" padding="15px 25px"
+            <Box display="flex" justifyContent="space-between" alignItems="center" padding="16px 25px"
                  backgroundColor="#eaf0f7" borderBottom="1px solid #ccc">
                 <Typography variant="subtitle1" sx={{fontWeight: 'bold'}}>
                     {cve.id}
