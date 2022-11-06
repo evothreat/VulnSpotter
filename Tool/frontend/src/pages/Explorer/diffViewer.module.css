@@ -47,7 +47,7 @@
 }
 
 .expander > td {
-    line-height: normal !important;
+    line-height: 0.9 !important;
 }
 
 .expButton {
@@ -58,7 +58,7 @@
 }
 
 .expButton > svg {
-    height: 18px;
+    height: 17px;
 }
 
 .expButton:hover {
