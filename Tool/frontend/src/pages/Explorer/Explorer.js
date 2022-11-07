@@ -6,11 +6,11 @@ import {useParams} from "react-router-dom";
 import * as Utils from "../../utils";
 import CommitsService from "../../services/CommitsService";
 import {parsePatch} from "../../diffUtils";
-import {useHotkeys} from 'react-hotkeys-hook'
 import Typography from "@mui/material/Typography";
 import {capitalize, mod} from "../../utils";
 import CircleIcon from '@mui/icons-material/Circle';
 import IconButton from "@mui/material/IconButton";
+import * as Mousetrap from "mousetrap"
 
 
 // TODO: load only specific commits
@@ -38,6 +38,7 @@ function renderDetail(title, content) {
         </Box>
     );
 }
+
 // convert to function 'renderCveDetails'? Are components from functions recreated?
 function CVEDetails({cve}) {
     return (
@@ -65,24 +66,36 @@ function CVEDetails({cve}) {
 function CVEList({cveList, style}) {
     const [cveIx, setCveIx] = useState(0);
 
-    const hotkeyRef = useHotkeys('left,right', (_, h) => {
-        const dir = h.key === 'right' ? 1 : -1;
-        setCveIx((curIx) => mod((curIx + dir), cveList.length));  // is cveList unstable?
-    });
-
     const handleChange = (e) => {
         setCveIx(parseInt(e.currentTarget.dataset.index));
     };
 
+    const bindHotkeys = () => {
+        Mousetrap.bind(['left', 'right'], (e, key) => {
+            e.preventDefault();
+            const dir = key === 'right' ? 1 : -1;
+            setCveIx((curIx) => mod((curIx + dir), cveList.length));
+        });
+    };
+
+    const unbindHotkeys = () => {
+        Mousetrap.unbind('left');
+        Mousetrap.unbind('right');
+    };
+
     return (
-        <Box tabIndex="0" ref={hotkeyRef} height="100%" width="100%" overflow="auto" border="solid #ccc" sx={{borderWidth: '0 1px 1px 0'}} style={style}>
+        <Box tabIndex="0" onFocus={bindHotkeys} onBlur={unbindHotkeys}
+             height="100%" width="100%" overflow="auto" border="solid #ccc" sx={{borderWidth: '0 1px 1px 0'}}
+             style={style}>
             {
                 <CVEDetails cve={cveList[cveIx]}/>
             }
-            <Box display="flex" justifyContent="center" position="sticky" bottom="0" zIndex="1" bgcolor="white" height="24px">
+            <Box display="flex" justifyContent="center" position="sticky" bottom="0" zIndex="1" bgcolor="white"
+                 height="24px">
                 {
                     cveList.map((_, i) => (
-                        <IconButton key={i} disableRipple sx={{padding: '2px 3px'}} onClick={handleChange} data-index={i}>
+                        <IconButton key={i} disableRipple sx={{padding: '2px 3px'}} onClick={handleChange}
+                                    data-index={i}>
                             <CircleIcon sx={{fontSize: '10px'}} style={{color: i === cveIx ? '#71757e' : '#bbb4b4'}}/>
                         </IconButton>
                     ))
@@ -142,36 +155,38 @@ export default function Explorer() {
             });
     }, [commits]);
 
+    useEffect(() => {
+        Mousetrap.bind('shift+left', (e) => {
+            e.preventDefault();
+            if (diffs.ix - 1 >= 0) {
+                diffs.ix--;
+                setDiffs({...diffs});
+            } else if (commits.ix - 1 >= 0) {
+                reverse.current = true;
+                commits.ix--;
+                setCommits({...commits});
+            } else {
+                console.log('no more commits available')
+            }
+        });
+        Mousetrap.bind('shift+right', (e) => {
+            e.preventDefault();
+            if (diffs.data.length > diffs.ix + 1) {
+                diffs.ix++;
+                setDiffs({...diffs});
+            } else if (commits.data.length > commits.ix + 1) {
+                commits.ix++;
+                setCommits({...commits});
+            } else {
+                console.log('no more commits available')
+            }
+        });
+    }, [diffs, commits]);
 
-    const gotoPrevDiff = (e) => {
-        e.preventDefault();
-        if (diffs.ix - 1 >= 0) {
-            diffs.ix--;
-            setDiffs({...diffs});
-        } else if (commits.ix - 1 >= 0) {
-            reverse.current = true;
-            commits.ix--;
-            setCommits({...commits});
-        } else {
-            console.log('no more commits available')
-        }
-    };
-
-    const gotoNextDiff = (e) => {
-        e.preventDefault();
-        if (diffs.data.length > diffs.ix + 1) {
-            diffs.ix++;
-            setDiffs({...diffs});
-        } else if (commits.data.length > commits.ix + 1) {
-            commits.ix++;
-            setCommits({...commits});
-        } else {
-            console.log('no more commits available')
-        }
-    };
-
-    useHotkeys('shift+left', gotoPrevDiff, {}, [diffs, commits]);
-    useHotkeys('shift+right', gotoNextDiff, {}, [diffs, commits]);
+    useEffect(() => () => {
+        Mousetrap.unbind('shift+left');
+        Mousetrap.unbind('shift+right');
+    }, []);
 
     return (
         <Box display="flex" height="90vh" gap="2px">
