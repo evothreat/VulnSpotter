@@ -55,6 +55,10 @@ function hashStrings() {
     return h;
 }
 
+function mod(n, m) {
+    return ((n % m) + m) % m;
+}
+
 // require id key
 function complement(a, b) {
     return a.filter((v1) => !b.some((v2) => v1.id === v2.id));
@@ -75,6 +79,7 @@ export {
     capitalize,
     findCVEs,
     hashStrings,
+    mod,
     complement,
     equals,
     remove
