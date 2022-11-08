@@ -463,12 +463,6 @@ def create_vote(commit_id):
         return '', 422
 
     return {'resource_id': record_id}, 201
-    # return Response(
-    #     status=201,
-    #     headers={
-    #         'Location': url_for('get_vote', vote_id=record_id, _external=True)
-    #     }
-    # )
 
 
 @app.route('/api/users/me/votes/<vote_id>', methods=['GET'])
@@ -561,12 +555,6 @@ def create_invitation(proj_id):
         return '', 422
 
     return {'resource_id': record_id}, 201
-    # return Response(
-    #     status=201,
-    #     headers={
-    #         'Location': url_for('get_sent_invitation', invitation_id=record_id, _external=True)
-    #     }
-    # )
 
 
 @app.route('/api/users/me/projects/<proj_id>/invitations', methods=['GET'])
