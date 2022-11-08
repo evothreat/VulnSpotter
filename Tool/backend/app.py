@@ -5,7 +5,6 @@ from urllib.parse import urlparse
 
 import git
 from flask import Flask, request, Response
-from flask import send_file
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, create_refresh_token
 from git_vuln_finder import find as find_vulns
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -394,10 +393,16 @@ def get_commit_patch(commit_id):
 
 @app.route('/api/users/me/commits/<commit_id>/files', methods=['GET'])
 @jwt_required()
-def get_commit_file(commit_id):
+def get_commit_file_lines(commit_id):
     filepath = request.args.get('path')
-    if not filepath:
-        return '', 404
+    lineno = request.args.get('lineno', -1, int)
+    direction = request.args.get('dir')
+
+    if not (filepath and lineno and direction):
+        return '', 400
+
+    if lineno == -1 or direction not in ('up', 'down'):
+        return '', 422
 
     data = db_conn.execute('SELECT c.hash,p.repository FROM commits c '
                            'JOIN projects p ON c.id=? AND c.project_id = p.id '
@@ -406,12 +411,25 @@ def get_commit_file(commit_id):
     if not data:
         return '', 404
 
-    with git.Repo(pathjoin(config.REPOS_DIR, data['repository']), odbt=git.GitDB) as repo:
+    with git.Repo(pathjoin(config.REPOS_DIR, data['repository'])) as repo:
         try:
             blob = repo.commit(data['hash']).tree / filepath
-            return send_file(blob.data_stream, mimetype='text/plain')
         except KeyError:
             return '', 404
+
+        fstream = blob.data_stream.stream
+
+        max_ix = lineno + config.MAX_EXPAND_LINES if direction == 'up' else lineno
+        lines = bytearray()
+        i = 1
+        while line := fstream.readline():
+            if i >= max_ix:
+                fstream.read()  # to discard rest
+                break
+            if i + config.MAX_EXPAND_LINES >= max_ix:
+                lines.extend(line)
+            i += 1
+        return lines, 200, {'Content-Type': 'text/plain'}
 
 
 # TODO: handle case, if vote already exists?
