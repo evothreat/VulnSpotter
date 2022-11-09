@@ -61,7 +61,7 @@ function CVEDetails({cve}) {
                     </Typography>
                 </Box>
             </Box>
-            <Box display="flex" flexDirection="column" gap="13px" padding="16px 25px">
+            <Box display="flex" flexDirection="column" gap="13px" padding="16px 25px" sx={{'> *': {flex: 1}}}>
                 {renderDetail('Summary', cve.summary || 'N/A')}
                 {renderDetail('Description', cve.description)}
             </Box>
@@ -69,7 +69,7 @@ function CVEDetails({cve}) {
     );
 }
 
-function CVEList({cveList, style}) {
+function CVEList({cveList}) {
     const [cveIx, setCveIx] = useState(0);
 
     const handleChange = (e) => {
@@ -90,22 +90,18 @@ function CVEList({cveList, style}) {
     };
 
     return (
-        <Box tabIndex="0" onFocus={bindHotkeys} onBlur={unbindHotkeys}
-             height="100%" width="100%" overflow="auto" border="solid #ccc" sx={{borderWidth: '0 1px 1px 0'}}
-             style={style}>
+        <Box tabIndex="0" onFocus={bindHotkeys} onBlur={unbindHotkeys} overflow="auto" border="solid #ccc"
+             sx={{borderWidth: '0 1px 1px 0'}}>
             {
                 <CVEDetails cve={cveList[cveIx]}/>
             }
             {
                 cveList.length > 1 && (
-                    <Box display="flex" justifyContent="center" position="sticky" bottom="0" zIndex="1" bgcolor="white"
-                         height="24px">
+                    <Box display="flex" justifyContent="center" position="sticky" bottom="0" zIndex="1" bgcolor="white" height="24px">
                         {
                             cveList.map((_, i) => (
-                                <IconButton key={i} disableRipple sx={{padding: '2px 3px'}} onClick={handleChange}
-                                            data-index={i}>
-                                    <CircleIcon sx={{fontSize: '10px'}}
-                                                style={{color: i === cveIx ? '#71757e' : '#bbb4b4'}}/>
+                                <IconButton key={i} disableRipple sx={{padding: '2px 3px'}} onClick={handleChange} data-index={i}>
+                                    <CircleIcon sx={{fontSize: '10px'}} style={{color: i === cveIx ? '#71757e' : '#bbb4b4'}}/>
                                 </IconButton>
                             ))
                         }
@@ -131,7 +127,7 @@ export default function Explorer() {
                 });
                 setCommits({
                     data: data,
-                    ix: 19      // replace to 0 later...    16 for cves
+                    ix: 512      // replace to 0 later...    16 for cves
                 });
             });
     }, [projId]);
@@ -214,21 +210,19 @@ export default function Explorer() {
     useHotkeys('shift+right', gotoNextDiff);
 
     return (
-        <Box display="flex" height="87vh" gap="2px">
-
-            <Box display="flex" flexDirection="column" height="100%" width="30%">
+        <Box flex="1" display="flex" gap="2px">
+            <Box display="flex" flexDirection="column" width="30%" sx={{'> *': {flex: 1}}}>
                 {
-                    cveList?.length > 0 && <CVEList cveList={cveList} style={{height: '50%'}}/>
+                    cveList?.length > 0 && <CVEList cveList={cveList}/>
                 }
-                <Box height="50%">
+                <Box>
                     ...
                 </Box>
             </Box>
             {
                 // recreate DiffViewer when diffs changes?
                 diffs && <DiffViewer codeLines={cur(diffs).lines} oldFileName={cur(diffs).oldFileName}
-                                     getMoreLines={getMoreLines}
-                                     style={{minWidth: '70%', width: '70%'}}/>
+                                     getMoreLines={getMoreLines} style={{width: '70%'}}/>
             }
         </Box>
     );

@@ -282,8 +282,11 @@ export default function DiffViewer({codeLines, oldFileName, getMoreLines, style}
                 <strong>{oldFileName}</strong>
                 {renderStats(codeLines)}
             </div>
-            {lineHunks && <DiffWindow lineHunks={lineHunks} expandHandler={handleExpand}
-                                      hasBottomExpander={hasBottomExpander}/>}
+            <div className={cssStyle.diffBody}>
+            {
+                lineHunks && <DiffWindow lineHunks={lineHunks} expandHandler={handleExpand} hasBottomExpander={hasBottomExpander}/>
+            }
+            </div>
         </div>
     );
 }

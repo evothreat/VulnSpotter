@@ -69,13 +69,22 @@
     background-color: rgba(221, 244, 255, 0.5);
 }
 
+.highlighter {
+    display: inline;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
 .diffTable {
     border-spacing: 0;
     border: 0;
     border-collapse: separate;
     margin: 0;
     padding: 0;
-    width: 100%;
+    table-layout: fixed;
+    position: absolute;
+    inset: 0;
 }
 
 .diffTable > tbody > tr > td {
@@ -84,32 +93,24 @@
     font-family: "Consolas", "Monaco", "Lucida Console", "Liberation Mono", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace;
 }
 
-.highlighter {
-    display: inline;
-    margin: 0;
-    padding: 0;
-    border: 0;
-}
-
 .tableBox {
-    overflow: auto;
-    width: 50%;
     padding-bottom: 6px;
+    flex-basis: 50%;
+    overflow: auto;
+    position: relative;
 }
 
 .tablesContainer {
+    flex: 1;
     display: flex;
-    max-height: 100%;
-    width: 100%;
     gap: 2px;
     border: solid #ccc;
     border-width: 0 0 1px 1px;
 }
 
-
 .diffHeader {
+    flex: none;
     display: flex;
-    flex-wrap: nowrap;
     align-items: center;
     justify-content: space-between;
     background-color: #fafafa;
@@ -120,6 +121,11 @@
     font-size: 14px;
     color: rgba(58, 54, 54, 0.9);
     font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.diffBody {
+    flex: 1;
+    display: flex;
 }
 
 .diffStats {
@@ -138,7 +144,7 @@
 .diffViewer {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex: 1;
 }
 
 .diffViewer * {
