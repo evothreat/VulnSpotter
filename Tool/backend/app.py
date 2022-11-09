@@ -391,11 +391,12 @@ def get_commit_patch(commit_id):
 @jwt_required()
 def get_commit_file_lines(commit_id):
     filepath = request.args.get('path')
-    prev_lineno = request.args.get('prev_lineno', 0, int)
+    prev_lineno = request.args.get('prev_lineno', 0, int)   # 0 to avoid exception
     cur_lineno = request.args.get('cur_lineno', 0, int)
+    count = request.args.get('count', 20, int)
     direction = request.args.get('dir', 0, int)
 
-    if not (filepath and cur_lineno and direction):
+    if not (filepath and cur_lineno and count and direction):
         return '', 400
 
     if prev_lineno and prev_lineno >= cur_lineno:
@@ -418,12 +419,13 @@ def get_commit_file_lines(commit_id):
 
         diff = cur_lineno - prev_lineno - 1
         # if smaller than maximum or has rest length, which makes only 50% of max_expand_lines
-        max_n = diff if prev_lineno and config.MAX_EXPAND_LINES * 1.5 > diff else config.MAX_EXPAND_LINES
+        if prev_lineno and count * 1.5 > diff:
+            count = diff
 
         if direction > 0:
             max_ix = cur_lineno
         else:
-            max_ix = (prev_lineno or cur_lineno) + max_n + 1
+            max_ix = (prev_lineno or cur_lineno) + count + 1
 
         lines = bytearray()
         i = 1
@@ -431,7 +433,7 @@ def get_commit_file_lines(commit_id):
             if i == max_ix:
                 fstream.read()  # to discard rest
                 break
-            if i + max_n >= max_ix:
+            if i + count >= max_ix:
                 lines.extend(line)
             i += 1
         return lines, 200, {'Content-Type': 'text/plain'}

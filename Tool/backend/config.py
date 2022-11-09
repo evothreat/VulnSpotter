@@ -7,4 +7,3 @@ JWT_REFRESH_TOKEN_EXPIRES = 60 * 60 * 24 * 30  # 1 month
 
 REPOS_DIR = 'D:\\Documents\\test\\repos'
 
-MAX_EXPAND_LINES = 20
