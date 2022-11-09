@@ -395,14 +395,14 @@ def get_commit_patch(commit_id):
 @jwt_required()
 def get_commit_file_lines(commit_id):
     filepath = request.args.get('path')
-    first_lineno = request.args.get('first_lineno', 0, int)
-    last_lineno = request.args.get('last_lineno', 0, int)
-    direction = request.args.get('dir')
+    prev_lineno = request.args.get('prev_lineno', 0, int)
+    cur_lineno = request.args.get('cur_lineno', 0, int)
+    direction = request.args.get('dir', 0, int)
 
-    if not (filepath and last_lineno and direction):
+    if not (filepath and cur_lineno and direction):
         return '', 400
 
-    if (first_lineno and first_lineno >= last_lineno) or direction not in ('up', 'down'):
+    if prev_lineno and prev_lineno >= cur_lineno:
         return '', 422
 
     data = db_conn.execute('SELECT c.hash,p.repository FROM commits c '
@@ -420,14 +420,14 @@ def get_commit_file_lines(commit_id):
 
         fstream = blob.data_stream.stream
 
-        diff = last_lineno - first_lineno - 1
-        # if smaller than maximum or has rest, which is smaller than 60% of max_expand_lines
-        if first_lineno and config.MAX_EXPAND_LINES * 1.6 > diff:
-            max_n = diff
-            max_ix = last_lineno if direction == 'up' else first_lineno + max_n + 1
+        diff = cur_lineno - prev_lineno - 1
+        # if smaller than maximum or has rest length, which makes only 50% of max_expand_lines
+        max_n = diff if prev_lineno and config.MAX_EXPAND_LINES * 1.5 > diff else config.MAX_EXPAND_LINES
+
+        if direction > 0:
+            max_ix = cur_lineno
         else:
-            max_n = config.MAX_EXPAND_LINES
-            max_ix = last_lineno if direction == 'up' else last_lineno + max_n + 1
+            max_ix = (prev_lineno or cur_lineno) + max_n + 1
 
         lines = bytearray()
         i = 1
