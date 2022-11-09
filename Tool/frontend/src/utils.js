@@ -59,7 +59,20 @@ function mod(n, m) {
     return ((n % m) + m) % m;
 }
 
-// require id key
+function splitArray(arr, n) {
+    const res = [];
+    for (let i = 0; i < arr.length; i += n) {
+        res.append(arr.slice(i, i + n));
+    }
+    return res;
+}
+
+// doesn't create copy if string doesn't have space at begin/end
+function trim(str) {
+    return 32 >= str.charCodeAt(0) || 32 >= str.charCodeAt(str.length - 1) ? str.trim() : str;
+}
+
+// requires 'id'-key
 function complement(a, b) {
     return a.filter((v1) => !b.some((v2) => v1.id === v2.id));
 }
@@ -80,6 +93,8 @@ export {
     findCVEs,
     hashStrings,
     mod,
+    trim,
+    splitArray,
     complement,
     equals,
     remove

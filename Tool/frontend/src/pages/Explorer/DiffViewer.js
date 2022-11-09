@@ -14,6 +14,14 @@ function isNotConstant(l) {
     return l.diffType !== DiffType.CONSTANT;
 }
 
+function createHunk(lines, visible) {
+    return {
+        id: nanoid(10),
+        lines: lines,
+        visible: visible
+    };
+}
+
 function renderStats(lines) {
     const stats = getStats(lines);
     return (
@@ -174,7 +182,7 @@ function DiffWindow({lineHunks, expandHandler}) {
                     <div className={cssStyle.tableBox}>
                         <table className={cssStyle.diffTable}>
                             <tbody key={contentId}>
-                                {lines.left}
+                            {lines.left}
                             </tbody>
                         </table>
                     </div>
@@ -184,7 +192,7 @@ function DiffWindow({lineHunks, expandHandler}) {
                     <div className={cssStyle.tableBox}>
                         <table className={cssStyle.diffTable}>
                             <tbody key={contentId}>
-                                {lines.right}
+                            {lines.right}
                             </tbody>
                         </table>
                     </div>
@@ -195,45 +203,62 @@ function DiffWindow({lineHunks, expandHandler}) {
 }
 
 
-export default function DiffViewer({codeLines, fileName, style}) {
+export default function DiffViewer({codeLines, oldFileName, getMoreLines, style}) {
 
     const [lineHunks, setLineHunks] = useState(null);
 
     useEffect(() => {
         setLineHunks(
-            calcHunks(codeLines)
-                .map((h) => {
-                    return {
-                        id: nanoid(10),
-                        visible: h.some(isNotConstant),
-                        lines: h
-                    }
-                })
+            calcHunks(codeLines).map((h) => createHunk(h, h.some(isNotConstant)))
         );
     }, [codeLines]);
 
-    //console.log(lineHunks)
-
-    const handleExpand = (direction, hunkId) => {
+    const handleExpand = async (direction, hunkId) => {
         for (let i = 0; lineHunks.length > i; i++) {
             if (lineHunks[i].id === hunkId) {
                 const cur = lineHunks[i];
+                let prevLine;
+                let curLine;
                 if (direction < 0) {
                     const next = lineHunks[i + 1];
-                    if (areHunksSequent(cur, next)) {
+                    if (!next) {
+                        curLine = cur.lines.at(-1);
+                    } else if (areHunksSequent(cur, next)) {
                         next.visible = true;
                     } else {
-                        console.log('load more down');
-                        return;
+                        prevLine = cur.lines.at(-1);    // same as the next one...
+                        curLine = next.lines[0];
                     }
                 } else if (direction > 0) {
                     const prev = lineHunks[i - 1];
-                    if (areHunksSequent(prev, cur)) {
+                    if (!prev) {
+                        curLine = cur.lines[0];
+                    } else if (areHunksSequent(prev, cur)) {
                         prev.visible = true;
                     } else {
-                        console.log('load more up');
-                        return;
+                        prevLine = prev.lines.at(-1);
+                        curLine = cur.lines[0];
                     }
+                }
+                if (curLine) {
+                    const beginLine = prevLine && direction < 0 ? prevLine : curLine;
+                    const newLines = await getMoreLines(
+                        prevLine?.linenoRight, curLine.linenoRight, direction,
+                        beginLine.linenoLeft, beginLine.linenoRight
+                    );
+                    if (newLines) {
+                        setLineHunks((curHunks) => {
+                            const ix = curHunks?.findIndex((h) => h.id === hunkId);
+                            if (ix > -1) {
+                                const newHunk = createHunk(newLines, true);
+                                curHunks.splice(direction > 0 ? ix : ix + 1, 0, newHunk);
+                                return curHunks.slice();
+                            }
+                            return curHunks;
+                        });
+                    }
+                    // else: error occurred, check for end-expander & set showEndExpander = False
+                    return;
                 }
                 setLineHunks(lineHunks.slice());    // maybe pass function
             }
@@ -243,7 +268,7 @@ export default function DiffViewer({codeLines, fileName, style}) {
     return (
         <div className={cssStyle.diffViewer} style={style}>
             <div className={cssStyle.diffHeader}>
-                <strong>{fileName}</strong>
+                <strong>{oldFileName}</strong>
                 {renderStats(codeLines)}
             </div>
             {lineHunks && <DiffWindow lineHunks={lineHunks} expandHandler={handleExpand}/>}

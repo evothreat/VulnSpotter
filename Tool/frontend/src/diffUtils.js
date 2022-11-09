@@ -1,5 +1,6 @@
 /* eslint-disable no-loop-func */
 import * as DiffLib from "diff";
+import {trim} from "./utils";
 
 const DiffType = Object.freeze({
     REMOVED: -1,
@@ -38,11 +39,6 @@ function calcWordDiff(oldLine, newLine) {
                 }
             })
     );
-}
-
-// doesn't create copy if string doesn't have space at begin/end
-function trim(str) {
-    return 32 >= str.charCodeAt(0) || 32 >= str.charCodeAt(str.length - 1) ? str.trim() : str;
 }
 
 function areLinesSequent(prev, cur) {
@@ -217,5 +213,6 @@ export {
     calcHunks,
     getStats,
     areLinesSequent,
-    areHunksSequent
+    areHunksSequent,
+    createLineDiff
 };

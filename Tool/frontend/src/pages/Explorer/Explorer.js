@@ -5,7 +5,7 @@ import ProjectsService from "../../services/ProjectsService";
 import {useParams} from "react-router-dom";
 import * as Utils from "../../utils";
 import CommitsService from "../../services/CommitsService";
-import {parsePatch} from "../../diffUtils";
+import {createLineDiff, DiffType, parsePatch} from "../../diffUtils";
 import Typography from "@mui/material/Typography";
 import {capitalize, mod} from "../../utils";
 import CircleIcon from '@mui/icons-material/Circle';
@@ -62,7 +62,7 @@ function CVEDetails({cve}) {
                 </Box>
             </Box>
             <Box display="flex" flexDirection="column" gap="13px" padding="16px 25px">
-                {renderDetail('Summary', cve.summary || 'N/A' )}
+                {renderDetail('Summary', cve.summary || 'N/A')}
                 {renderDetail('Description', cve.description)}
             </Box>
         </Fragment>
@@ -96,17 +96,22 @@ function CVEList({cveList, style}) {
             {
                 <CVEDetails cve={cveList[cveIx]}/>
             }
-            <Box display="flex" justifyContent="center" position="sticky" bottom="0" zIndex="1" bgcolor="white"
-                 height="24px">
-                {
-                    cveList.map((_, i) => (
-                        <IconButton key={i} disableRipple sx={{padding: '2px 3px'}} onClick={handleChange}
-                                    data-index={i}>
-                            <CircleIcon sx={{fontSize: '10px'}} style={{color: i === cveIx ? '#71757e' : '#bbb4b4'}}/>
-                        </IconButton>
-                    ))
-                }
-            </Box>
+            {
+                cveList.length > 1 && (
+                    <Box display="flex" justifyContent="center" position="sticky" bottom="0" zIndex="1" bgcolor="white"
+                         height="24px">
+                        {
+                            cveList.map((_, i) => (
+                                <IconButton key={i} disableRipple sx={{padding: '2px 3px'}} onClick={handleChange}
+                                            data-index={i}>
+                                    <CircleIcon sx={{fontSize: '10px'}}
+                                                style={{color: i === cveIx ? '#71757e' : '#bbb4b4'}}/>
+                                </IconButton>
+                            ))
+                        }
+                    </Box>
+                )
+            }
         </Box>
     );
 }
@@ -126,7 +131,7 @@ export default function Explorer() {
                 });
                 setCommits({
                     data: data,
-                    ix: 16      // replace to 0 later...
+                    ix: 19      // replace to 0 later...    16 for cves
                 });
             });
     }, [projId]);
@@ -179,6 +184,31 @@ export default function Explorer() {
         }
     };
 
+    const getMoreLines = async (prevLineno, curLineno, dir, beginLeft, beginRight) => {
+        try {
+            const data = await CommitsService.getFileLines(
+                cur(commits).id, cur(diffs).newFileName, prevLineno, curLineno, dir
+            );
+            const lines = data.split('\n');
+            if (lines.length > 0) {
+                if (data.at(-1) === '\n') {
+                    lines.pop();
+                }
+                if (dir > 0) {
+                    beginLeft -= lines.length;
+                    beginRight -= lines.length;
+                } else {
+                    beginLeft++;
+                    beginRight++;
+                }
+                return lines.map((l) => createLineDiff(beginLeft++, beginRight++, DiffType.CONSTANT, l));
+            }
+        } catch (err) {
+            console.error(err);
+        }
+        return null;
+    };
+
     useHotkeys('shift+left', gotoPrevDiff);
     useHotkeys('shift+right', gotoNextDiff);
 
@@ -190,12 +220,13 @@ export default function Explorer() {
                     cveList?.length > 0 && <CVEList cveList={cveList} style={{height: '50%'}}/>
                 }
                 <Box height="50%">
-                    fefwf
+                    ...
                 </Box>
             </Box>
             {
                 // recreate DiffViewer when diffs changes?
-                diffs && <DiffViewer codeLines={cur(diffs).lines} fileName={cur(diffs).oldFileName}
+                diffs && <DiffViewer codeLines={cur(diffs).lines} oldFileName={cur(diffs).oldFileName}
+                                     getMoreLines={getMoreLines}
                                      style={{minWidth: '70%', width: '70%'}}/>
             }
         </Box>
