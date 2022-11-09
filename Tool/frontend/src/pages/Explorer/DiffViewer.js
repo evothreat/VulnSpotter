@@ -124,7 +124,7 @@ function renderExpander(direction, hunkId, expandHandler) {
     );
 }
 
-function renderDiffLines(lineHunks, expandHandler) {
+function renderDiffLines(lineHunks, expandHandler, hasBottomExpander) {
     const leftLines = [];
     const rightLines = [];
 
@@ -156,22 +156,27 @@ function renderDiffLines(lineHunks, expandHandler) {
             prevVisible = cur;
         }
     }
+    if (hasBottomExpander && lineHunks.length > 0) {
+        const expander = renderExpander(-1, lineHunks.at(-1).id, expandHandler);
+        leftLines.push(expander);
+        rightLines.push(expander);
+    }
     return [leftLines, rightLines];
 }
 
-function DiffWindow({lineHunks, expandHandler}) {
+function DiffWindow({lineHunks, expandHandler, hasBottomExpander}) {
     // to add bottom expander we need to know size of file!
     const [lines, setLines] = useState(null);
 
     useEffect(() => {
-        const diffLines = renderDiffLines(lineHunks, expandHandler);
+        const diffLines = renderDiffLines(lineHunks, expandHandler, hasBottomExpander);
         if (diffLines.length > 0) {
             setLines({
                 left: diffLines[0],
                 right: diffLines[1]
             });
         }
-    }, [lineHunks, expandHandler]);
+    }, [lineHunks, expandHandler, hasBottomExpander]);
 
     const contentId = hashStrings(...lineHunks.map((lh) => lh.id));
     return (
@@ -206,6 +211,7 @@ function DiffWindow({lineHunks, expandHandler}) {
 export default function DiffViewer({codeLines, oldFileName, getMoreLines, style}) {
 
     const [lineHunks, setLineHunks] = useState(null);
+    const [hasBottomExpander, setHasBottomExpander] = useState(true);
 
     useEffect(() => {
         setLineHunks(
@@ -246,17 +252,22 @@ export default function DiffViewer({codeLines, oldFileName, getMoreLines, style}
                         prevLine?.linenoRight, curLine.linenoRight, direction,
                         beginLine.linenoLeft, beginLine.linenoRight
                     );
-                    if (newLines) {
-                        setLineHunks((curHunks) => {
-                            const ix = curHunks?.findIndex((h) => h.id === hunkId);
-                            if (ix > -1) {
-                                const newHunk = createHunk(newLines, true);
-                                curHunks.splice(direction > 0 ? ix : ix + 1, 0, newHunk);
-                                return curHunks.slice();
-                            }
-                            return curHunks;
-                        });
+                    if (!newLines) {
+                        return;
                     }
+                    if (newLines.length === 0 && !prevLine && direction < 0) {
+                        setHasBottomExpander(false);
+                        return;
+                    }
+                    setLineHunks((curHunks) => {
+                        const ix = curHunks?.findIndex((h) => h.id === hunkId);
+                        if (ix > -1) {
+                            const newHunk = createHunk(newLines, true);
+                            curHunks.splice(direction > 0 ? ix : ix + 1, 0, newHunk);
+                            return curHunks.slice();
+                        }
+                        return curHunks;
+                    });
                     // else: error occurred, check for end-expander & set showEndExpander = False
                     return;
                 }
@@ -271,7 +282,8 @@ export default function DiffViewer({codeLines, oldFileName, getMoreLines, style}
                 <strong>{oldFileName}</strong>
                 {renderStats(codeLines)}
             </div>
-            {lineHunks && <DiffWindow lineHunks={lineHunks} expandHandler={handleExpand}/>}
+            {lineHunks && <DiffWindow lineHunks={lineHunks} expandHandler={handleExpand}
+                                      hasBottomExpander={hasBottomExpander}/>}
         </div>
     );
 }

@@ -189,20 +189,21 @@ export default function Explorer() {
             const data = await CommitsService.getFileLines(
                 cur(commits).id, cur(diffs).newFileName, prevLineno, curLineno, dir
             );
-            const lines = data.split('\n');
-            if (lines.length > 0) {
-                if (data.at(-1) === '\n') {
-                    lines.pop();
-                }
-                if (dir > 0) {
-                    beginLeft -= lines.length;
-                    beginRight -= lines.length;
-                } else {
-                    beginLeft++;
-                    beginRight++;
-                }
-                return lines.map((l) => createLineDiff(beginLeft++, beginRight++, DiffType.CONSTANT, l));
+            if (data.length === 0) {
+                return [];
             }
+            const lines = data.split('\n');
+            if (lines.at(-1) === '') {
+                lines.pop();
+            }
+            if (dir > 0) {
+                beginLeft -= lines.length;
+                beginRight -= lines.length;
+            } else {
+                beginLeft++;
+                beginRight++;
+            }
+            return lines.map((l) => createLineDiff(beginLeft++, beginRight++, DiffType.CONSTANT, l));
         } catch (err) {
             console.error(err);
         }
