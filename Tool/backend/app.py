@@ -4,7 +4,7 @@ from threading import Thread
 from urllib.parse import urlparse
 
 import git
-from flask import Flask, request, Response
+from flask import Flask, request
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, create_refresh_token
 from git_vuln_finder import find as find_vulns
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -383,12 +383,8 @@ def get_commit_patch(commit_id):
     comm_hash = data['hash']
     with git.Repo(pathjoin(config.REPOS_DIR, data['repository'])) as repo:
         # includes only modified files!
-        return Response(
-            response=repo.git.diff(comm_hash + '~1', comm_hash, ignore_blank_lines=True, ignore_space_at_eol=True,
-                                   diff_filter='M', no_prefix=True),
-            mimetype='text/plain',
-            status=200
-        )
+        return repo.git.diff(comm_hash + '~1', comm_hash, ignore_blank_lines=True, ignore_space_at_eol=True,
+                             diff_filter='M', no_prefix=True), 200, {'Content-Type': 'text/plain'}
 
 
 @app.route('/api/users/me/commits/<commit_id>/files', methods=['GET'])
