@@ -7,7 +7,6 @@ import {areHunksSequent, calcHunks, DiffType, getStats} from "../../diffUtils";
 import {nanoid} from "nanoid";
 import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "./Icons";
 import {ScrollSync, ScrollSyncPane} from "react-scroll-sync";
-import {hashStrings} from "../../utils";
 
 
 function isNotConstant(l) {
@@ -165,7 +164,6 @@ function renderDiffLines(lineHunks, expandHandler, hasBottomExpander) {
 }
 
 function DiffWindow({lineHunks, expandHandler, hasBottomExpander}) {
-    // to add bottom expander we need to know size of file!
     const [lines, setLines] = useState(null);
 
     useEffect(() => {
@@ -178,7 +176,6 @@ function DiffWindow({lineHunks, expandHandler, hasBottomExpander}) {
         }
     }, [lineHunks, expandHandler, hasBottomExpander]);
 
-    const contentId = hashStrings(...lineHunks.map((lh) => lh.id));
     return (
         lines &&
         <ScrollSync>
@@ -186,7 +183,7 @@ function DiffWindow({lineHunks, expandHandler, hasBottomExpander}) {
                 <ScrollSyncPane>
                     <div className={cssStyle.tableBox}>
                         <table className={cssStyle.diffTable}>
-                            <tbody key={contentId}>
+                            <tbody>
                             {lines.left}
                             </tbody>
                         </table>
@@ -196,7 +193,7 @@ function DiffWindow({lineHunks, expandHandler, hasBottomExpander}) {
                 <ScrollSyncPane>
                     <div className={cssStyle.tableBox}>
                         <table className={cssStyle.diffTable}>
-                            <tbody key={contentId}>
+                            <tbody>
                             {lines.right}
                             </tbody>
                         </table>
@@ -233,7 +230,7 @@ export default function DiffViewer({codeLines, oldFileName, getMoreLines, style}
                         next.visible = true;
                         setLineHunks(lineHunks.slice());
                     } else {
-                        prevLine = cur.lines.at(-1);    // same as the next one...
+                        prevLine = cur.lines.at(-1);
                         curLine = next.lines[0];
                     }
                 } else if (direction > 0) {
