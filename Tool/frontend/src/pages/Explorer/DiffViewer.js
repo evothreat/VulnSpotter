@@ -231,6 +231,7 @@ export default function DiffViewer({codeLines, oldFileName, getMoreLines, style}
                         curLine = cur.lines.at(-1);
                     } else if (areHunksSequent(cur, next)) {
                         next.visible = true;
+                        setLineHunks(lineHunks.slice());
                     } else {
                         prevLine = cur.lines.at(-1);    // same as the next one...
                         curLine = next.lines[0];
@@ -241,6 +242,7 @@ export default function DiffViewer({codeLines, oldFileName, getMoreLines, style}
                         curLine = cur.lines[0];
                     } else if (areHunksSequent(prev, cur)) {
                         prev.visible = true;
+                        setLineHunks(lineHunks.slice());
                     } else {
                         prevLine = prev.lines.at(-1);
                         curLine = cur.lines[0];
@@ -255,23 +257,20 @@ export default function DiffViewer({codeLines, oldFileName, getMoreLines, style}
                     if (!newLines) {
                         return;
                     }
-                    if (newLines.length === 0 && !prevLine && direction < 0) {
+                    if (newLines.length > 0) {
+                        setLineHunks((curHunks) => {
+                            const ix = curHunks?.findIndex((h) => h.id === hunkId);
+                            if (ix > -1) {
+                                const newHunk = createHunk(newLines, true);
+                                curHunks.splice(direction > 0 ? ix : ix + 1, 0, newHunk);
+                                return curHunks.slice();
+                            }
+                            return curHunks;
+                        });
+                    } else if (!prevLine && direction < 0) {
                         setHasBottomExpander(false);
-                        return;
                     }
-                    setLineHunks((curHunks) => {
-                        const ix = curHunks?.findIndex((h) => h.id === hunkId);
-                        if (ix > -1) {
-                            const newHunk = createHunk(newLines, true);
-                            curHunks.splice(direction > 0 ? ix : ix + 1, 0, newHunk);
-                            return curHunks.slice();
-                        }
-                        return curHunks;
-                    });
-                    // else: error occurred, check for end-expander & set showEndExpander = False
-                    return;
                 }
-                setLineHunks(lineHunks.slice());    // maybe pass function
             }
         }
     };
@@ -283,9 +282,10 @@ export default function DiffViewer({codeLines, oldFileName, getMoreLines, style}
                 {renderStats(codeLines)}
             </div>
             <div className={cssStyle.diffBody}>
-            {
-                lineHunks && <DiffWindow lineHunks={lineHunks} expandHandler={handleExpand} hasBottomExpander={hasBottomExpander}/>
-            }
+                {
+                    lineHunks && <DiffWindow lineHunks={lineHunks} expandHandler={handleExpand}
+                                             hasBottomExpander={hasBottomExpander}/>
+                }
             </div>
         </div>
     );
