@@ -382,9 +382,9 @@ def get_commit_patch(commit_id):
 
     comm_hash = data['hash']
     with git.Repo(pathjoin(config.REPOS_DIR, data['repository'])) as repo:
-        # includes only modified files!
+        # includes only modified/added files!
         return repo.git.diff(comm_hash + '~1', comm_hash, ignore_blank_lines=True, ignore_space_at_eol=True,
-                             diff_filter='M', no_prefix=True), 200, {'Content-Type': 'text/plain'}
+                             diff_filter='MA', no_prefix=True), 200, {'Content-Type': 'text/plain'}
 
 
 @app.route('/api/users/me/commits/<commit_id>/files', methods=['GET'])
