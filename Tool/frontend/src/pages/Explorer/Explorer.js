@@ -174,6 +174,7 @@ export default function Explorer() {
             setDiffs({...diffs});
         } else if (commits.data.length > commits.ix + 1) {
             commits.ix++;
+            console.log('id:', cur(commits).id)
             setCommits({...commits});
         } else {
             console.log('no more commits available')
@@ -221,7 +222,8 @@ export default function Explorer() {
             </Box>
             {
                 // recreate DiffViewer when diffs changes?
-                diffs && <DiffViewer codeLines={cur(diffs).lines} oldFileName={cur(diffs).oldFileName}
+                diffs && <DiffViewer codeLines={cur(diffs).lines}
+                                     oldFileName={cur(diffs).oldFileName} newFileName={cur(diffs).newFileName}
                                      getMoreLines={getMoreLines} style={{width: '70%'}}/>
             }
         </Box>

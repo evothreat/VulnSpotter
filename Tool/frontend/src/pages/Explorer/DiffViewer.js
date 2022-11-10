@@ -205,7 +205,7 @@ function DiffWindow({lineHunks, expandHandler, hasBottomExpander}) {
 }
 
 
-export default function DiffViewer({codeLines, oldFileName, getMoreLines, style}) {
+export default function DiffViewer({codeLines, oldFileName, newFileName, getMoreLines, style}) {
 
     const [lineHunks, setLineHunks] = useState(null);
     const [hasBottomExpander, setHasBottomExpander] = useState(true);
@@ -275,7 +275,9 @@ export default function DiffViewer({codeLines, oldFileName, getMoreLines, style}
     return (
         <div className={cssStyle.diffViewer} style={style}>
             <div className={cssStyle.diffHeader}>
-                <strong>{oldFileName}</strong>
+                <strong>
+                    {oldFileName !== newFileName ? `${oldFileName} → ${newFileName}` : oldFileName}
+                </strong>
                 {renderStats(codeLines)}
             </div>
             <div className={cssStyle.diffBody}>
