@@ -44,7 +44,7 @@ function highlight(str) {
     );
 }
 
-function renderDiffLine({linenoLeft, linenoRight, diffType, value}, hunkId) {
+function renderDiffRow({linenoLeft, linenoRight, diffType, value}, hunkId) {
     // NULL-character, cause React doesn't render element if it doesn't have any valid value
     let leftLine = [<>&#0;</>];
     let rightLine = [<>&#0;</>];
@@ -123,7 +123,16 @@ function renderExpander(direction, hunkId, expandHandler) {
     );
 }
 
-function renderDiffLines(lineHunks, expandHandler, hasBottomExpander) {
+function renderBiExpander(prevHunkId, curHunkId, expandHandler) {
+    return (
+        <>
+            {renderExpander(-1, prevHunkId, expandHandler)}
+            {renderExpander(1, curHunkId, expandHandler)}
+        </>
+    );
+}
+
+function renderDiffRows(lineHunks, expandHandler, hasBottomExpander) {
     const leftLines = [];
     const rightLines = [];
 
@@ -137,18 +146,14 @@ function renderDiffLines(lineHunks, expandHandler, hasBottomExpander) {
                 expander = renderExpander(1, cur.id, expandHandler);
 
             } else if (prevVisible && !areHunksSequent(prevVisible, cur)) {
-                expander =
-                    <>
-                        {renderExpander(-1, prevVisible.id, expandHandler)}
-                        {renderExpander(1, cur.id, expandHandler)}
-                    </>;
+                expander = renderBiExpander(prevVisible.id, cur.id, expandHandler);
             }
             if (expander) {
                 leftLines.push(expander);
                 rightLines.push(expander);
             }
             for (const l of cur.lines) {
-                const diffLines = renderDiffLine(l, cur.id);
+                const diffLines = renderDiffRow(l, cur.id);
                 leftLines.push(diffLines[0]);
                 rightLines.push(diffLines[1]);
             }
@@ -167,7 +172,7 @@ function DiffWindow({lineHunks, expandHandler, hasBottomExpander}) {
     const [lines, setLines] = useState(null);
 
     useEffect(() => {
-        const diffLines = renderDiffLines(lineHunks, expandHandler, hasBottomExpander);
+        const diffLines = renderDiffRows(lineHunks, expandHandler, hasBottomExpander);
         if (diffLines.length > 0) {
             setLines({
                 left: diffLines[0],
