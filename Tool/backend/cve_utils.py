@@ -2,6 +2,7 @@ import requests as reqs
 from time import sleep
 import re
 
+
 CVE_API_NVD = 'https://services.nvd.nist.gov/rest/json/cves/2.0'
 CVE_API_REDHAT = 'https://access.redhat.com/hydra/rest/securitydata/cve.json'
 
@@ -14,8 +15,11 @@ DELAY_SECS_REDHAT = 0.5
 DELAY_SECS_ON_ERR = 5
 
 
+cve_start_pat = re.compile('cve', re.I)
+
+
 def strip_alias(s):
-    if re.match('cve', s, re.I):
+    if cve_start_pat.match(s):
         delim_ix = s.find(':')
         if delim_ix > -1:
             return s[delim_ix + 1:].lstrip()
