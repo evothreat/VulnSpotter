@@ -11,6 +11,8 @@ MAX_PARSED_ALONE = 10
 DELAY_SECS_NVD = 5
 DELAY_SECS_REDHAT = 0.5
 
+DELAY_SECS_ON_ERR = 5
+
 
 def strip_alias(s):
     if re.match('cve', s, re.I):
@@ -28,7 +30,7 @@ def get_cve_details(hint, cve_ids, max_tries=3, start_index=0):
     if resp.status_code != 200:
         # we do not check for 500 error codes, cause sometimes response has 403
         if resp.status_code != 404 and max_tries > 0:
-            sleep(DELAY_SECS_NVD)
+            sleep(DELAY_SECS_ON_ERR)
             return get_cve_details(hint, cve_ids, max_tries - 1, start_index)
 
         return {}
@@ -73,7 +75,7 @@ def get_cve_summary(cve_ids, max_tries=3, start_index=0):
     resp = reqs.get(CVE_API_REDHAT, params={'ids': cve_ids[start_index:MAX_REQUESTED]})
     if resp.status_code != 200:
         if max_tries > 0:
-            sleep(DELAY_SECS_REDHAT)
+            sleep(DELAY_SECS_ON_ERR)
             return get_cve_summary(cve_ids, max_tries - 1, start_index)
         return {}
 
