@@ -8,6 +8,9 @@ CVE_API_REDHAT = 'https://access.redhat.com/hydra/rest/securitydata/cve.json'
 MAX_REQUESTED = 100
 MAX_PARSED_ALONE = 10
 
+DELAY_SECS_NVD = 5
+DELAY_SECS_REDHAT = 0.5
+
 
 def strip_alias(s):
     if re.match('cve', s, re.I):
@@ -25,7 +28,7 @@ def get_cve_details(hint, cve_ids, max_tries=3, start_index=0):
     if resp.status_code != 200:
         # we do not check for 500 error codes, cause sometimes response has 403
         if resp.status_code != 404 and max_tries > 0:
-            sleep(3)
+            sleep(DELAY_SECS_NVD)
             return get_cve_details(hint, cve_ids, max_tries - 1, start_index)
 
         return {}
@@ -56,7 +59,7 @@ def get_cve_details(hint, cve_ids, max_tries=3, start_index=0):
     total_seen = start_index + data['resultsPerPage']
     if data['totalResults'] > total_seen:
         # sleep to prevent from being banned
-        sleep(data['totalResults'] / data['resultsPerPage'])
+        sleep(DELAY_SECS_NVD)
         res.update(
             get_cve_details(hint, cve_ids - res.keys(), start_index=total_seen)
         )
@@ -70,7 +73,7 @@ def get_cve_summary(cve_ids, max_tries=3, start_index=0):
     resp = reqs.get(CVE_API_REDHAT, params={'ids': cve_ids[start_index:MAX_REQUESTED]})
     if resp.status_code != 200:
         if max_tries > 0:
-            sleep(3)
+            sleep(DELAY_SECS_REDHAT)
             return get_cve_summary(cve_ids, max_tries - 1, start_index)
         return {}
 
@@ -84,7 +87,7 @@ def get_cve_summary(cve_ids, max_tries=3, start_index=0):
 
     total_parsed = start_index + MAX_REQUESTED
     if len(cve_ids) > total_parsed:
-        sleep(0.5)
+        sleep(DELAY_SECS_REDHAT)
         res.update(get_cve_summary(cve_ids, start_index=total_parsed))
 
     return res
@@ -112,7 +115,7 @@ def get_cve_details_redhat(cve_ids):
             'description': description,
             'score': score
         }
-        sleep(0.5)
+        sleep(DELAY_SECS_REDHAT)
 
     return res
 
