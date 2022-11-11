@@ -123,11 +123,10 @@ def get_cve_details_redhat(cve_ids):
 
 
 def get_cve_info(hint, cve_ids):
-    cve_ids = cve_ids if isinstance(cve_ids, set) else set(cve_ids)
-    cve_info = get_cve_details(hint.replace('-', ' ').replace('_', ' '), cve_ids)
+    cve_info = get_cve_details(hint.replace('-', ' ').replace('_', ' '), set(cve_ids))
 
     if MAX_PARSED_ALONE >= len(cve_ids) - len(cve_info):
-        cve_info = get_cve_details_redhat(cve_ids - cve_info.keys())
+        cve_info.update(get_cve_details_redhat(cve_ids - cve_info.keys()))
 
     if not cve_info:
         return {}
