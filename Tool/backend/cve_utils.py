@@ -2,7 +2,6 @@ import requests as reqs
 from time import sleep
 import re
 
-
 CVE_API_NVD = 'https://services.nvd.nist.gov/rest/json/cves/2.0'
 CVE_API_REDHAT = 'https://access.redhat.com/hydra/rest/securitydata/cve.json'
 
@@ -13,7 +12,6 @@ DELAY_SECS_NVD = 5
 DELAY_SECS_REDHAT = 0.5
 
 DELAY_SECS_ON_ERR = 5
-
 
 cve_start_pat = re.compile('cve', re.I)
 
@@ -67,7 +65,8 @@ def get_cve_details(hint, cve_ids, max_tries=3, start_index=0):
         # sleep to prevent from being banned
         sleep(DELAY_SECS_NVD)
         res.update(
-            get_cve_details(hint, cve_ids - res.keys(), start_index=total_seen)
+            # NOTE: when passing list, do cve_ids - res.keys(), else the lookup might be slow because of complexity O(n)
+            get_cve_details(hint, cve_ids, start_index=total_seen)
         )
     return res
 
@@ -127,7 +126,10 @@ def get_cve_details_redhat(cve_ids):
 
 
 def get_cve_info(hint, cve_ids):
-    cve_info = get_cve_details(hint.replace('-', ' ').replace('_', ' '), set(cve_ids))
+    cve_info = get_cve_details(
+        hint.replace('-', ' ').replace('_', ' '),
+        cve_ids if isinstance(cve_ids, set) else set(cve_ids)
+    )
 
     if MAX_PARSED_ALONE >= len(cve_ids) - len(cve_info):
         cve_info.update(get_cve_details_redhat(cve_ids - cve_info.keys()))
