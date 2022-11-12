@@ -6,21 +6,20 @@ CVE_API_NVD = 'https://services.nvd.nist.gov/rest/json/cves/2.0'
 CVE_API_REDHAT = 'https://access.redhat.com/hydra/rest/securitydata/cve.json'
 
 MAX_REQUESTED = 100
-MAX_PARSED_ALONE = 10
+MAX_PARSED_ALONE = 20
 
 DELAY_SECS_NVD = 5
 DELAY_SECS_REDHAT = 0.5
 
 DELAY_SECS_ON_ERR = 5
 
-cve_start_pat = re.compile('cve', re.I)
+alias_pat = re.compile(r'CVE-\d{4}-\d{4,7}(.+:)? +', re.I)
 
 
 def strip_alias(s):
-    if cve_start_pat.match(s):
-        delim_ix = s.find(':')
-        if delim_ix > -1:
-            return s[delim_ix + 1:].lstrip()
+    m = alias_pat.match(s)
+    if m:
+        return s[m.end():]
     return s
 
 
