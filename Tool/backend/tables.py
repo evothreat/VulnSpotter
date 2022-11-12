@@ -1,5 +1,4 @@
 # email is needed for password recovery
-# check for username uniqueness when registering?
 USERS_SCHEMA = '''
     CREATE TABLE users (
         id          INTEGER PRIMARY KEY,
@@ -67,19 +66,18 @@ USER_NOTIFICATIONS_SCHEMA = '''
     )
 '''
 
-# (invitee_id, project_id) should be unique
 INVITATIONS_SCHEMA = '''
     CREATE TABLE invitations (
         id          INTEGER PRIMARY KEY,
         invitee_id  INTEGER,
         project_id  INTEGER,
         role        TEXT,
+        UNIQUE(invitee_id, project_id),
         FOREIGN KEY(invitee_id) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
     )
 '''
 
-# cascade on commit deletion?
 # (commit_id,filepath) should be unique?
 VOTES_SCHEMA = '''
     CREATE TABLE votes (
@@ -90,6 +88,28 @@ VOTES_SCHEMA = '''
         vote        TINYINT,
         FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY(commit_id) REFERENCES commits(id) ON DELETE CASCADE
+    )
+'''
+
+# although cve-ids are unique, they take too much space
+# NOTE: we do not delete on cascade, so they can be reused later
+CVE_INFO_SCHEMA = '''
+    CREATE TABLE cve_info (
+        id          INTEGER PRIMARY KEY,
+        cve_id      TEXT UNIQUE,
+        summary     TEXT,
+        description TEXT,
+        cvss_score  REAL
+    )
+'''
+
+COMMIT_CVE_SCHEMA = '''
+    CREATE TABLE commit_cve (
+        commit_id   INTEGER,
+        cve_id      INTEGER,
+        FOREIGN KEY(commit_id) REFERENCES commits(id) ON DELETE CASCADE,
+        FOREIGN KEY(cve_id) REFERENCES cve_info(id) ON DELETE CASCADE,
+        PRIMARY KEY(commit_id, cve_id)
     )
 '''
 

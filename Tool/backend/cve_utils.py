@@ -6,7 +6,7 @@ CVE_API_NVD = 'https://services.nvd.nist.gov/rest/json/cves/2.0'
 CVE_API_REDHAT = 'https://access.redhat.com/hydra/rest/securitydata/cve.json'
 
 MAX_REQUESTED = 100
-MAX_PARSED_ALONE = 25
+MAX_PARSED_ALONE = 15
 
 DELAY_SECS_NVD = 5
 DELAY_SECS_REDHAT = 0.5
@@ -38,6 +38,7 @@ def get_cve_details(hint, cve_ids, max_tries=3, start_index=0):
     if data['totalResults'] == 0:
         return {}
 
+    cve_ids = cve_ids if isinstance(cve_ids, set) else set(cve_ids)
     res = {}
     for v in data['vulnerabilities']:
         cve = v['cve']
@@ -61,10 +62,8 @@ def get_cve_details(hint, cve_ids, max_tries=3, start_index=0):
     if data['totalResults'] > total_seen:
         # sleep to prevent from being banned
         sleep(DELAY_SECS_NVD)
-        res.update(
-            # NOTE: when passing list, do cve_ids - res.keys(), else the lookup might be slow because of complexity O(n)
-            get_cve_details(hint, cve_ids, start_index=total_seen)
-        )
+        res.update(get_cve_details(hint, cve_ids, start_index=total_seen))
+
     return res
 
 
@@ -82,10 +81,8 @@ def get_cve_summary(cve_ids, max_tries=3, start_index=0):
     res = {}
     for v in resp.json():
         summary = v.get('bugzilla_description')
-        if not summary:
-            continue
-
-        res[v['CVE']] = strip_alias(summary)
+        if summary:
+            res[v['CVE']] = strip_alias(summary)
 
     total_parsed = start_index + MAX_REQUESTED
     if len(cve_ids) > total_parsed:
@@ -123,10 +120,7 @@ def get_cve_details_redhat(cve_ids):
 
 
 def get_cve_info(hint, cve_ids):
-    cve_info = get_cve_details(
-        hint.replace('-', ' ').replace('_', ' '),
-        cve_ids if isinstance(cve_ids, set) else set(cve_ids)
-    )
+    cve_info = get_cve_details(hint.replace('-', ' ').replace('_', ' '), cve_ids)
 
     if MAX_PARSED_ALONE >= len(cve_ids) - len(cve_info):
         cve_info.update(get_cve_details_redhat(cve_ids - cve_info.keys()))
@@ -136,9 +130,7 @@ def get_cve_info(hint, cve_ids):
 
     cve_summary = get_cve_summary(cve_ids)
 
-    for k, v in cve_summary.items():
-        cve = cve_info.get(k)
-        if cve:
-            cve['summary'] = v
+    for k, info in cve_info.items():
+        info['summary'] = cve_summary.get(k)
 
     return cve_info

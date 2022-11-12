@@ -1,5 +1,5 @@
 import logging
-from os.path import isdir
+from os.path import isdir, basename
 from threading import Thread
 from urllib.parse import urlparse
 
@@ -11,6 +11,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 import config
 import tables
+from cve_utils import get_cve_info
 from enums import *
 from safe_sql import SafeSql
 from utils import pathjoin, unix_time, normpath, sql_params_args
@@ -50,6 +51,8 @@ def setup_db():
     db_conn.execute(tables.USER_NOTIFICATIONS_SCHEMA)
     db_conn.execute(tables.INVITATIONS_SCHEMA)
     db_conn.execute(tables.VOTES_SCHEMA)
+    db_conn.execute(tables.CVE_INFO_SCHEMA)
+    db_conn.execute(tables.COMMIT_CVE_SCHEMA)
 
     # TEST DATA
     # users
@@ -115,31 +118,63 @@ def notify(users, actor_id, activity, object_type, object_id):
                             [(u, notif_id, False) for u in users])
 
 
-def clone_n_parse_repo(user_id, repo_url, proj_name):
+def parse_cve_list(repo_name, cve_list):
+    cve_info = get_cve_info(repo_name, list(cve_list))
+    rows = [(k, v['summary'], v['description'], v['score']) for k, v in cve_info.items()]
+    with db_conn:
+        db_conn.executemany('INSERT OR IGNORE INTO cve_info(cve_id,summary,description,cvss_score) VALUES (?,?,?,?)',
+                            rows)
+
+
+def create_project_from_repo(user_id, repo_url, proj_name):
     parts = urlparse(repo_url)
     repo_loc = normpath(parts.netloc + parts.path.rstrip('.git'))
+    repo_name = basename(repo_loc)
     repo_dir = pathjoin(config.REPOS_DIR, repo_loc)
-    proj_id = None
-    try:
-        if isdir(repo_dir):
-            repo = git.Repo(repo_dir)
-            repo.remotes.origin.pull()
-            repo.close()
-        else:
+    None
+    if isdir(repo_dir):
+        repo = git.Repo(repo_dir)
+        repo.remotes.origin.pull()
+        repo.close()
+    else:
+        try:
             git.Repo.clone_from(f'{parts.scheme}://:@{repo_loc}', repo_dir).close()
+        except git.exc.GitError:
+            notify((user_id,), 1, Action.CREATE, Model.PROJECT, None)
+            return
 
-        vulns, _, _ = find_vulns(repo_dir)
-        with db_conn:
-            proj_id = db_conn.execute('INSERT INTO projects(owner_id,name,repository,commit_n) VALUES (?,?,?,?)',
-                                      (user_id, proj_name, repo_loc, len(vulns))).lastrowid
+    vulns, found_cve_list, _ = find_vulns(repo_dir)
 
-            db_conn.execute('INSERT INTO membership(user_id,project_id,role) VALUES (?,?,?)',
-                            (user_id, proj_id, Role.OWNER))
+    # cve-information doesn't depend on commits & so can be inserted independently
+    # garbage is collected on function return, so do this work in separate function
+    parse_cve_list(repo_name, found_cve_list)
 
-            commits = [(proj_id, v['commit-id'], v['message'], v['authored_date']) for v in vulns.values()]
-            db_conn.executemany('INSERT INTO commits(project_id,hash,message,created_at) VALUES (?,?,?,?)', commits)
-    except Exception as e:
-        logging.error(e)
+    with db_conn:
+        proj_id = db_conn.execute('INSERT INTO projects(owner_id,name,repository,commit_n) VALUES (?,?,?,?)',
+                                  (user_id, proj_name, repo_loc, len(vulns))).lastrowid
+
+        db_conn.execute('INSERT INTO membership(user_id,project_id,role) VALUES (?,?,?)',
+                        (user_id, proj_id, Role.OWNER))
+
+        commits = vulns.values()
+        commit_rows = [(proj_id, v['commit-id'], v['message'], v['authored_date']) for v in commits]
+
+        cur = db_conn.executemany('INSERT INTO commits(project_id,hash,message,created_at) VALUES (?,?,?,?)',
+                                  commit_rows)
+
+        if cur.rowcount > 0:
+            # calculating ids of inserted records (tricky)
+            inserted_id = db_conn.execute('SELECT MAX(id) FROM commits').fetchone()[0] - cur.rowcount + 1
+            commit_cve = []
+            for comm in commits:
+                cve_list = comm.get('cve')
+                if cve_list:
+                    for cve in set(cve_list):
+                        commit_cve.append((inserted_id, cve))
+                inserted_id += 1
+
+            db_conn.executemany('INSERT INTO commit_cve(commit_id,cve_id) SELECT ?,id FROM cve_info WHERE cve_id=?',
+                                commit_cve)
 
     notify((user_id,), 1, Action.CREATE, Model.PROJECT, proj_id)
 
@@ -214,7 +249,7 @@ def create_project():
     if not (repo_url and proj_name):
         return '', 400
 
-    Thread(target=clone_n_parse_repo, args=(get_jwt_identity(), repo_url, proj_name)).start()
+    Thread(target=create_project_from_repo, args=(get_jwt_identity(), repo_url, proj_name)).start()
 
     return '', 202
 
@@ -391,7 +426,7 @@ def get_commit_patch(commit_id):
 @jwt_required()
 def get_commit_file_lines(commit_id):
     filepath = request.args.get('path')
-    prev_lineno = request.args.get('prev_lineno', 0, int)   # 0 to avoid exception
+    prev_lineno = request.args.get('prev_lineno', 0, int)  # 0 to avoid exception
     cur_lineno = request.args.get('cur_lineno', 0, int)
     count = request.args.get('count', 20, int)
     direction = request.args.get('dir', 0, int)
@@ -542,13 +577,11 @@ def create_invitation(proj_id):
         return '', 400
     role = request.json.get('role', Role.CONTRIBUTOR.value)  # role field if more roles implemented
 
-    # insert only if the current user is owner of the project
-    # and only if same invitation not already exist
+    # insert only if the current user is owner of the project & same invitation not already exist
     with db_conn:
-        record_id = db_conn.execute('INSERT INTO invitations(invitee_id,project_id,role) '
-                                    'SELECT ?,?,? WHERE EXISTS(SELECT * FROM projects p WHERE p.id=? AND p.owner_id=?) '
-                                    'AND NOT EXISTS(SELECT * FROM invitations WHERE project_id=? AND invitee_id=?)',
-                                    (invitee_id, proj_id, role, proj_id, owner_id, proj_id, invitee_id)).lastrowid
+        record_id = db_conn.execute('INSERT OR IGNORE INTO invitations(invitee_id,project_id,role) '
+                                    'SELECT ?,?,? WHERE EXISTS(SELECT * FROM projects p WHERE p.id=? AND p.owner_id=?)',
+                                    (invitee_id, proj_id, role, proj_id, owner_id)).lastrowid
     if record_id is None:
         return '', 422
 
