@@ -11,11 +11,11 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 import config
 import tables
+import views
 from cve_utils import get_cve_info
 from enums import *
 from safe_sql import SafeSql
 from utils import pathjoin, unix_time, normpath, sql_params_args
-from views import *
 
 sqlite3.register_adapter(bool, int)
 sqlite3.register_converter('BOOLEAN', lambda v: bool(int(v)))
@@ -233,7 +233,7 @@ def refresh():
 def get_current_user():
     data = db_conn.execute('SELECT id,username,full_name,email FROM users WHERE id=? LIMIT 1',
                            (get_jwt_identity(),)).fetchone()
-    return user_v(data)
+    return views.user(data)
 
 
 @app.route('/api/users/<user_id>', methods=['GET'])
@@ -242,14 +242,14 @@ def get_user(user_id):
     data = db_conn.execute('SELECT id,username,full_name,email FROM users WHERE id=? LIMIT 1',
                            (user_id,)).fetchone()
 
-    return user_v(data) if data else ('', 404)
+    return views.user(data) if data else ('', 404)
 
 
 @app.route('/api/users', methods=['GET'])
 @jwt_required()
 def get_users():
     data = db_conn.execute('SELECT id,username,full_name,email FROM users').fetchall()
-    return [user_v(d) for d in data]
+    return [views.user(d) for d in data]
 
 
 @app.route('/api/users/me/projects', methods=['POST'])
@@ -275,7 +275,7 @@ def get_projects():
                            'JOIN projects p ON m.user_id=? AND m.project_id=p.id '
                            'JOIN users u ON p.owner_id=u.id', (get_jwt_identity(),)).fetchall()
 
-    return [project_v(d) for d in data]
+    return [views.project(d) for d in data]
 
 
 @app.route('/api/users/me/projects/<proj_id>', methods=['GET'])
@@ -286,7 +286,7 @@ def get_project(proj_id):
                            'JOIN projects p ON m.user_id=? AND m.project_id=? AND m.project_id=p.id '
                            'JOIN users u ON p.owner_id=u.id LIMIT 1', (get_jwt_identity(), proj_id)).fetchone()
 
-    return project_v(data) if data else ('', 404)
+    return views.project(data) if data else ('', 404)
 
 
 @app.route('/api/users/me/projects/<proj_id>', methods=['PATCH'])
@@ -340,8 +340,7 @@ def get_notifications():
         'JOIN users u on n.actor_id=u.id '
         'LEFT JOIN projects p ON n.object_id=p.id'.format(param), (get_jwt_identity(), Model.PROJECT)).fetchall()
 
-    res = [project_notif_v(d) for d in data]  # add later other notifications types too
-    return res
+    return [views.project_notif(d) for d in data]  # add later other notifications types too
 
 
 @app.route('/api/users/me/notifications/<notif_id>', methods=['PATCH'])
@@ -413,7 +412,7 @@ def get_commits(proj_id):
         data = db_conn.execute('SELECT id,hash,message,created_at FROM commits WHERE project_id=?',
                                (proj_id,)).fetchall()
 
-    return [commit_v(d) for d in data]
+    return [views.commit(d) for d in data]
 
 
 @app.route('/api/users/me/commits/<commit_id>/patch', methods=['GET'])
@@ -485,6 +484,22 @@ def get_commit_file_lines(commit_id):
         return lines, 200, {'Content-Type': 'text/plain'}
 
 
+@app.route('/api/users/me/commits/<commit_id>/cve', methods=['GET'])
+@jwt_required()
+def get_cve_list(commit_id):
+    ismember = db_conn.execute('SELECT 1 FROM commits c WHERE c.id=? '
+                               'AND EXISTS(SELECT * FROM membership m WHERE m.project_id=c.project_id AND m.user_id=?)',
+                               (commit_id, get_jwt_identity())).fetchone()
+    if not ismember:
+        return '', 404
+
+    data = db_conn.execute('SELECT ci.id,ci.cve_id,ci.summary,ci.description,ci.cvss_score FROM cve_info ci '
+                           'WHERE EXISTS(SELECT * FROM commit_cve WHERE cve_id=ci.id AND commit_id=?)',
+                           (commit_id,)).fetchall()
+
+    return [views.cve_info(d) for d in data]
+
+
 # TODO: handle case, if vote already exists?
 @app.route('/api/users/me/commits/<commit_id>/votes', methods=['POST'])
 @jwt_required()
@@ -516,7 +531,7 @@ def get_vote(vote_id):
                            'WHERE v.id=? AND v.user_id=? LIMIT 1',
                            (vote_id, get_jwt_identity())).fetchone()
 
-    return vote_v(data) if data else ('', 404)
+    return views.vote(data) if data else ('', 404)
 
 
 @app.route('/api/users/me/votes/<vote_id>', methods=['PATCH'])
@@ -552,41 +567,41 @@ def get_votes_for_commit(commit_id):
                            'EXISTS(SELECT * FROM membership m WHERE m.user_id=v.user_id AND m.project_id=c.project_id))',
                            (commit_id, get_jwt_identity())).fetchall()
 
-    return [vote_v(d) for d in data]
+    return [views.vote(d) for d in data]
 
 
 @app.route('/api/users/me/projects/<proj_id>/votes', methods=['GET'])
 @jwt_required()
 def get_votes_for_project(proj_id):
     user_id = get_jwt_identity()
-    data = None
 
     if 'all' in request.args and is_owner(user_id, proj_id):
         data = db_conn.execute('SELECT v.id,v.user_id,v.commit_id,v.filepath,v.vote FROM votes v '
                                'WHERE EXISTS(SELECT * FROM commits c WHERE c.id=v.commit_id AND c.project_id=?)',
                                (proj_id,)).fetchall()
 
-    elif is_member(user_id, proj_id):
+        return [views.vote(d) for d in data]
+
+    if is_member(user_id, proj_id):
         data = db_conn.execute('SELECT v.id,v.user_id,v.commit_id,v.filepath,v.vote FROM votes v '
                                'WHERE v.user_id=? AND '
                                'EXISTS(SELECT * FROM commits c WHERE c.id=v.commit_id AND c.project_id=?)',
                                (user_id, proj_id)).fetchall()
 
-    if data:
-        return [vote_v(d) for d in data]
+        return [views.vote(d) for d in data]
 
-    return '', 404
+    return '', 404  # or not authorized
 
 
 @app.route('/api/users/me/projects/<proj_id>/invitations', methods=['POST'])
 @jwt_required()
 def create_invitation(proj_id):
     owner_id = get_jwt_identity()
-
     invitee_id = request.json.get('invitee_id')
+    role = request.json.get('role', Role.CONTRIBUTOR.value)  # role field if more roles implemented
+
     if not invitee_id:
         return '', 400
-    role = request.json.get('role', Role.CONTRIBUTOR.value)  # role field if more roles implemented
 
     # insert only if the current user is owner of the project & same invitation not already exist
     with db_conn:
@@ -607,7 +622,7 @@ def get_sent_invitations(proj_id):
                            'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?) '
                            'AND u.id=i.invitee_id',
                            (proj_id, get_jwt_identity())).fetchall()
-    return [sent_invitation_v(d) for d in data]
+    return [views.sent_invitation(d) for d in data]
 
 
 @app.route('/api/users/me/sent-invitations/<invitation_id>', methods=['GET'])
@@ -619,7 +634,7 @@ def get_sent_invitation(invitation_id):
                            'AND u.id=i.invitee_id LIMIT 1',
                            (invitation_id, get_jwt_identity())).fetchone()
 
-    return sent_invitation_v(data) if data else ('', 404)
+    return views.sent_invitation(data) if data else ('', 404)
 
 
 @app.route('/api/users/me/sent-invitations/<invitation_id>', methods=['DELETE'])
@@ -641,7 +656,7 @@ def get_invitations():
     data = db_conn.execute('SELECT i.id,i.project_id,i.role,p.name,p.owner_id,u.full_name FROM invitations i '
                            'JOIN projects p ON i.invitee_id=? AND i.project_id=p.id JOIN users u on p.owner_id = u.id',
                            (get_jwt_identity(),)).fetchall()
-    return [invitation_v(d) for d in data]
+    return [views.invitation(d) for d in data]
 
 
 @app.route('/api/users/me/invitations/<invitation_id>', methods=['PATCH'])
@@ -681,7 +696,7 @@ def get_members(proj_id):
     data = db_conn.execute('SELECT u.id,u.username,u.full_name,m.role FROM membership m '
                            'JOIN users u ON m.project_id=? AND u.id=m.user_id',
                            (proj_id,)).fetchall()
-    return [member_v(d) for d in data]
+    return [views.member(d) for d in data]
 
 
 @app.route('/api/users/me/projects/<proj_id>/members/<member_id>', methods=['DELETE'])

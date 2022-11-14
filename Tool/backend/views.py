@@ -1,4 +1,4 @@
-def user_v(d):
+def user(d):
     return {
         'id': d['id'],
         'username': d['username'],
@@ -7,7 +7,7 @@ def user_v(d):
     }
 
 
-def project_v(d):
+def project(d):
     return {
         'id': d['id'],
         'name': d['name'],
@@ -20,7 +20,7 @@ def project_v(d):
     }
 
 
-def commit_v(d):
+def commit(d):
     return {
         'id': d['id'],
         'hash': d['hash'],
@@ -29,7 +29,7 @@ def commit_v(d):
     }
 
 
-def notification_v(d):
+def notification(d):
     return {
         'id': d['id'],
         'actor': {
@@ -44,8 +44,8 @@ def notification_v(d):
     }
 
 
-def project_notif_v(d):
-    res = notification_v(d)
+def project_notif(d):
+    res = notification(d)
     res['object'] = {
         'id': d['project_id'],
         'name': d['name']
@@ -53,7 +53,7 @@ def project_notif_v(d):
     return res
 
 
-def sent_invitation_v(d):
+def sent_invitation(d):
     return {
         'id': d['id'],
         'project_id': d['project_id'],
@@ -66,7 +66,7 @@ def sent_invitation_v(d):
     }
 
 
-def invitation_v(d):
+def invitation(d):
     return {
         'id': d['id'],
         'role': d['role'],
@@ -81,7 +81,7 @@ def invitation_v(d):
     }
 
 
-def member_v(d):
+def member(d):
     return {
         'id': d['id'],
         'full_name': d['full_name'],
@@ -90,11 +90,21 @@ def member_v(d):
     }
 
 
-def vote_v(d):
+def vote(d):
     return {
         'id': d['id'],
         'user_id': d['user_id'],
         'commit_id': d['commit_id'],
         'filepath': d['filepath'],
         'vote': d['vote']
+    }
+
+
+def cve_info(d):
+    return {
+        'id': d['id'],
+        'cve_id': d['cve_id'],
+        'summary': d['summary'],
+        'description': d['description'],
+        'cvss_score': d['cvss_score']
     }
