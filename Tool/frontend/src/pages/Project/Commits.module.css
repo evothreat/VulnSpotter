@@ -1,0 +1,11 @@
+.commitMessage {
+    font-size: 13px;
+    color: #505a5f;
+    padding: 8px 0 14px 8px;
+    display: block;
+    margin-top: 8px;
+    overflow: auto;
+    border-left: 3px solid #eaeaea;
+    line-height: 1.5;
+    font-family: "Menlo", "DejaVu Sans Mono", "Liberation Mono", "Consolas", "Ubuntu Mono", "Courier New", "andale mono", "lucida console", monospace;
+}

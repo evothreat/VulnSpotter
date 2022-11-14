@@ -95,7 +95,7 @@
 
 .tableBox {
     padding-bottom: 6px;
-    flex-basis: 50%;
+    flex: 1 1 0;
     overflow: auto;
     position: relative;
 }

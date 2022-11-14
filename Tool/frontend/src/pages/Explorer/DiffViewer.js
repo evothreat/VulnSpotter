@@ -1,6 +1,6 @@
 import Prism from "prismjs";
 import "../../prism.css";
-import cssStyle from "./diffViewer.module.css"
+import cssStyle from "./DiffViewer.module.css"
 import classnames from "classnames";
 import React, {useEffect, useState} from "react";
 import {areHunksSequent, calcHunks, DiffType, getStats} from "../../diffUtils";

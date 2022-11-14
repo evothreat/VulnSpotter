@@ -17,9 +17,12 @@ import EnhancedTableHead from "../../components/EnhancedTableHead";
 import ProjectsService from "../../services/ProjectsService";
 import {useNavigate, useParams} from "react-router-dom";
 import Button from "@mui/material/Button";
-import FindInPageIcon from '@mui/icons-material/FindInPage';
+import FindInPageIcon from "@mui/icons-material/FindInPage";
+import cssStyle from "./Commits.module.css"
+
 
 const cveDetailUrl = 'https://nvd.nist.gov/vuln/detail/';
+
 
 const headCells = [
     {
@@ -49,17 +52,6 @@ const MAX_ITEMS = 30;
 const TABLE_HEIGHT = '470px';
 const BOTTOM_OFFSET = '-70px';
 
-const commitMsgStyle = {
-    fontSize: '13px',
-    color: '#505a5f',
-    padding: '8px 0 14px 8px',
-    display: 'block',
-    marginTop: '8px',
-    overflow: 'auto',       // overflowX
-    borderLeft: '3px solid #eaeaea',
-    lineHeight: 1.5,
-    fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace'
-};
 
 function CommitRow({item}) {
     const [detailsOpen, setDetailsOpen] = useState(false);
@@ -108,7 +100,7 @@ function CommitRow({item}) {
                 <TableCell colSpan="100%" sx={{pb: 0, pt: 0}}>
                     <Collapse in={detailsOpen} timeout="auto" unmountOnExit>
                         <Box>
-                            <pre style={commitMsgStyle}>
+                            <pre className={cssStyle.commitMessage}>
                                 {item.message}
                             </pre>
                         </Box>

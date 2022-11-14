@@ -56,7 +56,7 @@ function CveDetails({cve}) {
                 <Box display="flex" justifyContent="center" alignItems="center" padding="5px 12px" borderRadius="15px"
                      style={{backgroundColor: getSeverityColor(cve.severity)}}>
                     <Typography fontSize="small" color="white">
-                        {cve.severity}
+                        {`${cve.cvss_score} ${cve.severity}`}
                     </Typography>
                 </Box>
             </Box>
@@ -89,7 +89,7 @@ function CveViewer({cveList}) {
     };
 
     return (
-        <Box tabIndex="0" display="flex" flexDirection="column" overflow="auto" sx={{border: 'solid #ccc', borderWidth: '0 1px 1px 0'}}
+        <Box flex="1 1 0" tabIndex="0" display="flex" flexDirection="column" overflow="auto" borderBottom="1px solid #ccc"
              onFocus={bindHotkeys} onBlur={unbindHotkeys}>
             {
                 <CveDetails cve={cveList[cveIx]}/>
@@ -216,19 +216,21 @@ export default function Explorer() {
 
     return (
         <Box display="flex" gap="2px">
-            <Box display="flex" flexDirection="column" width="30%" sx={{'> *': {flex: 1}}}>
+            <Box flex="1" display="flex" flexDirection="column" gap="2px">
                 {
                     cveList?.length > 0 && <CveViewer cveList={cveList}/>
                 }
-                <Box>
-                    ...
+                <Box flex="1 1 0" overflow="auto" display="inline-block" padding="16px 25px">
+                    <Typography sx={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', fontSize: '14px'}}>
+                        {commits && cur(commits).message}
+                    </Typography>
                 </Box>
             </Box>
             {
                 // recreate DiffViewer when diffs changes?
                 diffs && <DiffViewer codeLines={cur(diffs).lines}
                                      oldFileName={cur(diffs).oldFileName} newFileName={cur(diffs).newFileName}
-                                     getMoreLines={getMoreLines} style={{width: '70%'}}/>
+                                     getMoreLines={getMoreLines} style={{flex: 2.5}}/>
             }
         </Box>
     );
