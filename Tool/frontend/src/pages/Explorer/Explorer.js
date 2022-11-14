@@ -68,7 +68,7 @@ function CVEDetails({cve}) {
     );
 }
 
-function CVEList({cveList}) {
+function CveInfoWindow({cveList}) {
     const [cveIx, setCveIx] = useState(0);
 
     const handleChange = (e) => {
@@ -218,7 +218,7 @@ export default function Explorer() {
         <Box display="flex" gap="2px">
             <Box display="flex" flexDirection="column" width="30%" sx={{'> *': {flex: 1}}}>
                 {
-                    cveList?.length > 0 && <CVEList cveList={cveList}/>
+                    cveList?.length > 0 && <CveInfoWindow cveList={cveList}/>
                 }
                 <Box>
                     ...
