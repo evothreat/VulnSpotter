@@ -103,7 +103,7 @@ function renderDiffRow({linenoLeft, linenoRight, diffType, value}, hunkId) {
 function renderExpander(direction, hunkId, expandHandler) {
     const handleClick = (e) => {
         expandHandler(
-            e.currentTarget.dataset.direction,
+            parseInt(e.currentTarget.dataset.direction),
             e.currentTarget.dataset.hunkId
         );
     }
