@@ -3,25 +3,24 @@ import DiffViewer from "./DiffViewer";
 import React, {Fragment, useEffect, useRef, useState} from "react";
 import ProjectsService from "../../services/ProjectsService";
 import {useParams} from "react-router-dom";
-import * as Utils from "../../utils";
 import CommitsService from "../../services/CommitsService";
 import {createLineDiff, DiffType, parsePatch} from "../../diffUtils";
 import Typography from "@mui/material/Typography";
-import {capitalize, mod} from "../../utils";
+import {getCvss3Severity, mod} from "../../utils";
 import CircleIcon from '@mui/icons-material/Circle';
 import IconButton from "@mui/material/IconButton";
 import * as Mousetrap from "mousetrap"
-import CveService from "../../services/CveService";
 import useHotkeys from "./useHotkeys";
 
 
 // TODO: load only specific commits
 
 const severityColor = {
-    low: '#316dc1',
-    medium: '#f5c12e',
-    high: '#b85c00',
-    critical: '#a30000'
+    None: '#eeeeee',
+    Low: '#bfbfbf',
+    Medium: '#f9b602',
+    High: '#f78931',
+    Critical: '#e73025'
 }
 
 function getSeverityColor(severity) {
@@ -52,16 +51,16 @@ function CVEDetails({cve}) {
             <Box display="flex" justifyContent="space-between" alignItems="center" padding="16px 25px"
                  backgroundColor="#eaf0f7" borderBottom="1px solid #ccc">
                 <Typography variant="subtitle1" sx={{fontWeight: 'bold'}}>
-                    {cve.id}
+                    {cve.cve_id}
                 </Typography>
                 <Box display="flex" justifyContent="center" alignItems="center" padding="5px 12px" borderRadius="15px"
                      style={{backgroundColor: getSeverityColor(cve.severity)}}>
                     <Typography fontSize="small" color="white">
-                        {cve.severity ? capitalize(cve.severity) : 'N/A'}
+                        {cve.severity}
                     </Typography>
                 </Box>
             </Box>
-            <Box display="flex" flexDirection="column" gap="13px" padding="16px 25px" sx={{'> *': {flex: 1}}}>
+            <Box flex="1" display="flex" flexDirection="column" gap="13px" padding="16px 25px">
                 {renderDetail('Summary', cve.summary || 'N/A')}
                 {renderDetail('Description', cve.description)}
             </Box>
@@ -90,18 +89,20 @@ function CVEList({cveList}) {
     };
 
     return (
-        <Box tabIndex="0" onFocus={bindHotkeys} onBlur={unbindHotkeys} overflow="auto" border="solid #ccc"
-             sx={{borderWidth: '0 1px 1px 0'}}>
+        <Box tabIndex="0" display="flex" flexDirection="column" overflow="auto" sx={{border: 'solid #ccc', borderWidth: '0 1px 1px 0'}}
+             onFocus={bindHotkeys} onBlur={unbindHotkeys}>
             {
                 <CVEDetails cve={cveList[cveIx]}/>
             }
             {
                 cveList.length > 1 && (
-                    <Box display="flex" justifyContent="center" position="sticky" bottom="0" zIndex="1" bgcolor="white" height="24px">
+                    <Box display="flex" justifyContent="center" position="sticky" bottom="0" zIndex="1" bgcolor="white">
                         {
                             cveList.map((_, i) => (
-                                <IconButton key={i} disableRipple sx={{padding: '2px 3px'}} onClick={handleChange} data-index={i}>
-                                    <CircleIcon sx={{fontSize: '10px'}} style={{color: i === cveIx ? '#71757e' : '#bbb4b4'}}/>
+                                <IconButton key={i} disableRipple sx={{padding: '10px 3px'}} onClick={handleChange}
+                                            data-index={i}>
+                                    <CircleIcon sx={{fontSize: '10px'}}
+                                                style={{color: i === cveIx ? '#71757e' : '#bbb4b4'}}/>
                                 </IconButton>
                             ))
                         }
@@ -120,15 +121,12 @@ export default function Explorer() {
     const reverse = useRef(false);
 
     useEffect(() => {
-        ProjectsService.getUnratedCommits(projId)
+        ProjectsService.getCommits(projId)
             .then((data) => {
-                data.forEach((c) => {
-                    c.cveIds = Utils.findCVEs(c.message);
-                });
                 setCommits({
                     data: data,
-                    ix: 512      // replace to 0 later...    16 for cves
-                });
+                    ix: 516      // replace to 0 later...
+                })
             });
     }, [projId]);
 
@@ -149,8 +147,14 @@ export default function Explorer() {
                 }
                 setDiffs(newDiffs);
             });
-        Promise.all(commit.cveIds.map((id) => CveService.get(id)))
-            .then((data) => setCveList(data.filter(Boolean)));
+
+        CommitsService.getCveList(commit.id)
+            .then((data) => {
+                for (const cve of data) {
+                    cve.severity = getCvss3Severity(cve.cvss_score);
+                }
+                setCveList(data);
+            })
     }, [commits]);
 
     const gotoPrevDiff = (e) => {
@@ -211,7 +215,7 @@ export default function Explorer() {
     useHotkeys('shift+right', gotoNextDiff);
 
     return (
-        <Box flex="1" display="flex" gap="2px">
+        <Box display="flex" gap="2px">
             <Box display="flex" flexDirection="column" width="30%" sx={{'> *': {flex: 1}}}>
                 {
                     cveList?.length > 0 && <CVEList cveList={cveList}/>

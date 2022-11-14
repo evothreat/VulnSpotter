@@ -55,7 +55,7 @@ function UserMenu() {
 
 export default function Header() {
     return (
-        <AppBar position="relative" sx={{zIndex: (theme) => theme.zIndex.drawer + 1, flex: 'none'}}>
+        <AppBar position="relative" sx={{zIndex: (theme) => theme.zIndex.drawer + 1}}>
             <Toolbar style={{minHeight: '56px', justifyContent: 'space-between'}}>
                 <Box sx={{display: 'flex'}}>
                     <PolicyIcon sx={{height: '32px', width: '32px', mr: '8px'}}/>

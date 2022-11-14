@@ -72,6 +72,23 @@ function trim(str) {
     return 32 >= str.charCodeAt(0) || 32 >= str.charCodeAt(str.length - 1) ? str.trim() : str;
 }
 
+function getCvss3Severity(score) {
+    // check for high bound? (max=10.0)
+    if (score >= 9.0) {
+        return 'Critical';
+    }
+    if (score >= 7.0) {
+        return 'High';
+    }
+    if (score >= 4.0) {
+        return 'Medium';
+    }
+    if (score >= 0.1) {
+        return 'Low';
+    }
+    return 'None';
+}
+
 // requires 'id'-key
 function complement(a, b) {
     return a.filter((v1) => !b.some((v2) => v1.id === v2.id));
@@ -95,6 +112,7 @@ export {
     mod,
     trim,
     splitArray,
+    getCvss3Severity,
     complement,
     equals,
     remove

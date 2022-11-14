@@ -29,6 +29,10 @@ class CommitsService {
         }
         return api.get(urlPath);
     }
+
+    getCveList(id) {
+        return api.get(`${this.basePath}/${id}/cve`);
+    }
 }
 
 export default new CommitsService();
