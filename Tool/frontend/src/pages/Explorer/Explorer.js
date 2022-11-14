@@ -45,7 +45,7 @@ function renderDetail(title, content) {
 }
 
 // convert to function 'renderCveDetails'? Are components from functions recreated?
-function CVEDetails({cve}) {
+function CveDetails({cve}) {
     return (
         <Fragment>
             <Box display="flex" justifyContent="space-between" alignItems="center" padding="16px 25px"
@@ -92,7 +92,7 @@ function CveInfoWindow({cveList}) {
         <Box tabIndex="0" display="flex" flexDirection="column" overflow="auto" sx={{border: 'solid #ccc', borderWidth: '0 1px 1px 0'}}
              onFocus={bindHotkeys} onBlur={unbindHotkeys}>
             {
-                <CVEDetails cve={cveList[cveIx]}/>
+                <CveDetails cve={cveList[cveIx]}/>
             }
             {
                 cveList.length > 1 && (
