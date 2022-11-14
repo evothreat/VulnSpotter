@@ -1,4 +1,4 @@
-import logging
+from contextlib import contextmanager
 from os.path import isdir, basename
 from threading import Thread
 from urllib.parse import urlparse
@@ -34,8 +34,7 @@ db_conn = sqlite3.connect(config.DB_PATH,
 # this constraint must be enabled on each connection
 db_conn.execute('PRAGMA foreign_keys=ON')
 
-# to allow reading while someone is writing
-# to make this work, we need 2 connections: 1 for reading & 1 for writing
+# to speed up database transactions
 # db_conn.execute('PRAGMA journal_mode=WAL')
 
 db_conn.row_factory = sqlite3.Row
@@ -108,6 +107,22 @@ def setup_db():
                         ])
 
 
+@contextmanager
+def open_db_transaction():
+    conn = sqlite3.connect(config.DB_PATH, isolation_level=None, detect_types=sqlite3.PARSE_DECLTYPES)
+    conn.execute('PRAGMA foreign_keys=ON')
+    try:
+        conn.execute('BEGIN')
+        yield conn
+    except BaseException as e:
+        conn.rollback()
+        conn.close()
+        raise e
+    else:
+        conn.commit()
+        conn.close()
+
+
 def notify(users, actor_id, activity, object_type, object_id):
     with db_conn:
         notif_id = db_conn.execute('INSERT INTO notifications(actor_id,activity,object_type,object_id,created_at) '
@@ -121,9 +136,9 @@ def notify(users, actor_id, activity, object_type, object_id):
 def parse_cve_list(repo_name, cve_list):
     cve_info = get_cve_info(repo_name, list(cve_list))
     rows = [(k, v['summary'], v['description'], v['score']) for k, v in cve_info.items()]
-    with db_conn:
-        db_conn.executemany('INSERT OR IGNORE INTO cve_info(cve_id,summary,description,cvss_score) VALUES (?,?,?,?)',
-                            rows)
+
+    with open_db_transaction() as conn:
+        conn.executemany('INSERT OR IGNORE INTO cve_info(cve_id,summary,description,cvss_score) VALUES (?,?,?,?)', rows)
 
 
 def create_project_from_repo(user_id, repo_url, proj_name):
@@ -131,17 +146,16 @@ def create_project_from_repo(user_id, repo_url, proj_name):
     repo_loc = normpath(parts.netloc + parts.path.rstrip('.git'))
     repo_name = basename(repo_loc)
     repo_dir = pathjoin(config.REPOS_DIR, repo_loc)
-    None
-    if isdir(repo_dir):
-        repo = git.Repo(repo_dir)
-        repo.remotes.origin.pull()
-        repo.close()
-    else:
-        try:
+    try:
+        if isdir(repo_dir):
+            repo = git.Repo(repo_dir)
+            repo.remotes.origin.pull()
+            repo.close()
+        else:
             git.Repo.clone_from(f'{parts.scheme}://:@{repo_loc}', repo_dir).close()
-        except git.exc.GitError:
-            notify((user_id,), 1, Action.CREATE, Model.PROJECT, None)
-            return
+    except git.exc.GitError:
+        notify((user_id,), 1, Action.CREATE, Model.PROJECT, None)
+        return
 
     vulns, found_cve_list, _ = find_vulns(repo_dir)
 
@@ -149,22 +163,19 @@ def create_project_from_repo(user_id, repo_url, proj_name):
     # garbage is collected on function return, so do this work in separate function
     parse_cve_list(repo_name, found_cve_list)
 
-    with db_conn:
-        proj_id = db_conn.execute('INSERT INTO projects(owner_id,name,repository,commit_n) VALUES (?,?,?,?)',
-                                  (user_id, proj_name, repo_loc, len(vulns))).lastrowid
+    with open_db_transaction() as conn:
+        proj_id = conn.execute('INSERT INTO projects(owner_id,name,repository,commit_n) VALUES (?,?,?,?)',
+                               (user_id, proj_name, repo_loc, len(vulns))).lastrowid
 
-        db_conn.execute('INSERT INTO membership(user_id,project_id,role) VALUES (?,?,?)',
-                        (user_id, proj_id, Role.OWNER))
+        conn.execute('INSERT INTO membership(user_id,project_id,role) VALUES (?,?,?)', (user_id, proj_id, Role.OWNER))
 
         commits = vulns.values()
         commit_rows = [(proj_id, v['commit-id'], v['message'], v['authored_date']) for v in commits]
 
-        cur = db_conn.executemany('INSERT INTO commits(project_id,hash,message,created_at) VALUES (?,?,?,?)',
-                                  commit_rows)
-
+        cur = conn.executemany('INSERT INTO commits(project_id,hash,message,created_at) VALUES (?,?,?,?)', commit_rows)
         if cur.rowcount > 0:
             # calculating ids of inserted records (tricky)
-            inserted_id = db_conn.execute('SELECT MAX(id) FROM commits').fetchone()[0] - cur.rowcount + 1
+            inserted_id = conn.execute('SELECT MAX(id) FROM commits').fetchone()[0] - cur.rowcount + 1
             commit_cve = []
             for comm in commits:
                 cve_list = comm.get('cve')
@@ -173,8 +184,8 @@ def create_project_from_repo(user_id, repo_url, proj_name):
                         commit_cve.append((inserted_id, cve))
                 inserted_id += 1
 
-            db_conn.executemany('INSERT INTO commit_cve(commit_id,cve_id) SELECT ?,id FROM cve_info WHERE cve_id=?',
-                                commit_cve)
+            conn.executemany('INSERT INTO commit_cve(commit_id,cve_id) SELECT ?,id FROM cve_info WHERE cve_id=?',
+                             commit_cve)
 
     notify((user_id,), 1, Action.CREATE, Model.PROJECT, proj_id)
 
