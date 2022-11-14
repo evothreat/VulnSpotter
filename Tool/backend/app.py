@@ -133,7 +133,7 @@ def notify(users, actor_id, activity, object_type, object_id):
                             [(u, notif_id, False) for u in users])
 
 
-def parse_cve_list(repo_name, cve_list):
+def create_cve_records(repo_name, cve_list):
     cve_info = get_cve_info(repo_name, list(cve_list))
     rows = [(k, v['summary'], v['description'], v['score']) for k, v in cve_info.items()]
 
@@ -161,7 +161,7 @@ def create_project_from_repo(user_id, repo_url, proj_name):
 
     # cve-information doesn't depend on commits & so can be inserted independently
     # garbage is collected on function return, so do this work in separate function
-    parse_cve_list(repo_name, found_cve_list)
+    create_cve_records(repo_name, found_cve_list)
 
     with open_db_transaction() as conn:
         proj_id = conn.execute('INSERT INTO projects(owner_id,name,repository,commit_n) VALUES (?,?,?,?)',
