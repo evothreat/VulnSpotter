@@ -89,6 +89,32 @@ function getCvss3Severity(score) {
     return 'None';
 }
 
+function nextNonSpace(str) {
+    for (const char of str) {
+        if (char.charCodeAt(0) > 32) {
+            return char;
+        }
+    }
+    return '';
+}
+
+function normalizeText(text) {
+    const parts = text.split('\n');
+    const rowSize = Math.max(...parts.map((p) => p.length));
+    const minSize = rowSize * 0.8;
+    let res = '';
+    for (let p of parts) {
+        if (p === '') {
+            res += res.endsWith('\n') ? '\n' : '\n\n';
+        } else if (minSize > p.length) {
+            res += trim(p) + '\n';
+        } else {
+            res += trim(p) + ' ';
+        }
+    }
+    return res;
+}
+
 // requires 'id'-key
 function complement(a, b) {
     return a.filter((v1) => !b.some((v2) => v1.id === v2.id));
@@ -113,6 +139,8 @@ export {
     trim,
     splitArray,
     getCvss3Severity,
+    nextNonSpace,
+    normalizeText,
     complement,
     equals,
     remove

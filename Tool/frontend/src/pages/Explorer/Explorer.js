@@ -6,7 +6,7 @@ import {useParams} from "react-router-dom";
 import CommitsService from "../../services/CommitsService";
 import {createLineDiff, DiffType, parsePatch} from "../../diffUtils";
 import Typography from "@mui/material/Typography";
-import {getCvss3Severity} from "../../utils";
+import {getCvss3Severity, normalizeText} from "../../utils";
 import useHotkeys from "./useHotkeys";
 import CveViewer from "./CveViewer";
 import WindowTitle from "./WindowTitle";
@@ -25,7 +25,7 @@ function MessageWindow({message}) {
             <WindowTitle title="Message"/>
             <Box flex="1 1 0" overflow="auto">
                 <Typography padding="10px 15px" whiteSpace="pre-wrap" fontSize="14px">
-                    {message}
+                    {normalizeText(message)}
                 </Typography>
             </Box>
         </Box>
