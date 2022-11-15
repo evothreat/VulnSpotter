@@ -104,7 +104,6 @@
     flex: 1;
     display: flex;
     gap: 2px;
-    border-left: 1px solid #ccc;
 }
 
 .diffHeader {

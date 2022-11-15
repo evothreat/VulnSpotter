@@ -10,6 +10,7 @@ import {getCvss3Severity} from "../../utils";
 import useHotkeys from "./useHotkeys";
 import CveViewer from "./CveViewer";
 import WindowTitle from "./WindowTitle";
+import {Divider} from "@mui/material";
 
 
 // TODO: load only specific commits
@@ -133,7 +134,7 @@ export default function Explorer() {
     useHotkeys('shift+right', gotoNextDiff);
 
     return (
-        <Box display="flex" gap="2px">
+        <Box display="flex" gap="1px">
             <Box flex="1" display="flex" flexDirection="column" gap="2px">
                 {
                     // render this two only if commits && cveList!
@@ -144,6 +145,7 @@ export default function Explorer() {
                     cveList?.length > 0 && <CveViewer cveList={cveList}/>
                 }
             </Box>
+            <Divider orientation="vertical" flexItem/>
             <Box flex="2.5" display="flex">
                 {
                     // we need this flexbox because if diffs is null, the left column will stretch
