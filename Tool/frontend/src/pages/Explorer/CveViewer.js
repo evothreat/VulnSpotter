@@ -5,6 +5,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import CircleIcon from "@mui/icons-material/Circle";
+import WindowTitle from "./WindowTitle";
 
 
 const severityColor = {
@@ -68,9 +69,7 @@ export default function CveViewer({cveList}) {
 
     return (
         <Box flex="1 1 0" display="flex" flexDirection="column" onFocus={bindHotkeys} onBlur={unbindHotkeys}>
-            <Typography bgcolor="#eaf0f7" fontWeight="bold" padding="7px 15px">
-                CVEs
-            </Typography>
+            <WindowTitle title="CVEs"/>
             {renderDetails(cveList[cveIx])}
             {
                 cveList.length > 1 && (

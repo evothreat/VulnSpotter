@@ -9,6 +9,7 @@ import Typography from "@mui/material/Typography";
 import {getCvss3Severity} from "../../utils";
 import useHotkeys from "./useHotkeys";
 import CveViewer from "./CveViewer";
+import WindowTitle from "./WindowTitle";
 
 
 // TODO: load only specific commits
@@ -20,9 +21,7 @@ function cur(obj) {
 function MessageWindow({message}) {
     return (
         <Box flex="1 1 0" display="flex" flexDirection="column">
-            <Typography bgcolor="#eaf0f7" fontWeight="bold" padding="7px 16px">
-                Message
-            </Typography>
+            <WindowTitle title="Message"/>
             <Box flex="1 1 0" overflow="auto">
                 <Typography padding="10px 15px" whiteSpace="pre-wrap" fontSize="14px">
                     {message}
