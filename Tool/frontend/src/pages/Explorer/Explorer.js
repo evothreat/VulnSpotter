@@ -1,114 +1,33 @@
 import Box from "@mui/material/Box";
 import DiffViewer from "./DiffViewer";
-import React, {Fragment, useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import ProjectsService from "../../services/ProjectsService";
 import {useParams} from "react-router-dom";
 import CommitsService from "../../services/CommitsService";
 import {createLineDiff, DiffType, parsePatch} from "../../diffUtils";
 import Typography from "@mui/material/Typography";
-import {getCvss3Severity, mod} from "../../utils";
-import CircleIcon from '@mui/icons-material/Circle';
-import IconButton from "@mui/material/IconButton";
-import * as Mousetrap from "mousetrap"
+import {getCvss3Severity} from "../../utils";
 import useHotkeys from "./useHotkeys";
+import CveViewer from "./CveViewer";
 
 
 // TODO: load only specific commits
-
-const severityColor = {
-    None: '#eeeeee',
-    Low: '#bfbfbf',
-    Medium: '#f9b602',
-    High: '#f78931',
-    Critical: '#e73025'
-}
-
-function getSeverityColor(severity) {
-    return severityColor[severity] || '#a9a9a9';
-}
 
 function cur(obj) {
     return obj.data[obj.ix];
 }
 
-function renderDetail(title, content) {
+function MessageWindow({message}) {
     return (
-        <Box>
-            <Typography sx={{fontWeight: 'bold', fontSize: '15px', mb: '4px'}}>
-                {title}
+        <Box flex="1 1 0" display="flex" flexDirection="column">
+            <Typography bgcolor="#eaf0f7" fontWeight="bold" padding="7px 16px">
+                Message
             </Typography>
-            <Typography sx={{fontSize: '14px'}}>
-                {content}
-            </Typography>
-        </Box>
-    );
-}
-
-// convert to function 'renderCveDetails'? Are components from functions recreated?
-function CveDetails({cve}) {
-    return (
-        <Fragment>
-            <Box display="flex" justifyContent="space-between" alignItems="center" padding="16px 25px"
-                 backgroundColor="#eaf0f7" borderBottom="1px solid #ccc">
-                <Typography variant="subtitle1" sx={{fontWeight: 'bold'}}>
-                    {cve.cve_id}
+            <Box flex="1 1 0" overflow="auto">
+                <Typography padding="10px 15px" whiteSpace="pre-wrap" fontSize="14px">
+                    {message}
                 </Typography>
-                <Box display="flex" justifyContent="center" alignItems="center" padding="5px 12px" borderRadius="15px"
-                     style={{backgroundColor: getSeverityColor(cve.severity)}}>
-                    <Typography fontSize="small" color="white">
-                        {`${cve.cvss_score} ${cve.severity}`}
-                    </Typography>
-                </Box>
             </Box>
-            <Box flex="1" display="flex" flexDirection="column" gap="13px" padding="16px 25px">
-                {renderDetail('Summary', cve.summary || 'N/A')}
-                {renderDetail('Description', cve.description)}
-            </Box>
-        </Fragment>
-    );
-}
-
-function CveViewer({cveList}) {
-    const [cveIx, setCveIx] = useState(0);
-
-    const handleChange = (e) => {
-        setCveIx(parseInt(e.currentTarget.dataset.index));
-    };
-
-    const bindHotkeys = () => {
-        Mousetrap.bind(['left', 'right'], (e, key) => {
-            e.preventDefault();
-            const dir = key === 'right' ? 1 : -1;
-            setCveIx((curIx) => mod((curIx + dir), cveList.length));
-        });
-    };
-
-    const unbindHotkeys = () => {
-        Mousetrap.unbind('left');
-        Mousetrap.unbind('right');
-    };
-
-    return (
-        <Box flex="1 1 0" tabIndex="0" display="flex" flexDirection="column" overflow="auto" borderBottom="1px solid #ccc"
-             onFocus={bindHotkeys} onBlur={unbindHotkeys}>
-            {
-                <CveDetails cve={cveList[cveIx]}/>
-            }
-            {
-                cveList.length > 1 && (
-                    <Box display="flex" justifyContent="center" position="sticky" bottom="0" zIndex="1" bgcolor="white">
-                        {
-                            cveList.map((_, i) => (
-                                <IconButton key={i} disableRipple sx={{padding: '10px 3px'}} onClick={handleChange}
-                                            data-index={i}>
-                                    <CircleIcon sx={{fontSize: '10px'}}
-                                                style={{color: i === cveIx ? '#71757e' : '#bbb4b4'}}/>
-                                </IconButton>
-                            ))
-                        }
-                    </Box>
-                )
-            }
         </Box>
     );
 }
@@ -218,20 +137,23 @@ export default function Explorer() {
         <Box display="flex" gap="2px">
             <Box flex="1" display="flex" flexDirection="column" gap="2px">
                 {
+                    // render this two only if commits && cveList!
+                    commits && <MessageWindow message={cur(commits).message}/>
+                }
+                {
+                    // handle empty state in CveViewer
                     cveList?.length > 0 && <CveViewer cveList={cveList}/>
                 }
-                <Box flex="1 1 0" overflow="auto" display="inline-block" padding="16px 25px">
-                    <Typography sx={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', fontSize: '14px'}}>
-                        {commits && cur(commits).message}
-                    </Typography>
-                </Box>
             </Box>
-            {
-                // recreate DiffViewer when diffs changes?
-                diffs && <DiffViewer codeLines={cur(diffs).lines}
-                                     oldFileName={cur(diffs).oldFileName} newFileName={cur(diffs).newFileName}
-                                     getMoreLines={getMoreLines} style={{flex: 2.5}}/>
-            }
+            <Box flex="2.5" display="flex">
+                {
+                    // we need this flexbox because if diffs is null, the left column will stretch
+                    // recreate DiffViewer when diffs changes?
+                    diffs && <DiffViewer codeLines={cur(diffs).lines}
+                                         oldFileName={cur(diffs).oldFileName} newFileName={cur(diffs).newFileName}
+                                         getMoreLines={getMoreLines}/>
+                }
+            </Box>
         </Box>
     );
 }

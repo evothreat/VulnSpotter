@@ -143,6 +143,7 @@
 .diffViewer {
     display: flex;
     flex-direction: column;
+    /* if in flex-container, take whole space */
     flex: 1;
 }
 
