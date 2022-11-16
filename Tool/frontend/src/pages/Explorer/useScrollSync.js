@@ -1,63 +1,77 @@
 import {useCallback, useEffect, useRef} from 'react';
 
+
 const groups = {};
 
-export const useSyncScroller = (id) => {
+export const useSyncScroller = (key) => {
     const nodeRef = useRef();
     const callbackRef = useRef();
 
-    const detachCurrent = useCallback(() => {
+    const cleanup = useCallback(() => {
+        // detach listener
         if (nodeRef.current && callbackRef.current) {
             nodeRef.current.removeEventListener('scroll', callbackRef.current);
-
-            for (const nodeRefs of Object.values(groups)) {
-                const ix = nodeRefs.indexOf(nodeRef);
-                if (ix !== -1) {
-                    nodeRefs.splice(ix, 1);
-                    break;
-                }
-            }
-            nodeRef.current = null;
-            callbackRef.current = null;
         }
+        // remove ref from groups (nodeRef and not nodeRef.current)
+        for (const [key, nodeRefs] of Object.entries(groups)) {
+            const ix = nodeRefs.indexOf(nodeRef);
+            if (ix !== -1) {
+                if (nodeRefs.length > 1) {
+                    nodeRefs.splice(ix, 1);
+                } else {
+                    delete groups[key];
+                }
+                break;
+            }
+        }
+        // clear references
+        nodeRef.current = null;
+        callbackRef.current = null;
     }, []);
 
-    useEffect(() => detachCurrent, [detachCurrent]);
-
     useEffect(() => {
-        detachCurrent();
-        if (groups[id]) {
-            groups[id].push(nodeRef);
+        if (groups[key]) {
+            groups[key].push(nodeRef);
         } else {
-            groups[id] = [nodeRef];
+            groups[key] = [nodeRef];
         }
-    }, [detachCurrent, id]);
+        return cleanup;
+    }, [cleanup, key]);
 
     return useCallback((node) => {
         if (!node) {
             return;
         }
-        detachCurrent();
-
+        if (nodeRef.current) {
+            if (nodeRef.current !== node) {
+                // reassign to new node
+                nodeRef.current.removeEventListener('scroll', callbackRef.current);
+                nodeRef.current = node;
+                node.addEventListener('scroll', callbackRef.current);
+            }
+            return;
+        }
         nodeRef.current = node;
         callbackRef.current = () => {
-            const elements = groups[id];
+            const curEl = nodeRef.current;
+            const elements = groups[key];
 
-            let scrollX = node.scrollLeft;
-            let scrollY = node.scrollTop;
+            let scrollX = curEl.scrollLeft;
+            let scrollY = curEl.scrollTop;
 
-            const xRate = scrollX / (node.scrollWidth - node.clientWidth);
-            const yRate = scrollY / (node.scrollHeight - node.clientHeight);
+            const xRate = scrollX / (curEl.scrollWidth - curEl.clientWidth);
+            const yRate = scrollY / (curEl.scrollHeight - curEl.clientHeight);
 
-            const updateX = scrollX !== node.eX;
-            const updateY = scrollY !== node.eY;
+            const updateX = scrollX !== curEl.eX;
+            const updateY = scrollY !== curEl.eY;
 
-            node.eX = scrollX;
-            node.eY = scrollY;
+            curEl.eX = scrollX;
+            curEl.eY = scrollY;
 
             for (let elem of elements) {
                 let otherEl = elem.current;
-                if (otherEl !== node) {
+                // we do only synchronize others
+                if (otherEl !== curEl) {
                     if (
                         updateX &&
                         Math.round(
@@ -69,7 +83,6 @@ export const useSyncScroller = (id) => {
                     ) {
                         otherEl.scrollLeft = scrollX;
                     }
-
                     if (
                         updateY &&
                         Math.round(
@@ -85,5 +98,5 @@ export const useSyncScroller = (id) => {
             }
         };
         node.addEventListener('scroll', callbackRef.current);
-    }, [detachCurrent, id]);
+    }, [key]);
 };
