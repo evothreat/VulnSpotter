@@ -97,7 +97,7 @@ export default function Explorer() {
             setDiffs({...diffs});
         } else if (commits.data.length > commits.ix + 1) {
             commits.ix++;
-            console.log('id:', cur(commits).id)
+            console.log('ID:', cur(commits).id)
             setCommits({...commits});
         } else {
             console.log('no more commits available')
@@ -142,7 +142,7 @@ export default function Explorer() {
                 }
                 {
                     // handle empty state in CveViewer
-                    cveList?.length > 0 && <CveViewer cveList={cveList}/>
+                    cveList && <CveViewer cveList={cveList}/>
                 }
             </Box>
             <Divider orientation="vertical" flexItem/>

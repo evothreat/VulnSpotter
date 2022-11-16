@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useRef, useState} from "react";
 import * as Mousetrap from "mousetrap";
 import {mod} from "../../utils";
 import Box from "@mui/material/Box";
@@ -51,6 +51,12 @@ function renderDetails(cve) {
 export default function CveViewer({cveList}) {
     const [cveIx, setCveIx] = useState(0);
 
+    const preCveListRef = useRef(cveList);
+    if (preCveListRef.current !== cveList) {
+        preCveListRef.current = cveList;
+        setCveIx(0);
+    }
+
     const handleChange = (e) => {
         setCveIx(parseInt(e.currentTarget.dataset.index));
     };
@@ -70,7 +76,15 @@ export default function CveViewer({cveList}) {
     return (
         <Box tabIndex="-1" flex="1 1 0" display="flex" flexDirection="column" onFocus={bindHotkeys} onBlur={unbindHotkeys}>
             <WindowTitle title="CVEs"/>
-            {renderDetails(cveList[cveIx])}
+            {
+                cveList.length === 0
+                    ? (
+                        <Typography fontSize="14px" color="#808080" margin="10px 16px">
+                            No records available
+                        </Typography>
+                    )
+                    : renderDetails(cveList[cveIx])
+            }
             {
                 cveList.length > 1 && (
                     <Box display="flex" justifyContent="center" position="sticky" bottom="0" zIndex="1" bgcolor="white">
