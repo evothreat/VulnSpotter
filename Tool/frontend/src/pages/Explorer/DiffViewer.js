@@ -168,7 +168,7 @@ function renderDiffRows(lineHunks, expandHandler, hasBottomExpander) {
     return [leftLines, rightLines];
 }
 
-function DiffWindow({lineHunks, expandHandler, hasBottomExpander}) {
+function DiffWindow({lineHunks, expandHandler, hasBottomExpander, setWinRef}) {
     const [lines, setLines] = useState(null);
 
     const setScrollRefLeft = useSyncScroller('diffScroll');
@@ -184,9 +184,23 @@ function DiffWindow({lineHunks, expandHandler, hasBottomExpander}) {
         }
     }, [lineHunks, expandHandler, hasBottomExpander]);
 
+    const setLeftWinRefs = (node) => {
+        setScrollRefLeft(node);
+        if (setWinRef) {
+            setWinRef.setLeftRef(node);
+        }
+    };
+
+    const setRightWinRefs = (node) => {
+        setScrollRefRight(node);
+        if (setWinRef) {
+            setWinRef.setRightRef(node);
+        }
+    };
+
     return lines && (
         <div className={cssStyle.tablesContainer}>
-            <div ref={setScrollRefLeft} className={cssStyle.tableBox}>
+            <div ref={setLeftWinRefs} className={cssStyle.tableBox}>
                 <table className={cssStyle.diffTable}>
                     <tbody>
                     {lines.left}
@@ -194,7 +208,7 @@ function DiffWindow({lineHunks, expandHandler, hasBottomExpander}) {
                 </table>
             </div>
 
-            <div ref={setScrollRefRight} className={cssStyle.tableBox}>
+            <div ref={setRightWinRefs} className={cssStyle.tableBox}>
                 <table className={cssStyle.diffTable}>
                     <tbody>
                     {lines.right}
@@ -206,7 +220,7 @@ function DiffWindow({lineHunks, expandHandler, hasBottomExpander}) {
 }
 
 
-export default function DiffViewer({codeLines, oldFileName, newFileName, getMoreLines, style}) {
+export default function DiffViewer({codeLines, oldFileName, newFileName, getMoreLines, setWinRef, style}) {
 
     const [lineHunks, setLineHunks] = useState(null);
     const [hasBottomExpander, setHasBottomExpander] = useState(true);
@@ -283,7 +297,7 @@ export default function DiffViewer({codeLines, oldFileName, newFileName, getMore
             </div>
             <div className={cssStyle.diffBody}>
                 {
-                    lineHunks && <DiffWindow lineHunks={lineHunks} expandHandler={handleExpand}
+                    lineHunks && <DiffWindow lineHunks={lineHunks} expandHandler={handleExpand} setWinRef={setWinRef}
                                              hasBottomExpander={hasBottomExpander}/>
                 }
             </div>

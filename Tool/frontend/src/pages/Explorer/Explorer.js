@@ -6,7 +6,7 @@ import {useParams} from "react-router-dom";
 import CommitsService from "../../services/CommitsService";
 import {createLineDiff, DiffType, parsePatch} from "../../diffUtils";
 import Typography from "@mui/material/Typography";
-import {getCvss3Severity, normalizeText} from "../../utils";
+import {getCvss3Severity, mod, normalizeText} from "../../utils";
 import useHotkeys from "./useHotkeys";
 import CveViewer from "./CveViewer";
 import WindowTitle from "./WindowTitle";
@@ -19,11 +19,11 @@ function cur(obj) {
     return obj.data[obj.ix];
 }
 
-function MessageWindow({message}) {
+function MessageWindow({message, setWinRef}) {
     return (
         <Box flex="1 1 0" display="flex" flexDirection="column">
             <WindowTitle title="Message"/>
-            <Box flex="1 1 0" overflow="auto">
+            <Box ref={setWinRef} tabIndex="0" flex="1 1 0" overflow="auto">
                 <Typography padding="10px 15px" whiteSpace="pre-wrap" fontSize="14px">
                     {normalizeText(message)}
                 </Typography>
@@ -38,6 +38,13 @@ export default function Explorer() {
     const [diffs, setDiffs] = useState(null);
     const [cveList, setCveList] = useState(null);
     const reverse = useRef(false);
+
+    const windowRefs = [
+        useRef(null),
+        useRef(null),
+        useRef(null),
+        useRef(null)
+    ];
 
     useEffect(() => {
         ProjectsService.getCommits(projId)
@@ -78,6 +85,7 @@ export default function Explorer() {
 
     const gotoPrevDiff = (e) => {
         e.preventDefault();
+
         if (diffs.ix - 1 >= 0) {
             diffs.ix--;
             setDiffs({...diffs});
@@ -92,6 +100,7 @@ export default function Explorer() {
 
     const gotoNextDiff = (e) => {
         e.preventDefault();
+
         if (diffs.data.length > diffs.ix + 1) {
             diffs.ix++;
             setDiffs({...diffs});
@@ -107,7 +116,8 @@ export default function Explorer() {
     const getMoreLines = async (prevLineno, curLineno, dir, beginLeft, beginRight) => {
         try {
             const data = await CommitsService.getFileLines(
-                cur(commits).id, cur(diffs).newFileName, prevLineno, curLineno, dir
+                cur(commits).id, cur(diffs).newFileName,
+                prevLineno, curLineno, dir
             );
             if (data.length === 0) {
                 return [];
@@ -116,6 +126,7 @@ export default function Explorer() {
             if (lines.at(-1) === '') {
                 lines.pop();
             }
+            // this should be done in DiffViewer?
             if (dir > 0) {
                 beginLeft -= lines.length;
                 beginRight -= lines.length;
@@ -130,19 +141,30 @@ export default function Explorer() {
         return null;
     };
 
+    const switchWindow = (e) => {
+        e.preventDefault();
+
+        let ix = windowRefs.findIndex((ref) => ref.current === document.activeElement);
+        ix = ix !== -1 ? mod(ix + 1, windowRefs.length) : 0;
+        if (windowRefs[ix].current) {
+            windowRefs[ix].current.focus();
+        }
+    };
+
     useHotkeys('shift+left', gotoPrevDiff);
     useHotkeys('shift+right', gotoNextDiff);
+    useHotkeys('tab', switchWindow);
 
     return (
         <Box display="flex" gap="1px">
             <Box flex="1" display="flex" flexDirection="column" gap="2px">
                 {
                     // render this two only if commits && cveList!
-                    commits && <MessageWindow message={cur(commits).message}/>
+                    commits && <MessageWindow message={cur(commits).message} setWinRef={(el) => windowRefs[0].current = el}/>
                 }
                 {
                     // handle empty state in CveViewer
-                    cveList && <CveViewer cveList={cveList}/>
+                    cveList && <CveViewer cveList={cveList} setWinRef={(el) => windowRefs[1].current = el}/>
                 }
             </Box>
             <Divider orientation="vertical" flexItem/>
@@ -152,7 +174,12 @@ export default function Explorer() {
                     // recreate DiffViewer when diffs changes?
                     diffs && <DiffViewer codeLines={cur(diffs).lines}
                                          oldFileName={cur(diffs).oldFileName} newFileName={cur(diffs).newFileName}
-                                         getMoreLines={getMoreLines}/>
+                                         getMoreLines={getMoreLines}
+                                         setWinRef={{
+                                             setLeftRef: (el) => windowRefs[2].current = el,
+                                             setRightRef: (el) => windowRefs[3].current = el
+                                        }}
+                    />
                 }
             </Box>
         </Box>

@@ -48,7 +48,7 @@ function renderDetails(cve) {
     );
 }
 
-export default function CveViewer({cveList}) {
+export default function CveViewer({cveList, setWinRef}) {
     const [cveIx, setCveIx] = useState(0);
 
     const preCveListRef = useRef(cveList);
@@ -77,8 +77,8 @@ export default function CveViewer({cveList}) {
         <Box flex="1 1 0" display="flex" flexDirection="column">
             <WindowTitle title="CVEs"/>
 
-            <Box tabIndex="0" flex="1 1 0" display="flex" flexDirection="column" position="relative" overflow="auto"
-                 onFocus={bindHotkeys} onBlur={unbindHotkeys}>
+            <Box ref={setWinRef} tabIndex="0" flex="1 1 0" display="flex" flexDirection="column" position="relative"
+                 overflow="auto" onFocus={bindHotkeys} onBlur={unbindHotkeys}>
                 {
                     cveList.length === 0
                         ? (
