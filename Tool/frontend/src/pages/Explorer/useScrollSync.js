@@ -22,7 +22,7 @@ export const useSyncScroller = (id) => {
         }
     }, []);
 
-    useEffect(() => detachCurrent, [detachCurrent, id]);
+    useEffect(() => detachCurrent, [detachCurrent]);
 
     useEffect(() => {
         detachCurrent();
