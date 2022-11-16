@@ -32,7 +32,7 @@ function renderDetail(title, content, vertical, style) {
 
 function renderDetails(cve) {
     return (
-        <Box flex="1 1 0" overflow="auto" display="flex" flexDirection="column" gap="12px" padding="10px 16px">
+        <Box flex="1" display="flex" flexDirection="column" gap="12px" padding="10px 16px">
             {renderDetail('Name:', cve.cve_id)}
             {
                 renderDetail('Severity:', `${cve.cvss_score} ${cve.severity}`, false,
@@ -74,30 +74,36 @@ export default function CveViewer({cveList}) {
     };
 
     return (
-        <Box tabIndex="-1" flex="1 1 0" display="flex" flexDirection="column" onFocus={bindHotkeys} onBlur={unbindHotkeys}>
+        <Box flex="1 1 0" display="flex" flexDirection="column">
             <WindowTitle title="CVEs"/>
-            {
-                cveList.length === 0
-                    ? (
-                        <Typography fontSize="14px" color="#808080" margin="10px 16px">
-                            No records available
-                        </Typography>
+
+            <Box tabIndex="0" flex="1 1 0" display="flex" flexDirection="column" position="relative" overflow="auto"
+                 onFocus={bindHotkeys} onBlur={unbindHotkeys}>
+                {
+                    cveList.length === 0
+                        ? (
+                            <Typography fontSize="14px" color="#808080" margin="10px 16px">
+                                No records available
+                            </Typography>
+                        )
+                        : renderDetails(cveList[cveIx])
+                }
+                {
+                    cveList.length > 1 && (
+                        <Box display="flex" justifyContent="center" position="sticky" bottom="0" zIndex="1" bgcolor="white">
+                            {
+                                cveList.map((_, i) => (
+                                    <IconButton key={i} disableRipple sx={{padding: '8px 3px'}} onClick={handleChange}
+                                                data-index={i}>
+                                        <CircleIcon sx={{fontSize: '10px'}}
+                                                    style={{color: i === cveIx ? '#71757e' : '#bbb4b4'}}/>
+                                    </IconButton>
+                                ))
+                            }
+                        </Box>
                     )
-                    : renderDetails(cveList[cveIx])
-            }
-            {
-                cveList.length > 1 && (
-                    <Box display="flex" justifyContent="center" position="sticky" bottom="0" zIndex="1" bgcolor="white">
-                        {
-                            cveList.map((_, i) => (
-                                <IconButton key={i} disableRipple sx={{padding: '8px 3px'}} onClick={handleChange} data-index={i}>
-                                    <CircleIcon sx={{fontSize: '10px'}} style={{color: i === cveIx ? '#71757e' : '#bbb4b4'}}/>
-                                </IconButton>
-                            ))
-                        }
-                    </Box>
-                )
-            }
+                }
+            </Box>
         </Box>
     );
 }
