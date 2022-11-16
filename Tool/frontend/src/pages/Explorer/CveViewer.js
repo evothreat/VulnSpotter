@@ -68,7 +68,7 @@ export default function CveViewer({cveList}) {
     };
 
     return (
-        <Box flex="1 1 0" display="flex" flexDirection="column" onFocus={bindHotkeys} onBlur={unbindHotkeys}>
+        <Box tabIndex="-1" flex="1 1 0" display="flex" flexDirection="column" onFocus={bindHotkeys} onBlur={unbindHotkeys}>
             <WindowTitle title="CVEs"/>
             {renderDetails(cveList[cveIx])}
             {

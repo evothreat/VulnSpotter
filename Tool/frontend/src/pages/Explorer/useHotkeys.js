@@ -12,7 +12,7 @@ const useHotkeys = (sequence, callback, eventType) => {
         return () => {
             Mousetrap.unbind(sequence);
         };
-    }, []);     // if sequence or eventType is dynamic -> add dependencies
+    }, [eventType, sequence]);
 };
 
 export default useHotkeys;

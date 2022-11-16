@@ -6,7 +6,7 @@ import React, {useEffect, useState} from "react";
 import {areHunksSequent, calcHunks, DiffType, getStats} from "../../diffUtils";
 import {nanoid} from "nanoid";
 import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "./Icons";
-import {ScrollSync, ScrollSyncPane} from "react-scroll-sync";
+import {useSyncScroller} from "./useScrollSync";
 
 
 function isNotConstant(l) {
@@ -171,6 +171,9 @@ function renderDiffRows(lineHunks, expandHandler, hasBottomExpander) {
 function DiffWindow({lineHunks, expandHandler, hasBottomExpander}) {
     const [lines, setLines] = useState(null);
 
+    const setScrollRefLeft = useSyncScroller('diffScroll');
+    const setScrollRefRight = useSyncScroller('diffScroll');
+
     useEffect(() => {
         const diffLines = renderDiffRows(lineHunks, expandHandler, hasBottomExpander);
         if (diffLines.length > 0) {
@@ -181,31 +184,24 @@ function DiffWindow({lineHunks, expandHandler, hasBottomExpander}) {
         }
     }, [lineHunks, expandHandler, hasBottomExpander]);
 
-    return (
-        lines &&
-        <ScrollSync>
-            <div className={cssStyle.tablesContainer}>
-                <ScrollSyncPane>
-                    <div className={cssStyle.tableBox}>
-                        <table className={cssStyle.diffTable}>
-                            <tbody>
-                            {lines.left}
-                            </tbody>
-                        </table>
-                    </div>
-                </ScrollSyncPane>
-
-                <ScrollSyncPane>
-                    <div className={cssStyle.tableBox}>
-                        <table className={cssStyle.diffTable}>
-                            <tbody>
-                            {lines.right}
-                            </tbody>
-                        </table>
-                    </div>
-                </ScrollSyncPane>
+    return lines && (
+        <div className={cssStyle.tablesContainer}>
+            <div ref={setScrollRefLeft} className={cssStyle.tableBox}>
+                <table className={cssStyle.diffTable}>
+                    <tbody>
+                    {lines.left}
+                    </tbody>
+                </table>
             </div>
-        </ScrollSync>
+
+            <div ref={setScrollRefRight} className={cssStyle.tableBox}>
+                <table className={cssStyle.diffTable}>
+                    <tbody>
+                    {lines.right}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     );
 }
 
