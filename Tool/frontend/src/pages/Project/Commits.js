@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Fragment, useEffect, useState} from "react";
+import {Fragment, useEffect, useMemo, useState} from "react";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import {Checkbox, Collapse} from "@mui/material";
@@ -111,50 +111,14 @@ function CommitRow({item}) {
     );
 }
 
-function CommitsList({items}) {
-    const [maxIndex, setMaxIndex] = useState(MAX_ITEMS);
-    const [curItems, setCurItems] = useState(items);
-
-    const showNextItems = () => setMaxIndex((curIx) => Math.min(items.length, curIx + MAX_ITEMS));
-
-    useEffect(() => {
-        setMaxIndex(MAX_ITEMS);
-        setCurItems(items);
-    }, [items]);
-
-    return (
-        curItems === items
-            ? <TableBody>
-                {
-                    items.length > 0
-                        ? <Fragment>
-                            {
-                                items.slice(0, maxIndex).map((it) => <CommitRow item={it} key={it.id}/>)
-                            }
-                            <TableRow>
-                                <TableCell colSpan="100%">
-                                    <Waypoint bottomOffset={BOTTOM_OFFSET} onEnter={showNextItems}/>
-                                </TableCell>
-                            </TableRow>
-                        </Fragment>
-                        : <TableRow>
-                            <TableCell colSpan="100%" sx={{border: 0, color: '#606060'}}>
-                                There are no items to display
-                            </TableCell>
-                        </TableRow>
-                }
-            </TableBody>
-            : null
-    );
-}
-
 function CommitsTable() {
+    const {projId} = useParams();
     const [items, setItems] = useState(null);
     const [sorter, setSorter] = useState({
         order: 'desc',
         orderBy: 'created_at'
     });
-    const {projId} = useParams();
+    const [endIx, setEndIx] = useState(MAX_ITEMS);
 
     useEffect(() => {
         ProjectsService.getCommits(projId)
@@ -168,30 +132,51 @@ function CommitsTable() {
 
     const sortItems = (key) => {
         const isAsc = sorter.orderBy === key && sorter.order === 'asc';
-
+        setEndIx(MAX_ITEMS);
         setSorter({
             order: isAsc ? 'desc' : 'asc',
             orderBy: key
         });
     };
 
-    const getItems = () => {
-        return items.sort(Utils.createComparator(sorter.orderBy, sorter.order)).slice();
-    };
+    const showNextItems = () => setEndIx((curIx) => Math.min(items.length, curIx + MAX_ITEMS));
 
-    return (
-        items == null
-            ? <Typography variant="body2">Loading commits...</Typography>
-            : <TableContainer sx={{height: TABLE_HEIGHT}}>
+    const orderedItems = useMemo(
+        () => items && items.slice().sort(Utils.createComparator(sorter.orderBy, sorter.order)),
+        [items, sorter]
+    );
+
+    // add items-list hash to key
+    return orderedItems
+        ? (
+            <TableContainer key={sorter.order + sorter.orderBy} sx={{height: TABLE_HEIGHT}}>
                 <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
-                    <EnhancedTableHead headCells={headCells}
-                                       order={sorter.order}
-                                       orderBy={sorter.orderBy}
-                                       sortReqHandler={sortItems}/>
-                    <CommitsList items={getItems()}/>
+                    <EnhancedTableHead headCells={headCells} order={sorter.order} orderBy={sorter.orderBy} sortReqHandler={sortItems}/>
+                    <TableBody>
+                        {
+                            orderedItems.length > 0
+                                ? <Fragment>
+                                    {
+                                        // find more efficient version
+                                        orderedItems.slice(0, endIx).map((it) => <CommitRow item={it} key={it.id}/>)
+                                    }
+                                    <TableRow>
+                                        <TableCell colSpan="100%">
+                                            <Waypoint bottomOffset={BOTTOM_OFFSET} onEnter={showNextItems}/>
+                                        </TableCell>
+                                    </TableRow>
+                                </Fragment>
+                                : <TableRow>
+                                    <TableCell colSpan="100%" sx={{border: 0, color: '#606060'}}>
+                                        There are no items to display
+                                    </TableCell>
+                                </TableRow>
+                        }
+                    </TableBody>
                 </Table>
             </TableContainer>
-    );
+        )
+        : <Typography variant="body2">Loading commits...</Typography>;
 }
 
 export default function Commits() {
