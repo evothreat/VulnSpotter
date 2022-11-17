@@ -39,16 +39,18 @@ export const useSyncScroller = (key) => {
     }, [cleanup, key]);
 
     return useCallback((node) => {
-        if (!node) {
-            return;
-        }
         if (nodeRef.current) {
             if (nodeRef.current !== node) {
                 // reassign to new node
                 nodeRef.current.removeEventListener('scroll', callbackRef.current);
                 nodeRef.current = node;
-                node.addEventListener('scroll', callbackRef.current);
+                if (node) {
+                    node.addEventListener('scroll', callbackRef.current);
+                }
             }
+            return;
+        }
+        if (!node) {
             return;
         }
         nodeRef.current = node;
