@@ -102,7 +102,8 @@ function parsePatch(patch) {
         const parsedDiff = {
             stats: {
                 deletions: 0,
-                additions: 0
+                additions: 0,
+                updates: 0
             },
             oldFileName: diff.oldFileName,
             newFileName: diff.newFileName,
@@ -127,8 +128,7 @@ function parsePatch(patch) {
                             createLineDiff(oldStart++, newStart++, DiffType.UPDATED,
                                 calcWordDiff(lines[ix++].slice(1), lines[j++].slice(1)))
                         );
-                        stats.additions++;
-                        stats.deletions++;
+                        stats.updates++;
                         count--;
                     }
                     while (count > 0) {
@@ -200,6 +200,7 @@ function getStats(lines) {
     const stats = {
         deletions: 0,
         additions: 0,
+        updates: 0
     };
     for (const l of lines) {
         if (l.diffType === DiffType.REMOVED) {
@@ -207,8 +208,7 @@ function getStats(lines) {
         } else if (l.diffType === DiffType.ADDED) {
             stats.additions++;
         } else if (l.diffType === DiffType.UPDATED) {
-            stats.additions++;
-            stats.deletions++;
+            stats.updates++;
         }
     }
     return stats;

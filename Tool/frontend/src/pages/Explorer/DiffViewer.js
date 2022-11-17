@@ -284,8 +284,8 @@ export default function DiffViewer({stats, codeLines, oldFileName, newFileName, 
                     {oldFileName !== newFileName ? `${oldFileName} → ${newFileName}` : oldFileName}
                 </strong>
                 <div className={cssStyle.diffStats}>
-                    <span className={cssStyle.deletion}>-{stats.deletions}</span>
-                    <span className={cssStyle.addition}>+{stats.additions}</span>
+                    <span className={cssStyle.deletion}>-{stats.deletions + stats.updates}</span>
+                    <span className={cssStyle.addition}>+{stats.additions + stats.updates}</span>
                 </div>
             </div>
             <div className={cssStyle.diffBody}>
