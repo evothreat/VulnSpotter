@@ -46,8 +46,8 @@ def setup_db():
     db_conn.execute(tables.PROJECTS_SCHEMA)
     db_conn.execute(tables.COMMITS_SCHEMA)
     db_conn.execute(tables.MEMBERSHIP_SCHEMA)
+    db_conn.execute(tables.PROJECT_UPDATES_SCHEMA)
     db_conn.execute(tables.NOTIFICATIONS_SCHEMA)
-    db_conn.execute(tables.USER_NOTIFICATIONS_SCHEMA)
     db_conn.execute(tables.INVITATIONS_SCHEMA)
     db_conn.execute(tables.VOTES_SCHEMA)
     db_conn.execute(tables.CVE_INFO_SCHEMA)
@@ -123,14 +123,14 @@ def open_db_transaction():
         conn.close()
 
 
-def notify(users, actor_id, activity, object_type, object_id):
+def notify(users, actor_id, activity, proj_id):
     with db_conn:
-        notif_id = db_conn.execute('INSERT INTO notifications(actor_id,activity,object_type,object_id,created_at) '
-                                   'VALUES (?,?,?,?,?)',
-                                   (actor_id, activity, object_type, object_id, unix_time())).lastrowid
+        cur_time = unix_time()
+        update_id = db_conn.execute('INSERT INTO project_updates(actor_id,activity,project_id,updated_at) '
+                                    'VALUES (?,?,?,?)', (actor_id, activity, proj_id, cur_time)).lastrowid
 
-        db_conn.executemany('INSERT INTO user_notifications(user_id,notif_id,is_seen) VALUES (?,?,?)',
-                            [(u, notif_id, False) for u in users])
+        db_conn.executemany('INSERT INTO notifications(user_id,update_id,is_seen,created_at) VALUES (?,?,?,?)',
+                            [(u, update_id, False, cur_time) for u in users])
 
 
 def create_cve_records(repo_name, cve_list):
@@ -154,7 +154,7 @@ def create_project_from_repo(user_id, repo_url, proj_name):
         else:
             git.Repo.clone_from(f'{parts.scheme}://:@{repo_loc}', repo_dir).close()
     except git.exc.GitError:
-        notify((user_id,), 1, Action.CREATE, Model.PROJECT, None)
+        notify((user_id,), 1, Action.CREATE, None)
         return
 
     vulns, found_cve_list, _ = find_vulns(repo_dir)
@@ -187,7 +187,7 @@ def create_project_from_repo(user_id, repo_url, proj_name):
             conn.executemany('INSERT INTO commit_cve(commit_id,cve_id) SELECT ?,id FROM cve_info WHERE cve_id=?',
                              commit_cve)
 
-    notify((user_id,), 1, Action.CREATE, Model.PROJECT, proj_id)
+    notify((user_id,), 1, Action.CREATE, proj_id)
 
 
 def is_owner(user_id, proj_id):
@@ -301,7 +301,8 @@ def update_project(proj_id):
     if not params:
         return '', 422
 
-    args.extend([proj_id, get_jwt_identity()])
+    args.append(proj_id)
+    args.append(get_jwt_identity())
 
     with db_conn:
         updated = db_conn.execute(f'UPDATE projects SET {params} WHERE id=? AND owner_id=?', args).rowcount
@@ -321,9 +322,6 @@ def delete_project(proj_id):
                                   (proj_id, get_jwt_identity())).rowcount
         if deleted == 0:
             return '', 404
-        # notifications-table doesn't have foreign key enabled to out project, so records must be deleted explicitly
-        # notifications have lower priority, so if transaction fails we don't need to rollback
-        db_conn.execute('DELETE FROM notifications WHERE object_type=? AND object_id=?', (Model.PROJECT, proj_id))
 
     # TODO: notify all members about deletion!
     return '', 204
@@ -332,15 +330,15 @@ def delete_project(proj_id):
 @app.route('/api/users/me/notifications', methods=['GET'])
 @jwt_required()
 def get_notifications():
-    param = 'AND un.is_seen=0' if 'unseen' in request.args else ''
+    param = 'AND n.is_seen=0' if 'unseen' in request.args else ''
     data = db_conn.execute(
-        'SELECT n.id,n.actor_id,n.created_at,u.full_name,n.activity,n.object_type,p.id AS project_id,p.name,un.is_seen '
-        'FROM user_notifications un '
-        'JOIN notifications n ON un.user_id=? {} AND n.object_type=? AND n.id=un.notif_id '
-        'JOIN users u on n.actor_id=u.id '
-        'LEFT JOIN projects p ON n.object_id=p.id'.format(param), (get_jwt_identity(), Model.PROJECT)).fetchall()
+        'SELECT n.id,n.is_seen,n.created_at,pu.actor_id,pu.activity,pu.project_id,pu.updated_at,'
+        'u.full_name AS user_name,p.name AS project_name FROM notifications n '
+        'JOIN project_updates pu ON n.user_id=? {} AND pu.id=n.update_id '
+        'JOIN users u on pu.actor_id=u.id '
+        'LEFT JOIN projects p ON pu.project_id=p.id'.format(param), (get_jwt_identity(),)).fetchall()
 
-    return [views.project_notif(d) for d in data]  # add later other notifications types too
+    return [views.notification(d) for d in data]
 
 
 @app.route('/api/users/me/notifications/<notif_id>', methods=['PATCH'])
@@ -355,11 +353,11 @@ def update_notification(notif_id):
     if not params:
         return '', 422
 
-    args.extend([get_jwt_identity(), notif_id])
+    args.append(notif_id)
+    args.append(get_jwt_identity())
 
     with db_conn:
-        updated = db_conn.execute(f'UPDATE user_notifications SET {params} WHERE user_id=? AND notif_id=?',
-                                  args).rowcount
+        updated = db_conn.execute(f'UPDATE notifications SET {params} WHERE id=? AND user_id=?', args).rowcount
 
     if updated == 0:
         return '', 404
@@ -371,8 +369,7 @@ def update_notification(notif_id):
 @jwt_required()
 def delete_notification(notif_id):
     with db_conn:
-        deleted = db_conn.execute('DELETE FROM notifications WHERE id=? AND '
-                                  'EXISTS(SELECT * FROM user_notifications un WHERE un.notif_id=id AND un.user_id=?)',
+        deleted = db_conn.execute('DELETE FROM notifications WHERE id=? AND user_id=?',
                                   (notif_id, get_jwt_identity())).rowcount
     if deleted == 0:
         return '', 404
@@ -384,17 +381,19 @@ def delete_notification(notif_id):
 @jwt_required()
 def delete_notifications():
     args = [get_jwt_identity()]
-
-    max_age = request.args.get('max_age')
     param = ''
-    if max_age:
-        param = 'AND ? >= created_at'
-        args.append(max_age)
+    if request.args:
+        query = request.args
+        param = 'AND created_at BETWEEN ? AND ?'
+        try:
+            args.append(query.get('min_age', 0, type=int))
+            args.append(query.get('max_age', type=int))
+        except ValueError:
+            return '', 400
 
     with db_conn:
-        db_conn.execute(f'DELETE FROM notifications WHERE '
-                        f'EXISTS(SELECT * FROM user_notifications un WHERE un.notif_id=id AND un.user_id=?) {param}',
-                        args)
+        db_conn.execute(f'DELETE FROM notifications WHERE user_id=? {param}', args)
+        # check if successfully?
 
     return '', 204
 

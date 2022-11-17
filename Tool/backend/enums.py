@@ -17,11 +17,6 @@ class Action(SQLiteEnum):
     DECLINE = 'decline'
 
 
-class Model(SQLiteEnum):
-    PROJECT = 'project'
-    COMMIT = 'commit'
-
-
 class Role(SQLiteEnum):
     OWNER = 'owner'
     CONTRIBUTOR = 'contributor'

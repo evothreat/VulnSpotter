@@ -41,28 +41,28 @@ COMMITS_SCHEMA = '''
         FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
     )
 '''
-# we can not cascade on object_id, because it's type is variable...
-# TODO: remove object type & replace object_id with project_id, because we don't have other notification types
-NOTIFICATIONS_SCHEMA = '''
-    CREATE TABLE notifications (
+
+PROJECT_UPDATES_SCHEMA = '''
+    CREATE TABLE project_updates (
         id          INTEGER PRIMARY KEY,
         actor_id    INTEGER,
         activity    TEXT,
-        object_type TEXT,
-        object_id   INTEGER,
-        created_at  INTEGER,
-        FOREIGN KEY(actor_id) REFERENCES users(id) ON DELETE CASCADE
+        project_id  INTEGER,
+        updated_at  INTEGER,
+        FOREIGN KEY(actor_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
     )
 '''
 
-USER_NOTIFICATIONS_SCHEMA = '''
-    CREATE TABLE user_notifications (
+NOTIFICATIONS_SCHEMA = '''
+    CREATE TABLE notifications (
         id          INTEGER PRIMARY KEY,
         user_id     INTEGER,
-        notif_id    INTEGER,
-        is_seen     BOOLEAN,     
+        update_id   INTEGER,
+        is_seen     BOOLEAN,
+        created_at  INTEGER,     
         FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
-        FOREIGN KEY(notif_id) REFERENCES notifications(id) ON DELETE CASCADE
+        FOREIGN KEY(update_id) REFERENCES project_updates(id) ON DELETE CASCADE
     )
 '''
 
@@ -72,9 +72,9 @@ INVITATIONS_SCHEMA = '''
         invitee_id  INTEGER,
         project_id  INTEGER,
         role        TEXT,
-        UNIQUE(invitee_id, project_id),
         FOREIGN KEY(invitee_id) REFERENCES users(id) ON DELETE CASCADE,
-        FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
+        FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE,
+        UNIQUE(invitee_id, project_id)
     )
 '''
 

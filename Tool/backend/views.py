@@ -32,25 +32,21 @@ def commit(d):
 def notification(d):
     return {
         'id': d['id'],
-        'actor': {
-            'id': d['actor_id'],
-            'full_name': d['full_name']
+        'update': {
+            'actor': {
+                'id': d['actor_id'],
+                'full_name': d['user_name']
+            },
+            'activity': d['activity'],
+            'project': {
+                'id': d['project_id'],
+                'name': d['project_name']
+            } if d['project_id'] else None,
+            'updated_at': d['updated_at'],
         },
-        'activity': d['activity'],
-        'object_type': d['object_type'],
-        'object': None,
-        'created_at': d['created_at'],
-        'is_seen': d['is_seen']
+        'is_seen': d['is_seen'],
+        'created_at': d['created_at']
     }
-
-
-def project_notif(d):
-    res = notification(d)
-    res['object'] = {
-        'id': d['project_id'],
-        'name': d['name']
-    } if d['project_id'] else None
-    return res
 
 
 def sent_invitation(d):
