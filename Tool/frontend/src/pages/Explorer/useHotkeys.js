@@ -6,11 +6,22 @@ const useHotkeys = (sequence, callback, eventType) => {
     actionRef.current = callback;
 
     useEffect(() => {
+        if (!sequence) {
+            return;
+        }
+
         Mousetrap.bind(sequence, (e, combo) => {
             typeof actionRef.current === 'function' && actionRef.current(e, combo);
         }, eventType);
+
         return () => {
-            Mousetrap.unbind(sequence);
+            if (Array.isArray(sequence)) {
+                for (const key of sequence) {
+                    Mousetrap.unbind(key);
+                }
+            } else {
+                Mousetrap.unbind(sequence);
+            }
         };
     }, [eventType, sequence]);
 };

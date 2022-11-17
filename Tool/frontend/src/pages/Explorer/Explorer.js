@@ -15,6 +15,10 @@ import {Divider} from "@mui/material";
 
 // TODO: load only specific commits
 
+// store as global constant to avoid unnecessary useEffect call
+const switchKeys = ['1', '2', '3', '4'];
+
+
 function cur(obj) {
     return obj.data[obj.ix];
 }
@@ -151,9 +155,19 @@ export default function Explorer() {
         }
     };
 
+    const gotoWindow = (e, key) => {
+        e.preventDefault();
+
+        const selectedEl = windowRefs[parseInt(key)-1].current;
+        if (selectedEl) {
+            selectedEl.focus();
+        }
+    };
+
     useHotkeys('shift+left', gotoPrevDiff);
     useHotkeys('shift+right', gotoNextDiff);
     useHotkeys('tab', switchWindow);
+    useHotkeys(switchKeys, gotoWindow)
 
     return (
         <Box display="flex" gap="1px">
