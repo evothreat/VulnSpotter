@@ -2,7 +2,7 @@ import Prism from "prismjs";
 import "../../prism.css";
 import cssStyle from "./DiffViewer.module.css"
 import classnames from "classnames";
-import React, {useEffect, useState} from "react";
+import {Fragment, useEffect, useState} from "react";
 import {areHunksSequent, calcHunks, DiffType} from "../../diffUtils";
 import {nanoid} from "nanoid";
 import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "./Icons";
@@ -115,10 +115,11 @@ function renderExpander(direction, hunkId, expandHandler) {
 
 function renderBiExpander(prevHunkId, curHunkId, expandHandler) {
     return (
-        <>
+        // 0 means both directions
+        <Fragment key={curHunkId + 0}>
             {renderExpander(-1, prevHunkId, expandHandler)}
             {renderExpander(1, curHunkId, expandHandler)}
-        </>
+        </Fragment>
     );
 }
 
