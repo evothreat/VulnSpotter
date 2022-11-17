@@ -3,7 +3,7 @@ import "../../prism.css";
 import cssStyle from "./DiffViewer.module.css"
 import classnames from "classnames";
 import React, {useEffect, useState} from "react";
-import {areHunksSequent, calcHunks, DiffType, getStats} from "../../diffUtils";
+import {areHunksSequent, calcHunks, DiffType} from "../../diffUtils";
 import {nanoid} from "nanoid";
 import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "./Icons";
 import {useSyncScroller} from "./useScrollSync";
@@ -19,16 +19,6 @@ function createHunk(lines, visible) {
         lines: lines,
         visible: visible
     };
-}
-
-function renderStats(lines) {
-    const stats = getStats(lines);
-    return (
-        <div className={cssStyle.diffStats}>
-            <span className={cssStyle.deletion}>-{stats.deletions}</span>
-            <span className={cssStyle.addition}>+{stats.additions}</span>
-        </div>
-    )
 }
 
 function highlight(str) {
@@ -220,7 +210,7 @@ function DiffWindow({lineHunks, expandHandler, hasBottomExpander, setWinRef}) {
 }
 
 
-export default function DiffViewer({codeLines, oldFileName, newFileName, getMoreLines, setWinRef, style}) {
+export default function DiffViewer({stats, codeLines, oldFileName, newFileName, getMoreLines, setWinRef, style}) {
 
     const [lineHunks, setLineHunks] = useState(null);
     const [hasBottomExpander, setHasBottomExpander] = useState(true);
@@ -286,14 +276,17 @@ export default function DiffViewer({codeLines, oldFileName, newFileName, getMore
             }
         }
     };
-    // memoize renderStats...
+
     return (
         <div className={cssStyle.diffViewer} style={style}>
             <div className={cssStyle.diffHeader}>
                 <strong>
                     {oldFileName !== newFileName ? `${oldFileName} → ${newFileName}` : oldFileName}
                 </strong>
-                {renderStats(codeLines)}
+                <div className={cssStyle.diffStats}>
+                    <span className={cssStyle.deletion}>-{stats.deletions}</span>
+                    <span className={cssStyle.addition}>+{stats.additions}</span>
+                </div>
             </div>
             <div className={cssStyle.diffBody}>
                 {

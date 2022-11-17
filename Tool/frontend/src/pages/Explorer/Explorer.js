@@ -172,7 +172,7 @@ export default function Explorer() {
                 {
                     // we need this flexbox because if diffs is null, the left column will stretch
                     // recreate DiffViewer when diffs changes?
-                    diffs && <DiffViewer codeLines={cur(diffs).lines}
+                    diffs && <DiffViewer stats={cur(diffs).stats} codeLines={cur(diffs).lines}
                                          oldFileName={cur(diffs).oldFileName} newFileName={cur(diffs).newFileName}
                                          getMoreLines={getMoreLines}
                                          setWinRef={{

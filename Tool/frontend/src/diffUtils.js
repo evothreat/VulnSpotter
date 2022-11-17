@@ -100,11 +100,16 @@ function parsePatch(patch) {
     for (let i = 0; commitDiffs.length > i; i++) {
         const diff = commitDiffs[i];
         const parsedDiff = {
+            stats: {
+                deletions: 0,
+                additions: 0
+            },
             oldFileName: diff.oldFileName,
             newFileName: diff.newFileName,
             lines: []
         };
         const parsedLines = parsedDiff.lines;
+        const stats = parsedDiff.stats;
 
         for (let {oldStart, newStart, lines} of diff.hunks) {
             let ix = 0;
@@ -122,15 +127,19 @@ function parsePatch(patch) {
                             createLineDiff(oldStart++, newStart++, DiffType.UPDATED,
                                 calcWordDiff(lines[ix++].slice(1), lines[j++].slice(1)))
                         );
+                        stats.additions++;
+                        stats.deletions++;
                         count--;
                     }
                     while (count > 0) {
                         parsedLines.push(createLineDiff(oldStart++, newStart, DiffType.REMOVED, lines[ix++].slice(1)));
+                        stats.deletions++;
                         count--;
                     }
                     ix = j;
                 } else if (marker === '+') {
                     parsedLines.push(createLineDiff(oldStart, newStart++, DiffType.ADDED, lines[ix++].slice(1)));
+                    stats.additions++;
                 } else {
                     parsedLines.push(createLineDiff(oldStart++, newStart++, DiffType.CONSTANT, lines[ix++].slice(1)));
                 }
