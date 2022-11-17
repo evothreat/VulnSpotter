@@ -5,7 +5,7 @@ import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
 import RouterLink from "../components/RouterLink";
 
 const messageMap = {
-    'create_project': createProject,
+    'create': createProject,
 };
 
 // notification text style
@@ -30,10 +30,10 @@ function NotifIcon({Icon}) {
 }
 
 // notifications texts + style
-function createProject(actor, obj) {
+function createProject(actor, proj) {
     const data = {};
 
-    if (!obj) {
+    if (!proj) {
         data.icon = <NotifIcon Icon={PriorityHighIcon}/>;
         data.text = (
             <NotifText>
@@ -45,15 +45,15 @@ function createProject(actor, obj) {
     data.icon = <NotifIcon Icon={CreateNewFolderIcon}/>;
     data.text = (
         <NotifText>
-            The <NotifLink label={obj.name} href={`/home/projects/${obj.id}`}/> project was successfully created.
+            The <NotifLink label={proj.name} href={`/home/projects/${proj.id}`}/> project was successfully created.
         </NotifText>
     );
     return data;
 }
 
 // returns corresponding message based on notification
-function getMessage(notif) {
-    return messageMap[notif.activity + '_' + notif.object_type](notif.actor, notif.object);
+function getMessage(update) {
+    return messageMap[update.activity](update.actor, update.project);
 }
 
 export {

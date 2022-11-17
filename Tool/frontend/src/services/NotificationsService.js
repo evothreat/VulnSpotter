@@ -15,7 +15,7 @@ class NotificationsService {
     }
 
     markAsSeen(id) {
-        return api.patch(`${this.basePath}/${id}`, {'is_seen': true});
+        return api.patch(`${this.basePath}/${id}`, {'is_seen': true});  // add time check
     }
 
     delete(id) {

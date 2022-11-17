@@ -10,7 +10,7 @@ import {newMsgBadgeStyle} from "../style";
 import EmailIcon from "@mui/icons-material/Email";
 import ForwardToInboxIcon from '@mui/icons-material/ForwardToInbox';
 import Button from "@mui/material/Button";
-import {EmptyListMsg} from "./common";
+import EmptyListMsg from "./EmptyListMsg";
 
 
 // put buttons in secondary

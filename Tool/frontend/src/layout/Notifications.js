@@ -11,19 +11,24 @@ import {Fragment, useEffect, useState} from "react";
 import NotificationsService from "../services/NotificationsService";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import {newMsgBadgeStyle} from "../style";
-import {EmptyListMsg, NewMsgCircle} from "./common";
+import CircleIcon from "@mui/icons-material/Circle";
+import EmptyListMsg from "./EmptyListMsg";
 
 
 // TODO: delete notifications after seeing them automatically?
 
 const cmpByCreationTime = Utils.createComparator('created_at', 'desc');
 
+function NewMsgCircle() {
+    return <CircleIcon sx={{color: '#007FFF', width: '10px', height: '10px'}}/>;
+}
+
 function NotificationItem({notif, divider}) {
-    const msg = getMessage(notif);
+    const msg = getMessage(notif.update);
     return (
         <ListItem divider={divider}
                   alignItems="flex-start"
-                  secondaryAction={!notif.is_seen && <NewMsgCircle/>}
+                  secondaryAction={notif.is_seen ? null : <NewMsgCircle/>}
         >
             <ListItemIcon>
                 {msg.icon}
@@ -150,9 +155,7 @@ export default function Notifications() {
                       subheader={<NotificationsHeader deleteHandler={deleteAll}/>}>
                     {
                         notifs.length > 0
-                            ? notifs.map((n, i) => <NotificationItem notif={n}
-                                                                     key={n.id}
-                                                                     divider={notifs.length > i + 1}/>)
+                            ? notifs.map((n, i) => <NotificationItem key={n.id} notif={n} divider={notifs.length > i + 1}/>)
                             : <EmptyListMsg text="No notifications"/>
                     }
                 </List>
