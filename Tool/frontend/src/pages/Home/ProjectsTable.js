@@ -81,7 +81,7 @@ function ProjectTableList({items, setItemToDelete, setItemToRename}) {
                             <TableCell>{it.repository.substring(it.repository.indexOf('/')+1)}</TableCell>
                             <TableCell>{it.commit_n}</TableCell>
                             <TableCell align="right">
-                                <Box sx={{display: 'flex', justifyContent: 'right'}}>
+                                <Box display="flex" justifyContent="right">
                                     <ActionTooltip title="Rename">
                                         <IconButton disableRipple sx={actionBtnStyle} data-item-id={it.id}
                                                     onClick={handleRenClick}>
@@ -206,11 +206,7 @@ export default function ProjectsTable() {
 
     return (
         <Fragment>
-            <Box sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                mb: '12px'
-            }}>
+            <Box display="flex" justifyContent="space-between" mb="12px">
                 <ToggleButtonGroup color="primary" value={group} exclusive size="small" onChange={handleGroupChg}>
                     <ToggleButton value="all">All</ToggleButton>
                     <ToggleButton value="personal">Personal</ToggleButton>

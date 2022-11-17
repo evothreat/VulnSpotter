@@ -54,7 +54,7 @@ function NotificationsHeader({deleteHandler}) {
                 alignItems: 'center',
                 justifyContent: 'space-between',
             }}>
-                <Typography variant="subtitle1" sx={{color: '#505050'}}>Notifications</Typography>
+                <Typography variant="subtitle1" color="#505050">Notifications</Typography>
                 <ActionTooltip title="Delete all" placement="left">
                     <IconButton onClick={deleteHandler}>
                         <DeleteIcon fontSize="small"/>

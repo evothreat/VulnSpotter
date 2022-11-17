@@ -32,7 +32,7 @@ export default function Project() {
     const handleViewChange = (viewId) => setViewKey(viewId);
 
     return project && (
-        <Box sx={{width: '990px', mr: 'auto', ml: 'auto'}}>
+        <Box width="990px" mr="auto" ml="auto">
             <Sidebar project={project} viewKey={viewKey} viewChgHandler={handleViewChange}/>
             {getView(viewKey)}
         </Box>

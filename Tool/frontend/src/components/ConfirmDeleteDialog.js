@@ -12,7 +12,7 @@ export default function ConfirmDeleteDialog({title, children, closeHandler, dele
                 {title}
             </DialogTitle>
             <DialogContent>
-                <Box sx={{display: 'flex', alignItems: 'flex-end'}}>
+                <Box display="flex" alignItems="flex-end">
                     <WarningIcon color="warning" sx={{fontSize: '48px', mr: '12px'}}/>
                     <DialogContentText>
                         {children}
