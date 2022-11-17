@@ -71,7 +71,7 @@ export const useSyncScroller = (key) => {
             for (let elem of elements) {
                 let otherEl = elem.current;
                 // we do only synchronize others
-                if (otherEl !== curEl) {
+                if (otherEl && otherEl !== curEl) {
                     if (
                         updateX &&
                         Math.round(
