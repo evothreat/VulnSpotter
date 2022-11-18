@@ -66,9 +66,13 @@ export default function Explorer() {
         if (!commits) {
             return;
         }
-        const commit = cur(commits);
-        CommitsService.getPatch(commit.id)
+        const commitId = cur(commits).id;
+        CommitsService.getPatch(commitId)
             .then((data) => {
+                // if commit switched while loading - do nothing
+                if (commitId !== cur(commits).id) {
+                    return;
+                }
                 const newDiffs = {
                     data: parsePatch(data),
                     ix: 0
@@ -80,13 +84,17 @@ export default function Explorer() {
                 setDiffs(newDiffs);
             });
 
-        CommitsService.getCveList(commit.id)
+        CommitsService.getCveList(commitId)
             .then((data) => {
+                if (commitId !== cur(commits).id) {
+                    return;
+                }
                 for (const cve of data) {
                     cve.severity = getCvss3Severity(cve.cvss_score);
                 }
                 setCveList(data);
-            })
+            });
+        // get votes
     }, [commits]);
 
     const gotoPrevDiff = (e) => {
