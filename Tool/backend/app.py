@@ -506,16 +506,16 @@ def create_vote(commit_id):
     user_id = get_jwt_identity()
 
     filepath = request.json.get('filepath')
-    vote = request.json.get('vote')
-    if not (filepath and vote):
+    choice = request.json.get('choice')
+    if not (filepath and choice):
         return '', 400
 
     with db_conn:
-        record_id = db_conn.execute('INSERT INTO votes(user_id,commit_id,filepath,vote) '
+        record_id = db_conn.execute('INSERT INTO votes(user_id,commit_id,filepath,choice) '
                                     'SELECT ?,?,?,? '
                                     'WHERE EXISTS(SELECT * FROM commits c WHERE c.id=? AND '
                                     'EXISTS(SELECT * FROM membership m WHERE m.user_id=? AND m.project_id=c.project_id))',
-                                    (user_id, commit_id, filepath, vote, commit_id, user_id)).lastrowid
+                                    (user_id, commit_id, filepath, choice, commit_id, user_id)).lastrowid
 
     if record_id is None:
         return '', 422
@@ -526,7 +526,7 @@ def create_vote(commit_id):
 @app.route('/api/users/me/votes/<vote_id>', methods=['GET'])
 @jwt_required()
 def get_vote(vote_id):
-    data = db_conn.execute('SELECT v.id,v.user_id,v.commit_id,v.filepath,v.vote FROM votes v '
+    data = db_conn.execute('SELECT v.id,v.user_id,v.commit_id,v.filepath,v.choice FROM votes v '
                            'WHERE v.id=? AND v.user_id=? LIMIT 1',
                            (vote_id, get_jwt_identity())).fetchone()
 
@@ -539,7 +539,7 @@ def update_vote(vote_id):
     params, args = sql_params_args(
         request.json,
         {
-            'vote': int
+            'choice': int
         }
     )
     if not params:
@@ -560,7 +560,7 @@ def update_vote(vote_id):
 @app.route('/api/users/me/commits/<commit_id>/votes', methods=['GET'])
 @jwt_required()
 def get_votes_for_commit(commit_id):
-    data = db_conn.execute('SELECT v.id,v.user_id,v.commit_id,v.filepath,v.vote FROM votes v '
+    data = db_conn.execute('SELECT v.id,v.user_id,v.commit_id,v.filepath,v.choice FROM votes v '
                            'WHERE v.commit_id=? AND v.user_id=? '
                            'AND EXISTS(SELECT * FROM commits c WHERE c.id=v.commit_id AND '
                            'EXISTS(SELECT * FROM membership m WHERE m.user_id=v.user_id AND m.project_id=c.project_id))',
@@ -575,14 +575,14 @@ def get_votes_for_project(proj_id):
     user_id = get_jwt_identity()
 
     if 'all' in request.args and is_owner(user_id, proj_id):
-        data = db_conn.execute('SELECT v.id,v.user_id,v.commit_id,v.filepath,v.vote FROM votes v '
+        data = db_conn.execute('SELECT v.id,v.user_id,v.commit_id,v.filepath,v.choice FROM votes v '
                                'WHERE EXISTS(SELECT * FROM commits c WHERE c.id=v.commit_id AND c.project_id=?)',
                                (proj_id,)).fetchall()
 
         return [views.vote(d) for d in data]
 
     if is_member(user_id, proj_id):
-        data = db_conn.execute('SELECT v.id,v.user_id,v.commit_id,v.filepath,v.vote FROM votes v '
+        data = db_conn.execute('SELECT v.id,v.user_id,v.commit_id,v.filepath,v.choice FROM votes v '
                                'WHERE v.user_id=? AND '
                                'EXISTS(SELECT * FROM commits c WHERE c.id=v.commit_id AND c.project_id=?)',
                                (user_id, proj_id)).fetchall()

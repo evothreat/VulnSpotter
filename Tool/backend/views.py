@@ -92,7 +92,7 @@ def vote(d):
         'user_id': d['user_id'],
         'commit_id': d['commit_id'],
         'filepath': d['filepath'],
-        'vote': d['vote']
+        'choice': d['choice']
     }
 
 
