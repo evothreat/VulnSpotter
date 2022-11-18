@@ -1,18 +1,12 @@
 import Prism from "prismjs";
-import "../../prism.css";
+import "../../../prism.css";
 import cssStyle from "./DiffViewer.module.css"
 import classnames from "classnames";
 import {Fragment, useEffect, useState} from "react";
-import {areHunksSequent, calcHunks, DiffType} from "../../diffUtils";
+import {areHunksSequent, calcHunks, DiffType} from "../../../diffUtils";
 import {nanoid} from "nanoid";
-import {
-    CheckCircleOutlineIcon,
-    HighlightOffIcon,
-    RemoveCircleOutlineIcon,
-    VerticalExpandLessIcon,
-    VerticalExpandMoreIcon
-} from "./Icons";
-import {useSyncScroller} from "./useScrollSync";
+import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "../Icons";
+import {useSyncScroller} from "../useScrollSync";
 
 
 function isNotConstant(l) {
@@ -217,15 +211,15 @@ function DiffWindow({lineHunks, expandHandler, hasBottomExpander, setWinRef}) {
 }
 
 
-export default function DiffViewer({stats, codeLines, oldFileName, newFileName, getMoreLines, setWinRef, style}) {
+export default function DiffViewerBody({codeLines, getMoreLines, setWinRef}) {
 
     const [lineHunks, setLineHunks] = useState(null);
     const [hasBottomExpander, setHasBottomExpander] = useState(true);
 
     useEffect(() =>
-        setLineHunks(
-            calcHunks(codeLines).map((h) => createHunk(h, h.some(isNotConstant)))
-        ),
+            setLineHunks(
+                calcHunks(codeLines).map((h) => createHunk(h, h.some(isNotConstant)))
+            ),
         [codeLines]);
 
     const handleExpand = async (direction, hunkId) => {
@@ -285,27 +279,11 @@ export default function DiffViewer({stats, codeLines, oldFileName, newFileName, 
     };
 
     return (
-        <div className={cssStyle.diffViewer} style={style}>
-            <div className={cssStyle.diffHeader}>
-                <div className={cssStyle.diffInfo}>
-                    <CheckCircleOutlineIcon className={cssStyle.accepted}/>
-                    <RemoveCircleOutlineIcon className={cssStyle.ignored}/>
-                    <HighlightOffIcon className={cssStyle.refused}/>
-                    <strong>
-                        {oldFileName !== newFileName ? `${oldFileName} → ${newFileName}` : oldFileName}
-                    </strong>
-                </div>
-                <div className={cssStyle.diffStats}>
-                    <span className={cssStyle.deletion}>-{stats.deletions + stats.updates}</span>
-                    <span className={cssStyle.addition}>+{stats.additions + stats.updates}</span>
-                </div>
-            </div>
-            <div className={cssStyle.diffBody}>
-                {
-                    lineHunks && <DiffWindow lineHunks={lineHunks} expandHandler={handleExpand} setWinRef={setWinRef}
-                                             hasBottomExpander={hasBottomExpander}/>
-                }
-            </div>
+        <div className={cssStyle.diffBody}>
+            {
+                lineHunks && <DiffWindow lineHunks={lineHunks} expandHandler={handleExpand} setWinRef={setWinRef}
+                                         hasBottomExpander={hasBottomExpander}/>
+            }
         </div>
     );
 }

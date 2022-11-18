@@ -1,5 +1,5 @@
 import Box from "@mui/material/Box";
-import DiffViewer from "./DiffViewer";
+import DiffViewer from "./DiffViewer/DiffViewer";
 import React, {useEffect, useRef, useState} from "react";
 import ProjectsService from "../../services/ProjectsService";
 import {useParams} from "react-router-dom";
@@ -11,6 +11,8 @@ import useHotkeys from "./useHotkeys";
 import CveViewer from "./CveViewer";
 import WindowTitle from "./WindowTitle";
 import {Divider} from "@mui/material";
+import DiffViewerHeader from "./DiffViewer/DiffViewerHeader";
+import DiffViewerBody from "./DiffViewer/DiffViewerBody";
 
 
 // TODO: load only specific commits
@@ -158,7 +160,7 @@ export default function Explorer() {
     const gotoWindow = (e, key) => {
         e.preventDefault();
 
-        const selectedWin = windowRefs[parseInt(key)-1].current;
+        const selectedWin = windowRefs[parseInt(key) - 1].current;
         if (selectedWin) {
             selectedWin.focus();
         }
@@ -174,7 +176,8 @@ export default function Explorer() {
             <Box sx={{flex: '1', display: 'flex', flexDirection: 'column', gap: '2px'}}>
                 {
                     // render this two only if commits && cveList!
-                    commits && <MessageWindow message={cur(commits).message} setWinRef={(el) => windowRefs[0].current = el}/>
+                    commits &&
+                    <MessageWindow message={cur(commits).message} setWinRef={(el) => windowRefs[0].current = el}/>
                 }
                 {
                     // handle empty state in CveViewer
@@ -186,14 +189,18 @@ export default function Explorer() {
                 {
                     // we need this flexbox because if diffs is null, the left column will stretch
                     // recreate DiffViewer when diffs changes?
-                    diffs && <DiffViewer stats={cur(diffs).stats} codeLines={cur(diffs).lines}
-                                         oldFileName={cur(diffs).oldFileName} newFileName={cur(diffs).newFileName}
-                                         getMoreLines={getMoreLines}
-                                         setWinRef={{
-                                             setLeftRef: (el) => windowRefs[2].current = el,
-                                             setRightRef: (el) => windowRefs[3].current = el
-                                        }}
-                    />
+                    diffs && (
+                        <DiffViewer>
+                            <DiffViewerHeader stats={cur(diffs).stats}
+                                              oldFileName={cur(diffs).oldFileName} newFileName={cur(diffs).newFileName}/>
+
+                            <DiffViewerBody codeLines={cur(diffs).lines} getMoreLines={getMoreLines}
+                                            setWinRef={{
+                                                setLeftRef: (el) => windowRefs[2].current = el,
+                                                setRightRef: (el) => windowRefs[3].current = el
+                                            }}/>
+                        </DiffViewer>
+                    )
                 }
             </Box>
         </Box>
