@@ -11,7 +11,7 @@ const messageMap = {
 // notification text style
 function NotifText({children}) {
     return (
-        <Typography variant="body2" color="#000000DE">
+        <Typography variant="body2" sx={{color: '#000000DE'}}>
             {children}
         </Typography>
     );

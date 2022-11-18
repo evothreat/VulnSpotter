@@ -6,9 +6,9 @@ import Box from "@mui/material/Box";
 export default function Layout() {
 
     return (
-        <Box display="flex" flexDirection="column" height="100%" width="100%">
+        <Box sx={{display: 'flex', flexDirection: 'column', height: '100%', width: '100%'}}>
             <Header/>
-            <Box flex="1" display="flex" flexDirection="column" sx={{'> *': {flex: 1}}}>
+            <Box sx={{flex: '1', display: 'flex', flexDirection: 'column', '> *': {flex: '1'}}}>
                 <Outlet/>
             </Box>
         </Box>

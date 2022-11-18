@@ -29,12 +29,12 @@ function InvitationItem({invitation, divider, acceptHandler, declineHandler}) {
             <ListItemText
                 disableTypography
                 primary={
-                    <Typography variant="body2" color="#000000DE">
+                    <Typography variant="body2" sx={{color: '#000000DE'}}>
                         <strong>{invitation.owner.full_name}</strong> invited you to the <strong>{invitation.project.name}</strong> project.
                     </Typography>
                 }
                 secondary={
-                    <Box display="flex" mt="10px">
+                    <Box sx={{display: 'flex', mt: '10px'}}>
                         <Button size="small" variant="contained" sx={{mr: '5px', fontSize: '12px'}}
                                 onClick={handleAccept}>Accept</Button>
                         <Button size="small" variant="outlined" sx={{fontSize: '12px'}}

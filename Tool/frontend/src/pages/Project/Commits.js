@@ -67,7 +67,7 @@ function CommitRow({item}) {
                 <TableCell>
                     {
                         item.message.length > 60
-                            ? <Box display="flex" alignItems="flex-end">
+                            ? <Box sx={{display: 'flex', alignItems: 'flex-end'}}>
                                 <span>
                                     {item.message.substring(0, 60).replace('\n', ' ⤶ ')}
                                 </span>
@@ -89,7 +89,7 @@ function CommitRow({item}) {
                                     {item.cve.length > i + 1 ? <br/> : null}
                                 </Fragment>
                             )
-                            : <Typography variant="body2" color="lightgray">N/A</Typography>
+                            : <Typography variant="body2" sx={{color: 'lightgray'}}>N/A</Typography>
                     }
                 </TableCell>
                 <TableCell>
@@ -186,12 +186,12 @@ export default function Commits() {
 
     return (
         <Fragment>
-            <Box display="flex" mt="45px" mb="25px">
+            <Box sx={{display: 'flex', mt: '45px', mb: '25px'}}>
                 <Typography variant="h6">
                     Commits
                 </Typography>
             </Box>
-            <Box mb="10px" sx={{'& button': {textTransform: 'none'}}}>
+            <Box  sx={{mb: '10px', '& button': {textTransform: 'none'}}}>
                 <Button variant="contained" size="small" startIcon={<FindInPageIcon/>} onClick={gotoExplorer}>
                     Explore
                 </Button>

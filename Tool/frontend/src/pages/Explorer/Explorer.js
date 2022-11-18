@@ -25,10 +25,10 @@ function cur(obj) {
 
 function MessageWindow({message, setWinRef}) {
     return (
-        <Box flex="1 1 0" display="flex" flexDirection="column">
+        <Box sx={{flex: '1 1 0', display: 'flex', flexDirection: 'column'}}>
             <WindowTitle title="Message"/>
-            <Box ref={setWinRef} tabIndex="0" flex="1 1 0" overflow="auto">
-                <Typography padding="10px 15px" whiteSpace="pre-wrap" fontSize="14px">
+            <Box ref={setWinRef} tabIndex="0" sx={{flex: '1 1 0', overflowY: 'auto'}}>
+                <Typography sx={{padding: '10px 15px', whiteSpace: 'pre-wrap', fontSize: '14px'}}>
                     {normalizeText(message)}
                 </Typography>
             </Box>
@@ -170,8 +170,8 @@ export default function Explorer() {
     useHotkeys(switchKeys, gotoWindow)
 
     return (
-        <Box display="flex" gap="1px">
-            <Box flex="1" display="flex" flexDirection="column" gap="2px">
+        <Box sx={{display: 'flex', gap: '1px'}}>
+            <Box sx={{flex: '1', display: 'flex', flexDirection: 'column', gap: '2px'}}>
                 {
                     // render this two only if commits && cveList!
                     commits && <MessageWindow message={cur(commits).message} setWinRef={(el) => windowRefs[0].current = el}/>
@@ -182,7 +182,7 @@ export default function Explorer() {
                 }
             </Box>
             <Divider orientation="vertical" flexItem/>
-            <Box flex="2.5" display="flex">
+            <Box sx={{flex: '2.5', display: 'flex'}}>
                 {
                     // we need this flexbox because if diffs is null, the left column will stretch
                     // recreate DiffViewer when diffs changes?

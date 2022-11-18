@@ -79,9 +79,8 @@ function MembersList({items, setItemToDelete}) {
                             <TableCell>{it.active ? 'active' : 'pending'}</TableCell>
                             <TableCell align="right">
                                 {
-                                    it.role === Role.OWNER
-                                        ? null
-                                        : <Box sx={{display: 'flex', justifyContent: 'right'}}>
+                                    it.role !== Role.OWNER
+                                        ? <Box sx={{display: 'flex', justifyContent: 'right'}}>
                                             <ActionTooltip title="Remove">
                                                 <IconButton disableRipple sx={actionBtnStyle} data-item-id={it.id}
                                                             onClick={handleDelClick}>
@@ -89,6 +88,7 @@ function MembersList({items, setItemToDelete}) {
                                                 </IconButton>
                                             </ActionTooltip>
                                         </Box>
+                                        : null
                                 }
                             </TableCell>
                         </TableRow>)
@@ -128,7 +128,7 @@ function MembersTable({items, setItems}) {
         setItemToDelete(null);
 
         const req = item.active ? ProjectsService.removeMember(projId, item.id)
-                                : InvitationsService.deleteSent(item.invitation_id);
+            : InvitationsService.deleteSent(item.invitation_id);
         req.then(() => setItems((curItems) => Utils.remove(curItems, item.id)));
     };
 

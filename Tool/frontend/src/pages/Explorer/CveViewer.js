@@ -19,11 +19,15 @@ const severityColor = {
 
 function renderDetail(title, content, vertical, style) {
     return (
-        <Box display="flex" gap={vertical ? '4px' : '8px'} flexDirection={vertical ? 'column' : 'row'}>
-            <Typography fontWeight="bold" fontSize="14px">
+        <Box sx={{
+            display: 'flex',
+            gap: vertical ? '4px' : '8px',
+            flexDirection: vertical ? 'column' : 'row'
+        }}>
+            <Typography sx={{fontWeight: 'bold', fontSize: '14px'}}>
                 {title}
             </Typography>
-            <Typography fontSize="14px" sx={style}>
+            <Typography sx={{fontSize: '14px', ...style}}>
                 {content}
             </Typography>
         </Box>
@@ -32,7 +36,7 @@ function renderDetail(title, content, vertical, style) {
 
 function renderDetails(cve) {
     return (
-        <Box flex="1" display="flex" flexDirection="column" gap="12px" padding="10px 16px">
+        <Box sx={{flex: '1', display: 'flex', flexDirection: 'column', gap: '12px', padding: '10px 16px'}}>
             {renderDetail('Name:', cve.cve_id)}
             {
                 renderDetail('Severity:', `${cve.cvss_score} ${cve.severity}`, false,
@@ -74,15 +78,15 @@ export default function CveViewer({cveList, setWinRef}) {
     };
 
     return (
-        <Box flex="1 1 0" display="flex" flexDirection="column">
+        <Box sx={{flex: '1 1 0', display: 'flex', flexDirection: 'column'}}>
             <WindowTitle title="CVEs"/>
 
-            <Box ref={setWinRef} tabIndex="0" flex="1 1 0" display="flex" flexDirection="column" position="relative"
-                 overflow="auto" onFocus={bindHotkeys} onBlur={unbindHotkeys}>
+            <Box ref={setWinRef} tabIndex="0" sx={{flex: '1 1 0', display: 'flex', flexDirection: 'column', position: 'relative', overflowY: 'auto'}}
+                 onFocus={bindHotkeys} onBlur={unbindHotkeys}>
                 {
                     cveList.length === 0
                         ? (
-                            <Typography fontSize="14px" color="#808080" margin="10px 16px">
+                            <Typography sx={{fontSize: '14px', color: '#808080', margin: '10px 16px'}}>
                                 No records available
                             </Typography>
                         )
@@ -90,7 +94,7 @@ export default function CveViewer({cveList, setWinRef}) {
                 }
                 {
                     cveList.length > 1 && (
-                        <Box display="flex" justifyContent="center" position="sticky" bottom="0" zIndex="1" bgcolor="white">
+                        <Box sx={{display: 'flex', justifyContent: 'center', position: 'sticky', bottom: '0', zIndex: '1', bgcolor: 'white'}}>
                             {
                                 cveList.map((_, i) => (
                                     <IconButton key={i} disableRipple sx={{padding: '8px 3px'}} onClick={handleChange}

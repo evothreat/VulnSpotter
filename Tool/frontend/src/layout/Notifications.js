@@ -37,7 +37,7 @@ function NotificationItem({notif, divider}) {
                 disableTypography
                 primary={msg.text}
                 secondary={
-                    <Typography variant="body2" color="gray" mt="4px">
+                    <Typography variant="body2" sx={{color: 'gray', mt: '4px'}}>
                         {Utils.fmtTimeSince(notif.created_at) + ' ago'}
                     </Typography>
                 }
