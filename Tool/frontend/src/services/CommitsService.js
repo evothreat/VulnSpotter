@@ -10,14 +10,6 @@ class CommitsService {
         return api.get(`${this.basePath}/${id}`);
     }
 
-    delete(id) {
-        return api.delete(`${this.basePath}/${id}`);
-    }
-
-    update(id, data) {
-        return api.patch(`${this.basePath}/${id}`, data);
-    }
-
     getPatch(id) {
         return api.get(`${this.basePath}/${id}/patch`);
     }
@@ -32,6 +24,17 @@ class CommitsService {
 
     getCveList(id) {
         return api.get(`${this.basePath}/${id}/cve`);
+    }
+
+    getVotes(id) {
+        return api.get(`${this.basePath}/${id}/votes`);
+    }
+
+    createVote(id, filepath, choice) {
+        return api.post(`${this.basePath}/${id}/votes`, {
+            'filepath': filepath,
+            'choice': choice
+        })
     }
 }
 

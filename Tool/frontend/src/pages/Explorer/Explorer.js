@@ -13,13 +13,14 @@ import WindowTitle from "./WindowTitle";
 import {Divider} from "@mui/material";
 import DiffViewerHeader from "./DiffViewer/DiffViewerHeader";
 import DiffViewerBody from "./DiffViewer/DiffViewerBody";
+import VotesService from "../../services/VotesService";
 
 
 // TODO: load only specific commits
 
 // store as global constant to avoid unnecessary useEffect call
-const switchKeys = ['1', '2', '3', '4'];
-
+const SWITCH_KEYS = ['1', '2', '3', '4'];
+const RATE_KEYS = ['v', 'b', 'n'];
 
 function cur(obj) {
     return obj.data[obj.ix];
@@ -43,6 +44,8 @@ export default function Explorer() {
     const [commits, setCommits] = useState(null);
     const [diffs, setDiffs] = useState(null);
     const [cveList, setCveList] = useState(null);
+    const [votesMap, setVotesMap] = useState({});
+
     const reverse = useRef(false);
 
     const windowRefs = [
@@ -67,6 +70,7 @@ export default function Explorer() {
             return;
         }
         const commitId = cur(commits).id;
+
         CommitsService.getPatch(commitId)
             .then((data) => {
                 // if commit switched while loading - do nothing
@@ -75,7 +79,7 @@ export default function Explorer() {
                 }
                 const newDiffs = {
                     data: parsePatch(data),
-                    ix: 0
+                    ix: 0   // do not change, cause next commit will start with this diff-index
                 };
                 if (reverse.current) {
                     reverse.current = false;
@@ -94,11 +98,23 @@ export default function Explorer() {
                 }
                 setCveList(data);
             });
+
+        CommitsService.getVotes(commitId)
+            .then((data) => {
+                if (commitId !== cur(commits).id) {
+                    return;
+                }
+                const votes = {};
+                for (const vote of data) {
+                    votes[vote.filepath] = vote;
+                }
+                setVotesMap(votes);
+            });
         // get votes
     }, [commits]);
 
     const gotoPrevDiff = (e) => {
-        e.preventDefault();
+        e?.preventDefault();
 
         if (diffs.ix - 1 >= 0) {
             diffs.ix--;
@@ -113,7 +129,7 @@ export default function Explorer() {
     };
 
     const gotoNextDiff = (e) => {
-        e.preventDefault();
+        e?.preventDefault();
 
         if (diffs.data.length > diffs.ix + 1) {
             diffs.ix++;
@@ -174,11 +190,55 @@ export default function Explorer() {
         }
     };
 
+    const rateDiff = (e, key) => {
+        e.preventDefault();
+
+        let choice;
+        switch (key) {
+            case 'v':
+                choice = 1;
+                break;
+            case 'b':
+                choice = -1;
+                break;
+            default:
+                choice = 2;
+        }
+        const commitId = cur(commits).id;
+        const filepath = cur(diffs).newFileName;
+        const vote = votesMap[filepath];
+        const newVote = {};
+        if (!vote) {
+            votesMap[filepath] = newVote;
+        }
+
+        gotoNextDiff();
+
+        // do this after switching diff to avoid showing choice
+        if (vote) {
+            if (vote.choice !== choice) {
+                VotesService.updateChoice(vote.id, choice)
+                    .then(() => {
+                        vote.choice = choice;
+                    });
+            }
+        } else {
+            CommitsService.createVote(commitId, filepath, choice)
+                .then((data) => {
+                    newVote.id = data.resource_id;
+                    newVote.filepath = filepath;
+                    newVote.choice = choice;
+                });
+        }
+    };
+
     useHotkeys('shift+left', gotoPrevDiff);
     useHotkeys('shift+right', gotoNextDiff);
     useHotkeys('tab', switchWindow);
-    useHotkeys(switchKeys, gotoWindow)
+    useHotkeys(SWITCH_KEYS, gotoWindow);
+    useHotkeys(RATE_KEYS, rateDiff);
 
+    const diff = diffs && cur(diffs);
     return (
         <Box sx={{display: 'flex', gap: '1px'}}>
             <Box sx={{flex: '1', display: 'flex', flexDirection: 'column', gap: '2px'}}>
@@ -196,13 +256,13 @@ export default function Explorer() {
             <Box sx={{flex: '2.5', display: 'flex'}}>
                 {
                     // we need this flexbox because if diffs is null, the left column will stretch
-                    // recreate DiffViewer when diffs changes?
-                    diffs && (
+                    // recreate DiffViewer when diffs changes???
+                    diff && (
                         <DiffViewer>
-                            <DiffViewerHeader stats={cur(diffs).stats}
-                                              oldFileName={cur(diffs).oldFileName} newFileName={cur(diffs).newFileName}/>
+                            <DiffViewerHeader stats={diff.stats} diffState={votesMap[diff.newFileName]?.choice}
+                                              oldFileName={diff.oldFileName} newFileName={diff.newFileName}/>
 
-                            <DiffViewerBody codeLines={cur(diffs).lines} getMoreLines={getMoreLines}
+                            <DiffViewerBody codeLines={diff.lines} getMoreLines={getMoreLines}
                                             setWinRef={{
                                                 setLeftRef: (el) => windowRefs[2].current = el,
                                                 setRightRef: (el) => windowRefs[3].current = el

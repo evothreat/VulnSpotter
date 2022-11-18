@@ -113,17 +113,12 @@
     justify-content: space-between;
     background-color: #fafafa;
     border-bottom: 1px solid #dbdbdb;
-    padding: 8px 16px;
     margin: 0;
-    line-height: 1.2;
+    padding: 0 10px;
+    line-height: 35px;
     font-size: 14px;
     color: rgba(58, 54, 54, 0.9);
     font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-}
-
-.diffBody {
-    flex: 1;
-    display: flex;
 }
 
 .diffInfo {
@@ -142,6 +137,10 @@
 
 .ignored {
     fill: #ff9c00;
+}
+
+.unknown {
+    fill: lightgray;
 }
 
 .diffStats {
@@ -166,6 +165,11 @@
 
 .diffViewer * {
     box-sizing: border-box;
+}
+
+.diffBody {
+    flex: 1;
+    display: flex;
 }
 
 .stickyCol {
