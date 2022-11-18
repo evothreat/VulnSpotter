@@ -126,6 +126,24 @@
     display: flex;
 }
 
+.diffInfo {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.accepted {
+    fill: #00b000;
+}
+
+.refused {
+    fill: #e70000;
+}
+
+.ignored {
+    fill: #ff9c00;
+}
+
 .diffStats {
     display: flex;
     gap: 8px;

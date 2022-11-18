@@ -158,9 +158,9 @@ export default function Explorer() {
     const gotoWindow = (e, key) => {
         e.preventDefault();
 
-        const selectedEl = windowRefs[parseInt(key)-1].current;
-        if (selectedEl) {
-            selectedEl.focus();
+        const selectedWin = windowRefs[parseInt(key)-1].current;
+        if (selectedWin) {
+            selectedWin.focus();
         }
     };
 

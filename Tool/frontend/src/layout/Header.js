@@ -45,7 +45,7 @@ function UserMenu() {
             >
                 {settings.map((s) => (
                     <MenuItem key={s} onClick={handleClose}>
-                        <Typography textAlign="center">{s}</Typography>
+                        <Typography sx={{textAlign: 'center'}}>{s}</Typography>
                     </MenuItem>
                 ))}
             </Menu>

@@ -5,7 +5,13 @@ import classnames from "classnames";
 import {Fragment, useEffect, useState} from "react";
 import {areHunksSequent, calcHunks, DiffType} from "../../diffUtils";
 import {nanoid} from "nanoid";
-import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "./Icons";
+import {
+    CheckCircleOutlineIcon,
+    HighlightOffIcon,
+    RemoveCircleOutlineIcon,
+    VerticalExpandLessIcon,
+    VerticalExpandMoreIcon
+} from "./Icons";
 import {useSyncScroller} from "./useScrollSync";
 
 
@@ -216,11 +222,11 @@ export default function DiffViewer({stats, codeLines, oldFileName, newFileName, 
     const [lineHunks, setLineHunks] = useState(null);
     const [hasBottomExpander, setHasBottomExpander] = useState(true);
 
-    useEffect(() => {
+    useEffect(() =>
         setLineHunks(
             calcHunks(codeLines).map((h) => createHunk(h, h.some(isNotConstant)))
-        );
-    }, [codeLines]);
+        ),
+        [codeLines]);
 
     const handleExpand = async (direction, hunkId) => {
         for (let i = 0; lineHunks.length > i; i++) {
@@ -281,9 +287,14 @@ export default function DiffViewer({stats, codeLines, oldFileName, newFileName, 
     return (
         <div className={cssStyle.diffViewer} style={style}>
             <div className={cssStyle.diffHeader}>
-                <strong>
-                    {oldFileName !== newFileName ? `${oldFileName} → ${newFileName}` : oldFileName}
-                </strong>
+                <div className={cssStyle.diffInfo}>
+                    <CheckCircleOutlineIcon className={cssStyle.accepted}/>
+                    <RemoveCircleOutlineIcon className={cssStyle.ignored}/>
+                    <HighlightOffIcon className={cssStyle.refused}/>
+                    <strong>
+                        {oldFileName !== newFileName ? `${oldFileName} → ${newFileName}` : oldFileName}
+                    </strong>
+                </div>
                 <div className={cssStyle.diffStats}>
                     <span className={cssStyle.deletion}>-{stats.deletions + stats.updates}</span>
                     <span className={cssStyle.addition}>+{stats.additions + stats.updates}</span>
