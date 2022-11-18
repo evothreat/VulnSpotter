@@ -53,7 +53,7 @@ export default function Home() {
     };
 
     return (
-        <Box width="990px" mr="auto" ml="auto">
+        <Box sx={{width: '990px', mr: 'auto', ml: 'auto'}}>
             <Box sx={headerStyle}>
                 <Typography variant="h6">
                     Projects

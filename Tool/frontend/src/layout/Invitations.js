@@ -50,8 +50,12 @@ function InvitationItem({invitation, divider, acceptHandler, declineHandler}) {
 function InvitationsHeader() {
     return (
         <ListSubheader sx={{pt: '6px', borderBottom: 'thin solid lightgray'}}>
-            <Box display="flex" alignItems="center" justifyContent="space-between">
-                <Typography variant="subtitle1" color="#505050">Invitations</Typography>
+            <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+            }}>
+                <Typography variant="subtitle1" sx={{color: '#505050'}}>Invitations</Typography>
             </Box>
         </ListSubheader>
     );

@@ -23,7 +23,7 @@ function renderDetail(title, content, vertical, style) {
             <Typography fontWeight="bold" fontSize="14px">
                 {title}
             </Typography>
-            <Typography fontSize="14px" {...style}>
+            <Typography fontSize="14px" sx={style}>
                 {content}
             </Typography>
         </Box>
