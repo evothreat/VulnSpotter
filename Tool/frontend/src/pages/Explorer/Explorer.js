@@ -6,7 +6,7 @@ import {useParams} from "react-router-dom";
 import CommitsService from "../../services/CommitsService";
 import {createLineDiff, DiffType, parsePatch} from "../../diffUtils";
 import Typography from "@mui/material/Typography";
-import {getCvss3Severity, mod, normalizeText} from "../../utils";
+import {ArrayIterator, getCvss3Severity, mod, normalizeText} from "../../utils";
 import useHotkeys from "./useHotkeys";
 import CveViewer from "./CveViewer";
 import WindowTitle from "./WindowTitle";
@@ -18,14 +18,10 @@ import VotesService from "../../services/VotesService";
 
 // TODO: load only specific commits
 
-// store as global constant to avoid unnecessary useEffect call
+// store as global constant to avoid unnecessary useEffect call (in useHotkeys)
 const SWITCH_KEYS = ['1', '2', '3', '4'];
 const RATE_KEYS = ['v', 'b', 'n'];
 
-
-function cur(obj) {
-    return obj.data[obj.ix];
-}
 
 function MessageWindow({message, setWinRef}) {
     return (
@@ -49,12 +45,8 @@ export default function Explorer() {
         votesMap: {}
     });
 
-    const diffs = commitData.diffs;
-    const cveList = commitData.cveList;
-    const votesMap = commitData.votesMap;
-
-    const curCommit = commits?.data[commits.ix];
-    const curDiff = diffs?.data[diffs.ix];
+    const curCommit = commits?.curr();
+    const curDiff = commitData.diffs?.curr();
 
     const reverse = useRef(false);
 
@@ -67,36 +59,28 @@ export default function Explorer() {
 
     useEffect(() => {
         ProjectsService.getCommits(projId)
-            .then((data) => {
-                setCommits({
-                    data: data,
-                    ix: 516      // replace to 0 later...
-                })
-            });
+            .then((data) => setCommits(new ArrayIterator(data, 516)));   // replace to 0 later
     }, [projId]);
 
     useEffect(() => {
         if (!commits) {
             return;
         }
-        const commitId = cur(commits).id;
+        const commitId = commits.curr().id;
         Promise.all([
             CommitsService.getPatch(commitId),
             CommitsService.getVotes(commitId),
             CommitsService.getCveList(commitId)
         ])
             .then(([patch, votes, cveList]) => {
-                if (commitId !== cur(commits).id) {
+                if (commitId !== commits.curr().id) {
                     return;
                 }
                 // patch
-                const diffs = {
-                    data: parsePatch(patch),
-                    ix: 0   // do not change, cause next commit will start with this diff-index
-                };
+                const diffs = new ArrayIterator(parsePatch(patch));
                 if (reverse.current) {
                     reverse.current = false;
-                    diffs.ix = diffs.data.length - 1;
+                    diffs.seek(-1);
                 }
                 // votes
                 const votesMap = {};
@@ -115,23 +99,23 @@ export default function Explorer() {
             });
     }, [commits]);
 
-    const setDiffs = (diffs) => {
+    const refreshData = () => {
         setCommitData((curData) => {
-            return {...curData, diffs: diffs};
-        })
+            return {...curData};
+        });
     };
 
     const gotoPrevDiff = (e) => {
         e?.preventDefault();
 
-        if (diffs.ix - 1 >= 0) {
-            diffs.ix--;
-            setDiffs({...diffs});
-        } else if (commits.ix - 1 >= 0) {
+        if (commitData.diffs.prev()) {
+            refreshData();
+        }
+        else if (commits.prev()) {
             reverse.current = true;
-            commits.ix--;
-            setCommits({...commits});
-        } else {
+            setCommits(commits.clone());
+        }
+        else {
             console.log('no more commits available')
         }
     };
@@ -139,15 +123,15 @@ export default function Explorer() {
     const gotoNextDiff = (e) => {
         e?.preventDefault();
 
-        if (diffs.data.length > diffs.ix + 1) {
-            diffs.ix++;
-            setDiffs({...diffs});
-        } else if (commits.data.length > commits.ix + 1) {
-            commits.ix++;
-            console.log('ID:', curCommit.id)
-            setCommits({...commits});
-        } else {
-            console.log('no more commits available')
+        if (commitData.diffs.next()) {
+            refreshData();
+        }
+        else if (commits.next()) {
+            console.log('ID:', commits.curr().id);
+            setCommits(commits.clone());
+        }
+        else {
+            console.log('no more commits available');
         }
     };
 
@@ -215,10 +199,10 @@ export default function Explorer() {
         const commitId = curCommit.id;
         const filepath = curDiff.newFileName;
 
-        const vote = votesMap[filepath];
+        const vote = commitData.votesMap[filepath];
         const newVote = {};
         if (!vote) {
-            votesMap[filepath] = newVote;
+            commitData.votesMap[filepath] = newVote;
         }
 
         gotoNextDiff();
@@ -257,7 +241,7 @@ export default function Explorer() {
                 }
                 {
                     // handle empty state in CveViewer
-                    cveList && <CveViewer cveList={cveList} setWinRef={(el) => windowRefs[1].current = el}/>
+                    commitData.cveList && <CveViewer cveList={commitData.cveList} setWinRef={(el) => windowRefs[1].current = el}/>
                 }
             </Box>
             <Divider orientation="vertical" flexItem/>
@@ -267,7 +251,7 @@ export default function Explorer() {
                     // recreate DiffViewer when diffs changes???
                     curDiff && (
                         <DiffViewer>
-                            <DiffViewerHeader stats={curDiff.stats} diffState={votesMap[curDiff.newFileName]?.choice}
+                            <DiffViewerHeader stats={curDiff.stats} diffState={commitData.votesMap[curDiff.newFileName]?.choice}
                                               oldFileName={curDiff.oldFileName} newFileName={curDiff.newFileName}/>
 
                             <DiffViewerBody codeLines={curDiff.lines} getMoreLines={getMoreLines}

@@ -115,6 +115,36 @@ function normalizeText(text) {
     return res;
 }
 
+function ArrayIterator(array, startIx=0) {
+    this.array = array;
+    this.currIx = startIx;
+}
+
+ArrayIterator.prototype.prev = function () {
+    return this.currIx - 1 >= 0 ? this.array[--this.currIx] : undefined;
+};
+
+ArrayIterator.prototype.next = function () {
+    return this.array.length > this.currIx + 1 ? this.array[++this.currIx] : undefined;
+};
+
+ArrayIterator.prototype.curr = function () {
+    return this.array[this.currIx];
+};
+
+ArrayIterator.prototype.seek = function (ix) {
+    if (ix >= 0) {
+        this.currIx = Math.min(this.array.length - 1, ix);
+    }
+    else if (ix < 0) {
+        this.currIx = Math.max(0, this.array.length + ix);
+    }
+};
+
+ArrayIterator.prototype.clone = function () {
+    return new ArrayIterator(this.array, this.currIx);
+};
+
 // requires 'id'-key
 function complement(a, b) {
     return a.filter((v1) => !b.some((v2) => v1.id === v2.id));
@@ -141,6 +171,7 @@ export {
     getCvss3Severity,
     nextNonSpace,
     normalizeText,
+    ArrayIterator,
     complement,
     equals,
     remove

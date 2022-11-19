@@ -1,5 +1,10 @@
 import cssStyle from "./DiffViewer.module.css";
-import {CheckCircleOutlineIcon, HighlightOffIcon, QuestionMarkIcon, RemoveCircleOutlineIcon} from "../Icons";
+import {
+    CheckCircleOutlineIcon,
+    HelpOutlineIcon,
+    HighlightOffIcon,
+    RemoveCircleOutlineIcon
+} from "../Icons";
 
 export default function DiffViewerHeader({stats, oldFileName, newFileName, diffState}) {
     return (
@@ -16,7 +21,7 @@ export default function DiffViewerHeader({stats, oldFileName, newFileName, diffS
                                         : <RemoveCircleOutlineIcon className={cssStyle.ignored}/>
                                 )
                         )
-                        : <QuestionMarkIcon className={cssStyle.unknown}/>
+                        : <HelpOutlineIcon className={cssStyle.unknown}/>
                 }
                 <strong>
                     {oldFileName !== newFileName ? `${oldFileName} → ${newFileName}` : oldFileName}
