@@ -58,7 +58,7 @@ export default function Explorer() {
 
     useEffect(() => {
         ProjectsService.getCommits(projId)
-            .then((data) => setCommits(new ArrayIterator(data, 516)));   // replace to 0 later
+            .then((data) => setCommits(new ArrayIterator(data, 517)));   // replace to 0 later
     }, [projId]);
 
     useEffect(() => {
@@ -82,9 +82,16 @@ export default function Explorer() {
                     diffs.seek(-1);
                 }
                 // assign votes to diffs
-                let diff = diffs.next();
+                const votesMap = votes.reduce((dict, v) => {
+                    dict[v.filepath] = {
+                        id: v.id,
+                        choice: v.choice
+                    };
+                    return dict;
+                }, {});
+                let diff = diffs.curr();
                 while (diff) {
-                    diff.vote = votes[diff.newFileName] || {};
+                    diff.vote = votesMap[diff.newFileName] || {};
                     diff = diffs.next();
                 }
                 diffs.seek(0);
@@ -205,7 +212,6 @@ export default function Explorer() {
             CommitsService.createVote(commitId, filepath, choice)
                 .then((data) => {
                     vote.id = data.resource_id;
-                    vote.filepath = filepath;
                     vote.choice = choice;
                 });
         }
