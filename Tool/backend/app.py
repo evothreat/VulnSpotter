@@ -414,6 +414,42 @@ def get_commits(proj_id):
     return [views.commit(d) for d in data]
 
 
+@app.route('/api/users/me/commits/<commit_id>', methods=['GET'])
+@jwt_required()
+def get_commit(commit_id):
+    user_id = get_jwt_identity()
+    commit = db_conn.execute('SELECT c.id,c.hash,c.message,c.created_at,p.repository FROM commits c '
+                             'JOIN projects p ON c.id=? AND c.project_id = p.id '
+                             'AND EXISTS(SELECT * FROM membership m WHERE m.user_id=? AND m.project_id=p.id) LIMIT 1',
+                             (commit_id, user_id)).fetchone()
+    if not commit:
+        return '', 404
+
+    res = {
+        'commit': views.commit(commit)
+    }
+    include = request.args.get('include', []).split(',')
+
+    if 'votes' in include:
+        data = db_conn.execute('SELECT v.id,v.user_id,v.commit_id,v.filepath,v.choice FROM votes v '
+                               'WHERE v.commit_id=? AND v.user_id=? ', (commit_id, user_id)).fetchall()
+        res['votes'] = [views.vote(d) for d in data]
+
+    if 'cve' in include:
+        data = db_conn.execute('SELECT ci.id,ci.cve_id,ci.summary,ci.description,ci.cvss_score FROM cve_info ci '
+                               'WHERE EXISTS(SELECT * FROM commit_cve WHERE cve_id=ci.id AND commit_id=?)',
+                               (commit_id,)).fetchall()
+        res['cve_list'] = [views.cve_info(d) for d in data]
+
+    if 'patch' in include:
+        with git.Repo(pathjoin(config.REPOS_DIR, commit['repository'])) as repo:
+            # includes only modified/added files!
+            res['patch'] = repo.git.diff(commit['hash'] + '~1', commit['hash'],
+                                         ignore_blank_lines=True, ignore_space_at_eol=True,
+                                         diff_filter='MA', no_prefix=True)
+    return res
+
+
 @app.route('/api/users/me/commits/<commit_id>/patch', methods=['GET'])
 @jwt_required()
 def get_commit_patch(commit_id):
