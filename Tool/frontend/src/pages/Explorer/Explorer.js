@@ -22,6 +22,7 @@ import VotesService from "../../services/VotesService";
 const SWITCH_KEYS = ['1', '2', '3', '4'];
 const RATE_KEYS = ['v', 'b', 'n'];
 
+
 function cur(obj) {
     return obj.data[obj.ix];
 }
@@ -42,9 +43,18 @@ function MessageWindow({message, setWinRef}) {
 export default function Explorer() {
     const {projId} = useParams();
     const [commits, setCommits] = useState(null);
-    const [diffs, setDiffs] = useState(null);
-    const [cveList, setCveList] = useState(null);
-    const [votesMap, setVotesMap] = useState({});
+    const [commitData, setCommitData] = useState({
+        diffs: null,
+        cveList: null,
+        votesMap: {}
+    });
+
+    const diffs = commitData.diffs;
+    const cveList = commitData.cveList;
+    const votesMap = commitData.votesMap;
+
+    const curCommit = commits?.data[commits.ix];
+    const curDiff = diffs?.data[diffs.ix];
 
     const reverse = useRef(false);
 
@@ -70,48 +80,46 @@ export default function Explorer() {
             return;
         }
         const commitId = cur(commits).id;
-
-        CommitsService.getPatch(commitId)
-            .then((data) => {
-                // if commit switched while loading - do nothing
+        Promise.all([
+            CommitsService.getPatch(commitId),
+            CommitsService.getVotes(commitId),
+            CommitsService.getCveList(commitId)
+        ])
+            .then(([patch, votes, cveList]) => {
                 if (commitId !== cur(commits).id) {
                     return;
                 }
-                const newDiffs = {
-                    data: parsePatch(data),
+                // patch
+                const diffs = {
+                    data: parsePatch(patch),
                     ix: 0   // do not change, cause next commit will start with this diff-index
                 };
                 if (reverse.current) {
                     reverse.current = false;
-                    newDiffs.ix = newDiffs.data.length - 1;
+                    diffs.ix = diffs.data.length - 1;
                 }
-                setDiffs(newDiffs);
-            });
-
-        CommitsService.getCveList(commitId)
-            .then((data) => {
-                if (commitId !== cur(commits).id) {
-                    return;
+                // votes
+                const votesMap = {};
+                for (const vote of votes) {
+                    votesMap[vote.filepath] = vote;
                 }
-                for (const cve of data) {
+                // cveList
+                for (const cve of cveList) {
                     cve.severity = getCvss3Severity(cve.cvss_score);
                 }
-                setCveList(data);
+                setCommitData({
+                    diffs: diffs,
+                    cveList: cveList,
+                    votesMap: votesMap
+                });
             });
-
-        CommitsService.getVotes(commitId)
-            .then((data) => {
-                if (commitId !== cur(commits).id) {
-                    return;
-                }
-                const votes = {};
-                for (const vote of data) {
-                    votes[vote.filepath] = vote;
-                }
-                setVotesMap(votes);
-            });
-        // get votes
     }, [commits]);
+
+    const setDiffs = (diffs) => {
+        setCommitData((curData) => {
+            return {...curData, diffs: diffs};
+        })
+    };
 
     const gotoPrevDiff = (e) => {
         e?.preventDefault();
@@ -136,7 +144,7 @@ export default function Explorer() {
             setDiffs({...diffs});
         } else if (commits.data.length > commits.ix + 1) {
             commits.ix++;
-            console.log('ID:', cur(commits).id)
+            console.log('ID:', curCommit.id)
             setCommits({...commits});
         } else {
             console.log('no more commits available')
@@ -146,7 +154,7 @@ export default function Explorer() {
     const getMoreLines = async (prevLineno, curLineno, dir, beginLeft, beginRight) => {
         try {
             const data = await CommitsService.getFileLines(
-                cur(commits).id, cur(diffs).newFileName,
+                curCommit.id, curDiff.newFileName,
                 prevLineno, curLineno, dir
             );
             if (data.length === 0) {
@@ -204,8 +212,9 @@ export default function Explorer() {
             default:
                 choice = 2;
         }
-        const commitId = cur(commits).id;
-        const filepath = cur(diffs).newFileName;
+        const commitId = curCommit.id;
+        const filepath = curDiff.newFileName;
+
         const vote = votesMap[filepath];
         const newVote = {};
         if (!vote) {
@@ -238,14 +247,13 @@ export default function Explorer() {
     useHotkeys(SWITCH_KEYS, gotoWindow);
     useHotkeys(RATE_KEYS, rateDiff);
 
-    const diff = diffs && cur(diffs);
     return (
         <Box sx={{display: 'flex', gap: '1px'}}>
             <Box sx={{flex: '1', display: 'flex', flexDirection: 'column', gap: '2px'}}>
                 {
                     // render this two only if commits && cveList!
                     commits &&
-                    <MessageWindow message={cur(commits).message} setWinRef={(el) => windowRefs[0].current = el}/>
+                    <MessageWindow message={curCommit.message} setWinRef={(el) => windowRefs[0].current = el}/>
                 }
                 {
                     // handle empty state in CveViewer
@@ -257,12 +265,12 @@ export default function Explorer() {
                 {
                     // we need this flexbox because if diffs is null, the left column will stretch
                     // recreate DiffViewer when diffs changes???
-                    diff && (
+                    curDiff && (
                         <DiffViewer>
-                            <DiffViewerHeader stats={diff.stats} diffState={votesMap[diff.newFileName]?.choice}
-                                              oldFileName={diff.oldFileName} newFileName={diff.newFileName}/>
+                            <DiffViewerHeader stats={curDiff.stats} diffState={votesMap[curDiff.newFileName]?.choice}
+                                              oldFileName={curDiff.oldFileName} newFileName={curDiff.newFileName}/>
 
-                            <DiffViewerBody codeLines={diff.lines} getMoreLines={getMoreLines}
+                            <DiffViewerBody codeLines={curDiff.lines} getMoreLines={getMoreLines}
                                             setWinRef={{
                                                 setLeftRef: (el) => windowRefs[2].current = el,
                                                 setRightRef: (el) => windowRefs[3].current = el
