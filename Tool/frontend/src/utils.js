@@ -145,6 +145,18 @@ ArrayIterator.prototype.clone = function () {
     return new ArrayIterator(this.array, this.currIx);
 };
 
+
+function propsNotNull(obj) {
+    return Object.values(obj).every(value => value != null);
+}
+
+function isObjEmpty(obj) {
+    for (const prop in obj) {
+        return false;
+    }
+    return true;
+}
+
 // requires 'id'-key
 function complement(a, b) {
     return a.filter((v1) => !b.some((v2) => v1.id === v2.id));
@@ -172,6 +184,8 @@ export {
     nextNonSpace,
     normalizeText,
     ArrayIterator,
+    propsNotNull,
+    isObjEmpty,
     complement,
     equals,
     remove

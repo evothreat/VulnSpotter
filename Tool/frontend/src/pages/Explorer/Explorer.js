@@ -6,7 +6,7 @@ import {useParams} from "react-router-dom";
 import CommitsService from "../../services/CommitsService";
 import {createLineDiff, DiffType, parsePatch} from "../../diffUtils";
 import Typography from "@mui/material/Typography";
-import {ArrayIterator, getCvss3Severity, mod, normalizeText} from "../../utils";
+import {ArrayIterator, getCvss3Severity, isObjEmpty, mod, normalizeText, propsNotNull} from "../../utils";
 import useHotkeys from "./useHotkeys";
 import CveViewer from "./CveViewer";
 import WindowTitle from "./WindowTitle";
@@ -42,7 +42,6 @@ export default function Explorer() {
     const [commitData, setCommitData] = useState({
         diffs: null,
         cveList: null,
-        votesMap: {}
     });
 
     const curCommit = commits?.curr();
@@ -82,11 +81,13 @@ export default function Explorer() {
                     reverse.current = false;
                     diffs.seek(-1);
                 }
-                // votes
-                const votesMap = {};
-                for (const vote of votes) {
-                    votesMap[vote.filepath] = vote;
+                // assign votes to diffs
+                let diff = diffs.next();
+                while (diff) {
+                    diff.vote = votes[diff.newFileName] || {};
+                    diff = diffs.next();
                 }
+                diffs.seek(0);
                 // cveList
                 for (const cve of cveList) {
                     cve.severity = getCvss3Severity(cve.cvss_score);
@@ -94,7 +95,6 @@ export default function Explorer() {
                 setCommitData({
                     diffs: diffs,
                     cveList: cveList,
-                    votesMap: votesMap
                 });
             });
     }, [commits]);
@@ -110,12 +110,10 @@ export default function Explorer() {
 
         if (commitData.diffs.prev()) {
             refreshData();
-        }
-        else if (commits.prev()) {
+        } else if (commits.prev()) {
             reverse.current = true;
             setCommits(commits.clone());
-        }
-        else {
+        } else {
             console.log('no more commits available')
         }
     };
@@ -125,12 +123,10 @@ export default function Explorer() {
 
         if (commitData.diffs.next()) {
             refreshData();
-        }
-        else if (commits.next()) {
+        } else if (commits.next()) {
             console.log('ID:', commits.curr().id);
             setCommits(commits.clone());
-        }
-        else {
+        } else {
             console.log('no more commits available');
         }
     };
@@ -197,31 +193,25 @@ export default function Explorer() {
                 choice = 2;
         }
         const commitId = curCommit.id;
-        const filepath = curDiff.newFileName;
 
-        const vote = commitData.votesMap[filepath];
-        const newVote = {};
-        if (!vote) {
-            commitData.votesMap[filepath] = newVote;
-        }
+        // NOTE: use properties and not the diff object self, because it may not exist anymore (after switching)
+        const filepath = curDiff.newFileName;
+        const vote = curDiff.vote;
 
         gotoNextDiff();
 
-        // do this after switching diff to avoid showing choice
-        if (vote) {
-            if (vote.choice !== choice) {
-                VotesService.updateChoice(vote.id, choice)
-                    .then(() => {
-                        vote.choice = choice;
-                    });
-            }
-        } else {
+        // do this after switching to avoid showing choice
+        if (isObjEmpty(vote)) {
             CommitsService.createVote(commitId, filepath, choice)
                 .then((data) => {
-                    newVote.id = data.resource_id;
-                    newVote.filepath = filepath;
-                    newVote.choice = choice;
+                    vote.id = data.resource_id;
+                    vote.filepath = filepath;
+                    vote.choice = choice;
                 });
+        }
+        else if (vote.choice !== choice) {
+            VotesService.updateChoice(vote.id, choice)
+                .then(() => vote.choice = choice);
         }
     };
 
@@ -235,13 +225,14 @@ export default function Explorer() {
         <Box sx={{display: 'flex', gap: '1px'}}>
             <Box sx={{flex: '1', display: 'flex', flexDirection: 'column', gap: '2px'}}>
                 {
-                    // render this two only if commits && cveList!
-                    commits &&
+                    // render message only if the rest of data is fully loaded
+                    commits && propsNotNull(commitData) &&
                     <MessageWindow message={curCommit.message} setWinRef={(el) => windowRefs[0].current = el}/>
                 }
                 {
                     // handle empty state in CveViewer
-                    commitData.cveList && <CveViewer cveList={commitData.cveList} setWinRef={(el) => windowRefs[1].current = el}/>
+                    commitData.cveList &&
+                    <CveViewer cveList={commitData.cveList} setWinRef={(el) => windowRefs[1].current = el}/>
                 }
             </Box>
             <Divider orientation="vertical" flexItem/>
@@ -251,7 +242,7 @@ export default function Explorer() {
                     // recreate DiffViewer when diffs changes???
                     curDiff && (
                         <DiffViewer>
-                            <DiffViewerHeader stats={curDiff.stats} diffState={commitData.votesMap[curDiff.newFileName]?.choice}
+                            <DiffViewerHeader stats={curDiff.stats} diffState={curDiff.vote?.choice}
                                               oldFileName={curDiff.oldFileName} newFileName={curDiff.newFileName}/>
 
                             <DiffViewerBody codeLines={curDiff.lines} getMoreLines={getMoreLines}
