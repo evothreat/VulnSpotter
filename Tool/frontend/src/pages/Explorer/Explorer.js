@@ -2,7 +2,7 @@ import Box from "@mui/material/Box";
 import DiffViewer from "./DiffViewer/DiffViewer";
 import React, {useEffect, useRef, useState} from "react";
 import ProjectsService from "../../services/ProjectsService";
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import CommitsService from "../../services/CommitsService";
 import {createLineDiff, DiffType, parsePatch} from "../../diffUtils";
 import Typography from "@mui/material/Typography";
@@ -41,6 +41,8 @@ function MessageWindow({message, setWinRef}) {
 
 export default function Explorer() {
     const {projId} = useParams();
+    const navigate = useNavigate();
+
     const [commitIds, setCommitIds] = useState(null);
     const [commitInfo, setCommitInfo] = useState({
         commit: null,
@@ -241,6 +243,7 @@ export default function Explorer() {
     useHotkeys('tab', switchWindow);
     useHotkeys(SWITCH_KEYS, gotoWindow);
     useHotkeys(RATE_KEYS, rateDiff);
+    useHotkeys('esc', () => navigate(-1));
 
     return (
         <Box sx={{display: 'flex', gap: '1px'}}>
