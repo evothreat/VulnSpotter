@@ -51,7 +51,7 @@
 }
 
 .expButton {
-    background-color: rgb(212, 232, 255);
+    background-color: #D8F1FF;
     color: #444444;
     cursor: pointer;
     text-align: center;
@@ -66,7 +66,7 @@
 }
 
 .expTextBox {
-    background-color: rgb(237, 249, 255);
+    background-color: #F0F8FF;
 }
 
 .highlighter {
@@ -95,14 +95,6 @@
     z-index: 1;
 }
 
-.diffTable > tbody > tr > td:first-child {
-    /* Stick to the left */
-    left: 0;
-    position: sticky;
-    /* Displayed on top of other rows when scrolling */
-    z-index: 1;
-}
-
 .diffTable > tbody > tr > td {
     font-size: 14px;
     line-height: 1.6;
@@ -119,6 +111,7 @@
 .tablesContainer {
     flex: 1;
     display: flex;
+    gap: 2px;
 }
 
 .diffHeader {
