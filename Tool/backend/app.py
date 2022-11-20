@@ -404,14 +404,23 @@ def get_commits(proj_id):
     if not is_member(get_jwt_identity(), proj_id):
         return '', 404
 
-    if 'unrated' in request.args:
-        data = db_conn.execute('SELECT c.id,c.hash,c.message,c.created_at FROM commits c WHERE c.project_id=? '
-                               'AND NOT EXISTS(SELECT * FROM votes v WHERE v.commit_id=c.id)', (proj_id,)).fetchall()
-    else:
-        data = db_conn.execute('SELECT id,hash,message,created_at FROM commits WHERE project_id=?',
-                               (proj_id,)).fetchall()
+    cols = 'id,hash,message,created_at'
+    if request.args:
+        fields = request.args.get('fields', '').split(',')
+        allowed = ('id', 'hash', 'message', 'created_at')
+        cols = ','.join((f for f in fields if f in allowed))
+        if not cols:
+            return '', 400
 
-    return [views.commit(d) for d in data]
+    if 'unrated' in request.args:
+        data = db_conn.execute(f'SELECT {cols} FROM commits c WHERE c.project_id=? AND '
+                               f'NOT EXISTS(SELECT * FROM votes v WHERE v.commit_id=c.id)', (proj_id,)).fetchall()
+    else:
+        data = db_conn.execute(f'SELECT {cols} FROM commits WHERE project_id=?', (proj_id,)).fetchall()
+
+    # bad approach, because database keys are reflected to the user
+    keys = data[0].keys() if data else []
+    return [{k: d[k] for k in keys} for d in data]
 
 
 @app.route('/api/users/me/commits/<commit_id>/full_info', methods=['GET'])
@@ -428,7 +437,7 @@ def get_commit_full_info(commit_id):
     votes = db_conn.execute('SELECT v.id,v.user_id,v.commit_id,v.filepath,v.choice FROM votes v '
                             'WHERE v.commit_id=? AND v.user_id=? ', (commit_id, user_id)).fetchall()
 
-    cve_info = db_conn.execute('SELECT ci.id,ci.cve_id,ci.summary,ci.description,ci.cvss_score FROM cve_info ci '
+    cve_list = db_conn.execute('SELECT ci.id,ci.cve_id,ci.summary,ci.description,ci.cvss_score FROM cve_info ci '
                                'WHERE EXISTS(SELECT * FROM commit_cve WHERE cve_id=ci.id AND commit_id=?)',
                                (commit_id,)).fetchall()
 
@@ -439,7 +448,7 @@ def get_commit_full_info(commit_id):
     return {
         'commit': views.commit(commit),
         'votes': [views.vote(v) for v in votes],
-        'cve_info': [views.cve_info(ci) for ci in cve_info],
+        'cve_list': [views.cve_info(ci) for ci in cve_list],
         'patch': patch
     }
 
