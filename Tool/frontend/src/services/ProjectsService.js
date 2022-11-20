@@ -54,6 +54,14 @@ class ProjectsService {
     createInvitation(id, inviteeId) {
         return api.post(`${this.basePath}/${id}/invitations`, {'invitee_id': inviteeId});
     }
+
+    getCommitIds(id) {
+        return api.get(`${this.basePath}/${id}/commits?fields=id`);
+    }
+
+    getUnratedCommitIds(id) {
+        return api.get(`${this.basePath}/${id}/commits?unrated&fields=id`);
+    }
 }
 
 export default new ProjectsService();

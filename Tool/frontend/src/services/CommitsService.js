@@ -36,6 +36,10 @@ class CommitsService {
             'choice': choice
         })
     }
+
+    getFullInfo(id) {
+        return api.get(`${this.basePath}/${id}/full_info`);
+    }
 }
 
 export default new CommitsService();

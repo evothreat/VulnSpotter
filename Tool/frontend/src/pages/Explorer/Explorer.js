@@ -6,7 +6,7 @@ import {useParams} from "react-router-dom";
 import CommitsService from "../../services/CommitsService";
 import {createLineDiff, DiffType, parsePatch} from "../../diffUtils";
 import Typography from "@mui/material/Typography";
-import {ArrayIterator, getCvss3Severity, isObjEmpty, mod, normalizeText, propsNotNull} from "../../utils";
+import {ArrayIterator, getCvss3Severity, isObjEmpty, mod, normalizeText} from "../../utils";
 import useHotkeys from "./useHotkeys";
 import CveViewer from "./CveViewer";
 import WindowTitle from "./WindowTitle";
@@ -38,15 +38,12 @@ function MessageWindow({message, setWinRef}) {
 
 export default function Explorer() {
     const {projId} = useParams();
-    const [commits, setCommits] = useState(null);
-    const [commitData, setCommitData] = useState({
+    const [commitIds, setCommitIds] = useState(null);
+    const [commitInfo, setCommitInfo] = useState({
+        commit: null,
         diffs: null,
         cveList: null,
     });
-
-    const curCommit = commits?.curr();
-    const curDiff = commitData.diffs?.curr();
-
     const reverse = useRef(false);
 
     const windowRefs = [
@@ -56,23 +53,23 @@ export default function Explorer() {
         useRef(null)
     ];
 
+    const curCommit = commitInfo.commit;
+    const curDiff = commitInfo.diffs?.curr();
+
     useEffect(() => {
-        ProjectsService.getCommits(projId)
-            .then((data) => setCommits(new ArrayIterator(data, 517)));   // replace to 0 later
+        ProjectsService.getCommitIds(projId)
+            .then((data) => setCommitIds(new ArrayIterator(data.map((v) => v.id), 516)));
     }, [projId]);
 
     useEffect(() => {
-        if (!commits) {
+        if (!commitIds) {
             return;
         }
-        const commitId = commits.curr().id;
-        Promise.all([
-            CommitsService.getPatch(commitId),
-            CommitsService.getVotes(commitId),
-            CommitsService.getCveList(commitId)
-        ])
-            .then(([patch, votes, cveList]) => {
-                if (commitId !== commits.curr().id) {
+        const commitId = commitIds.curr();   // use commit from commit info?
+
+        CommitsService.getFullInfo(commitId)
+            .then(({commit, votes, cve_list, patch}) => {
+                if (commitId !== commitIds.curr()) {
                     return;
                 }
                 // patch
@@ -96,31 +93,34 @@ export default function Explorer() {
                 }
                 diffs.seek(0);
                 // cveList
-                for (const cve of cveList) {
+                for (const cve of cve_list) {
                     cve.severity = getCvss3Severity(cve.cvss_score);
                 }
-                setCommitData({
+                setCommitInfo({
+                    commit: commit,
                     diffs: diffs,
-                    cveList: cveList,
+                    cveList: cve_list,
                 });
             });
-    }, [commits]);
+    }, [commitIds]);
 
     const refreshData = () => {
-        setCommitData((curData) => {
-            return {...curData};
+        setCommitInfo((curInfo) => {
+            return {...curInfo};
         });
     };
 
     const gotoPrevDiff = (e) => {
         e?.preventDefault();
 
-        if (commitData.diffs.prev()) {
+        if (commitInfo.diffs.prev()) {
             refreshData();
-        } else if (commits.prev()) {
+        }
+        else if (commitIds.prev()) {
             reverse.current = true;
-            setCommits(commits.clone());
-        } else {
+            setCommitIds(commitIds.clone());
+        }
+        else {
             console.log('no more commits available')
         }
     };
@@ -128,12 +128,14 @@ export default function Explorer() {
     const gotoNextDiff = (e) => {
         e?.preventDefault();
 
-        if (commitData.diffs.next()) {
+        if (commitInfo.diffs.next()) {
             refreshData();
-        } else if (commits.next()) {
-            console.log('ID:', commits.curr().id);
-            setCommits(commits.clone());
-        } else {
+        }
+        else if (commitIds.next()) {
+            console.log('ID:', commitIds.curr());
+            setCommitIds(commitIds.clone());
+        }
+        else {
             console.log('no more commits available');
         }
     };
@@ -216,8 +218,7 @@ export default function Explorer() {
                 });
         }
         else if (vote.choice !== choice) {
-            VotesService.updateChoice(vote.id, choice)
-                .then(() => vote.choice = choice);
+            VotesService.updateChoice(vote.id, choice).then(() => vote.choice = choice);
         }
     };
 
@@ -231,21 +232,20 @@ export default function Explorer() {
         <Box sx={{display: 'flex', gap: '1px'}}>
             <Box sx={{flex: '1', display: 'flex', flexDirection: 'column', gap: '2px'}}>
                 {
-                    // render message only if the rest of data is fully loaded
-                    commits && propsNotNull(commitData) &&
+                    // render message
+                    commitInfo.commit &&
                     <MessageWindow message={curCommit.message} setWinRef={(el) => windowRefs[0].current = el}/>
                 }
                 {
-                    // handle empty state in CveViewer
-                    commitData.cveList &&
-                    <CveViewer cveList={commitData.cveList} setWinRef={(el) => windowRefs[1].current = el}/>
+                    // render cve-list
+                    commitInfo.cveList &&
+                    <CveViewer cveList={commitInfo.cveList} setWinRef={(el) => windowRefs[1].current = el}/>
                 }
             </Box>
             <Divider orientation="vertical" flexItem/>
             <Box sx={{flex: '2.5', display: 'flex'}}>
                 {
                     // we need this flexbox because if diffs is null, the left column will stretch
-                    // recreate DiffViewer when diffs changes???
                     curDiff && (
                         <DiffViewer>
                             <DiffViewerHeader stats={curDiff.stats} diffState={curDiff.vote?.choice}
