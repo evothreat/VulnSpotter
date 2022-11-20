@@ -82,7 +82,7 @@ export default function Explorer() {
                     };
                     return dict;
                 }, {});
-                let diff = diffs.curr();
+                let diff = diffs.begin();
                 while (diff) {
                     diff.vote = votesMap[diff.newFileName] || {};
                     diff = diffs.next();

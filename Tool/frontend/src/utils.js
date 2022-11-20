@@ -132,6 +132,11 @@ ArrayIterator.prototype.curr = function () {
     return this.array[this.currIx];
 };
 
+ArrayIterator.prototype.begin = function () {
+    this.currIx = 0;
+    return this.array[0];
+};
+
 ArrayIterator.prototype.seek = function (ix) {
     if (ix >= 0) {
         this.currIx = Math.min(this.array.length - 1, ix);
@@ -145,15 +150,12 @@ ArrayIterator.prototype.clone = function () {
     return new ArrayIterator(this.array, this.currIx);
 };
 
-
 function propsNotNull(obj) {
     return Object.values(obj).every(value => value != null);
 }
 
 function isObjEmpty(obj) {
-    for (const prop in obj) {
-        return false;
-    }
+    for (const prop in obj) return false;
     return true;
 }
 
