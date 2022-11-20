@@ -404,15 +404,18 @@ def get_commits(proj_id):
     if not is_member(get_jwt_identity(), proj_id):
         return '', 404
 
+    query = request.args
+
     cols = 'id,hash,message,created_at'
-    if request.args:
-        fields = request.args.get('fields', '').split(',')
+
+    if 'fields' in query:
+        fields = query['fields'].split(',')
         allowed = ('id', 'hash', 'message', 'created_at')
         cols = ','.join((f for f in fields if f in allowed))
         if not cols:
             return '', 400
 
-    if 'unrated' in request.args:
+    if 'unrated' in query:
         data = db_conn.execute(f'SELECT {cols} FROM commits c WHERE c.project_id=? AND '
                                f'NOT EXISTS(SELECT * FROM votes v WHERE v.commit_id=c.id)', (proj_id,)).fetchall()
     else:
