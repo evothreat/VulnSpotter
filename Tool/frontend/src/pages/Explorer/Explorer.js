@@ -22,6 +22,9 @@ import VotesService from "../../services/VotesService";
 const SWITCH_KEYS = ['1', '2', '3', '4'];
 const RATE_KEYS = ['v', 'b', 'n'];
 
+function getDiffId(commitId, filepath) {
+    return commitId + filepath;
+}
 
 function MessageWindow({message, setWinRef}) {
     return (
@@ -45,6 +48,7 @@ export default function Explorer() {
         cveList: null,
     });
     const backwards = useRef(false);
+    const voteUpdates = useRef({});
 
     const windowRefs = [
         useRef(null),
@@ -84,7 +88,9 @@ export default function Explorer() {
                 }, {});
                 let diff = diffs.begin();
                 while (diff) {
+                    diff.id = getDiffId(commitId, diff.newFileName);
                     diff.vote = votesMap[diff.newFileName] || {};
+
                     diff = diffs.next();
                 }
                 // determine diff to begin with
@@ -104,6 +110,7 @@ export default function Explorer() {
                     cveList: cve_list,
                 });
             });
+        return () => voteUpdates.current = {};  // not necessary, but useful to save memory
     }, [commitIds]);
 
     const refreshData = () => {
@@ -116,13 +123,17 @@ export default function Explorer() {
         e?.preventDefault();
 
         if (commitInfo.diffs.prev()) {
+            // check if vote for previous diff was created or updated
+            const diff = commitInfo.diffs.curr();
+            const vote = voteUpdates.current[diff.id];
+            if (vote) {
+                diff.vote = vote;
+            }
             refreshData();
-        }
-        else if (commitIds.prev()) {
+        } else if (commitIds.prev()) {
             backwards.current = true;
             setCommitIds(commitIds.clone());
-        }
-        else {
+        } else {
             console.log('no more commits available')
         }
     };
@@ -132,12 +143,10 @@ export default function Explorer() {
 
         if (commitInfo.diffs.next()) {
             refreshData();
-        }
-        else if (commitIds.next()) {
+        } else if (commitIds.next()) {
             console.log('ID:', commitIds.curr());
             setCommitIds(commitIds.clone());
-        }
-        else {
+        } else {
             console.log('no more commits available');
         }
     };
@@ -204,24 +213,27 @@ export default function Explorer() {
                 choice = 2;
         }
         const commitId = curCommit.id;
+        const diffId = curDiff.id;
 
-        // NOTE: use properties and not the diff object self, because it may not exist anymore (after switching)
         const filepath = curDiff.newFileName;
-        const vote = curDiff.vote;
+        const vote = {...curDiff.vote};
 
-        gotoNextDiff();
-
-        // do this after switching to avoid showing choice
         if (isObjEmpty(vote)) {
             CommitsService.createVote(commitId, filepath, choice)
                 .then((data) => {
-                    vote.id = data.resource_id;
+                    voteUpdates.current[diffId] = {
+                        id: data.resource_id,
+                        choice: choice
+                    };
+                });
+        } else if (vote.choice !== choice) {
+            VotesService.updateChoice(vote.id, choice)
+                .then(() => {
                     vote.choice = choice;
+                    voteUpdates.current[diffId] = vote;
                 });
         }
-        else if (vote.choice !== choice) {
-            VotesService.updateChoice(vote.id, choice).then(() => vote.choice = choice);
-        }
+        gotoNextDiff();
     };
 
     useHotkeys('shift+left', gotoPrevDiff);
