@@ -57,12 +57,10 @@ export default function useSyncScroller(key) {
                     const listener = otherEl.onscroll;
                     otherEl.onscroll = null;
 
-                    if (updateX &&
-                        otherEl.scrollWidth - otherEl.clientWidth > scrollX) {
+                    if (updateX) {
                         otherEl.scrollLeft = scrollX;
                     }
-                    if (updateY &&
-                        otherEl.scrollHeight - otherEl.clientHeight > scrollY) {
+                    if (updateY) {
                         otherEl.scrollTop = scrollY;
                     }
                     // runs after all made changes
