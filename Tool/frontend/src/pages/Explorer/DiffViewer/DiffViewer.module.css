@@ -43,7 +43,7 @@
     text-align: right;
     border-color: #f0f0f0;
     background-color: #fafafa;
-    color: rgba(0,0,0,0.3);
+    color: rgb(185, 185, 185);
 }
 
 .expander > td {
@@ -51,7 +51,7 @@
 }
 
 .expButton {
-    background-color: rgba(186, 223, 255, 0.75);
+    background-color: rgb(212, 232, 255);
     color: #444444;
     cursor: pointer;
     text-align: center;
@@ -62,11 +62,11 @@
 }
 
 .expButton:hover {
-    background-color: rgba(0, 111, 255, 0.8);
+    background-color: #4b8af5;
 }
 
 .expTextBox {
-    background-color: rgba(221, 244, 255, 0.5);
+    background-color: rgb(237, 249, 255);
 }
 
 .highlighter {
@@ -87,6 +87,22 @@
     inset: 0;
 }
 
+.stickyCol {
+    /* Stick to the left */
+    left: 0;
+    position: sticky;
+    /* Displayed on top of other rows when scrolling */
+    z-index: 1;
+}
+
+.diffTable > tbody > tr > td:first-child {
+    /* Stick to the left */
+    left: 0;
+    position: sticky;
+    /* Displayed on top of other rows when scrolling */
+    z-index: 1;
+}
+
 .diffTable > tbody > tr > td {
     font-size: 14px;
     line-height: 1.6;
@@ -103,7 +119,6 @@
 .tablesContainer {
     flex: 1;
     display: flex;
-    gap: 2px;
 }
 
 .diffHeader {
@@ -117,7 +132,7 @@
     padding: 0 10px;
     line-height: 35px;
     font-size: 14px;
-    color: rgba(58, 54, 54, 0.9);
+    color: rgb(30, 30, 30);
     font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
@@ -170,14 +185,6 @@
 .diffBody {
     flex: 1;
     display: flex;
-}
-
-.stickyCol {
-    /* Stick to the left */
-    left: 0;
-    position: sticky;
-    /* Displayed on top of other rows when scrolling */
-    z-index: 1;
 }
 
 :global(.token.operator) {
