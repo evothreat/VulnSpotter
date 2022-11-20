@@ -6,7 +6,7 @@ import {Fragment, useEffect, useState} from "react";
 import {areHunksSequent, calcHunks, DiffType} from "../../../diffUtils";
 import {nanoid} from "nanoid";
 import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "../Icons";
-import {useSyncScroller} from "../useScrollSync";
+import useSyncScroller from "../useSyncScroller";
 
 
 function isNotConstant(l) {
