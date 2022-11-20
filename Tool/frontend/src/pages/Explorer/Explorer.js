@@ -44,7 +44,7 @@ export default function Explorer() {
         diffs: null,
         cveList: null,
     });
-    const reverse = useRef(false);
+    const backwards = useRef(false);
 
     const windowRefs = [
         useRef(null),
@@ -74,10 +74,6 @@ export default function Explorer() {
                 }
                 // patch
                 const diffs = new ArrayIterator(parsePatch(patch));
-                if (reverse.current) {
-                    reverse.current = false;
-                    diffs.seek(-1);
-                }
                 // assign votes to diffs
                 const votesMap = votes.reduce((dict, v) => {
                     dict[v.filepath] = {
@@ -91,7 +87,13 @@ export default function Explorer() {
                     diff.vote = votesMap[diff.newFileName] || {};
                     diff = diffs.next();
                 }
-                diffs.seek(0);
+                // determine diff to begin with
+                if (backwards.current) {
+                    backwards.current = false;
+                    diffs.seek(-1);
+                } else {
+                    diffs.seek(0);
+                }
                 // cveList
                 for (const cve of cve_list) {
                     cve.severity = getCvss3Severity(cve.cvss_score);
@@ -117,7 +119,7 @@ export default function Explorer() {
             refreshData();
         }
         else if (commitIds.prev()) {
-            reverse.current = true;
+            backwards.current = true;
             setCommitIds(commitIds.clone());
         }
         else {
