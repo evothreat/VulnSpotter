@@ -51,8 +51,8 @@
 }
 
 .expButton {
-    background-color: #CDECFF;
-    color: #444444;
+    background-color: #CFE6FD;
+    color: #CFE6FD;
     cursor: pointer;
     text-align: center;
 }
@@ -62,11 +62,11 @@
 }
 
 .expButton:hover {
-    background-color: #4b8af5;
+    background-color: #0087FF;
 }
 
 .expTextBox {
-    background-color: #F0F8FF;
+    background-color: #EDF6FF;
 }
 
 .highlighter {

@@ -19,6 +19,7 @@ import {useNavigate, useParams} from "react-router-dom";
 import Button from "@mui/material/Button";
 import FindInPageIcon from "@mui/icons-material/FindInPage";
 import cssStyle from "./Commits.module.css"
+import RouterLink from "../../components/RouterLink";
 
 
 const cveDetailUrl = 'https://nvd.nist.gov/vuln/detail/';
@@ -66,16 +67,20 @@ function CommitRow({item}) {
                 </TableCell>
                 <TableCell>
                     {
-                        item.message.length > 60
-                            ? <Box sx={{display: 'flex', alignItems: 'flex-end'}}>
-                                <span>
-                                    {item.message.substring(0, 60).replace('\n', ' ⤶ ')}
-                                </span>
-                                <IconButton onClick={toggleDetails} sx={{padding: 0, borderRadius: 0, height: '14px'}}>
-                                    <MoreHorizIcon/>
-                                </IconButton>
-                            </Box>
-                            : item.message
+                        <Box sx={{display: 'flex', alignItems: 'flex-end'}}>
+                            <RouterLink to={`./explorer?commitIds=${item.id}`} underline="hover" color="inherit">
+                                {item.message.substring(0, 60).replace('\n', ' ⤶ ')}
+                            </RouterLink>
+                            {
+                                item.message.length > 60
+                                    ? (
+                                        <IconButton onClick={toggleDetails} sx={{padding: 0, borderRadius: 0, height: '14px'}}>
+                                            <MoreHorizIcon/>
+                                        </IconButton>
+                                    )
+                                    : null
+                            }
+                        </Box>
                     }
                 </TableCell>
                 <TableCell>
@@ -151,7 +156,8 @@ function CommitsTable() {
         ? (
             <TableContainer key={sorter.order + sorter.orderBy} sx={{height: TABLE_HEIGHT}}>
                 <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
-                    <EnhancedTableHead headCells={headCells} order={sorter.order} orderBy={sorter.orderBy} sortReqHandler={sortItems}/>
+                    <EnhancedTableHead headCells={headCells} order={sorter.order} orderBy={sorter.orderBy}
+                                       sortReqHandler={sortItems}/>
                     <TableBody>
                         {
                             orderedItems.length > 0
@@ -191,7 +197,7 @@ export default function Commits() {
                     Commits
                 </Typography>
             </Box>
-            <Box  sx={{mb: '10px', '& button': {textTransform: 'none'}}}>
+            <Box sx={{mb: '10px', '& button': {textTransform: 'none'}}}>
                 <Button variant="contained" size="small" startIcon={<FindInPageIcon/>} onClick={gotoExplorer}>
                     Explore
                 </Button>
