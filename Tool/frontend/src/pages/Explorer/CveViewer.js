@@ -41,7 +41,7 @@ function renderDetails(cve) {
             {
                 renderDetail('Severity:', `${cve.cvss_score} ${cve.severity}`, false,
                     {
-                        padding: '2px 6px', fontSize: '12px',
+                        padding: '3px 6px', fontSize: '12px',
                         textTransform: 'uppercase', bgcolor: severityColor[cve.severity]
                     }
                 )
