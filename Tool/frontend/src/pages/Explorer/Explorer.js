@@ -127,7 +127,9 @@ export default function Explorer() {
                     cveList: cve_list,
                 });
             });
-        return () => voteUpdates.current = {};  // not necessary, but useful to save memory
+        return () => {
+            voteUpdates.current = {};   // not necessary, but useful to save memory
+        };
     }, [commitIds]);
 
     const refreshData = () => {
@@ -145,6 +147,7 @@ export default function Explorer() {
             const vote = voteUpdates.current[diff.id];
             if (vote) {
                 diff.vote = vote;
+                // delete voteUpdates.current[diff.id];
             }
             refreshData();
         } else if (commitIds.prev()) {
