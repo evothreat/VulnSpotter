@@ -105,12 +105,10 @@ export default function Explorer() {
                     };
                     return dict;
                 }, {});
-                let diff = diffs.begin();
-                while (diff) {
+
+                for (let diff = diffs.begin(); diff; diff = diffs.next()) {
                     diff.id = getDiffId(commitId, diff.newFileName);
                     diff.vote = votesMap[diff.newFileName] || {};
-
-                    diff = diffs.next();
                 }
                 // determine diff to begin with
                 if (backwards.current) {
