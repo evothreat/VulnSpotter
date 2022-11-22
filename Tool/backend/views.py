@@ -13,6 +13,7 @@ def project(d):
         'name': d['name'],
         'repository': d['repository'],
         'commit_n': d['commit_n'],
+        'glob_pats': d['glob_pats'],
         'owner': {
             'id': d['owner_id'],
             'full_name': d['full_name'],

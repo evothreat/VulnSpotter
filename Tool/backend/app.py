@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from fnmatch import fnmatch
 from os.path import isdir, basename
 from threading import Thread
 from urllib.parse import urlparse
@@ -141,7 +142,17 @@ def create_cve_records(repo_name, cve_list):
         conn.executemany('INSERT OR IGNORE INTO cve_info(cve_id,summary,description,cvss_score) VALUES (?,?,?,?)', rows)
 
 
-def create_project_from_repo(user_id, repo_url, proj_name):
+def match_commit(repo, commit_id, patterns):
+    if not patterns:
+        return True
+    filepaths = repo.git.diff(commit_id + '~1', commit_id, name_only=True)
+    for fp in filepaths.split('\n'):
+        if any(fnmatch(fp, pat) for pat in patterns):
+            return True
+    return False
+
+
+def create_project_from_repo(user_id, repo_url, proj_name, glob_pats):
     parts = urlparse(repo_url)
     repo_loc = normpath(parts.netloc + parts.path.rstrip('.git'))
     repo_name = basename(repo_loc)
@@ -150,9 +161,8 @@ def create_project_from_repo(user_id, repo_url, proj_name):
         if isdir(repo_dir):
             repo = git.Repo(repo_dir)
             repo.remotes.origin.pull()
-            repo.close()
         else:
-            git.Repo.clone_from(f'{parts.scheme}://:@{repo_loc}', repo_dir).close()
+            repo = git.Repo.clone_from(f'{parts.scheme}://:@{repo_loc}', repo_dir)
     except git.exc.GitError:
         notify((user_id,), 1, Action.CREATE, None)
         return
@@ -164,25 +174,26 @@ def create_project_from_repo(user_id, repo_url, proj_name):
     create_cve_records(repo_name, found_cve_list)
 
     with open_db_transaction() as conn:
-        proj_id = conn.execute('INSERT INTO projects(owner_id,name,repository,commit_n) VALUES (?,?,?,?)',
-                               (user_id, proj_name, repo_loc, len(vulns))).lastrowid
+        proj_id = conn.execute('INSERT INTO projects(owner_id,name,repository,commit_n,glob_pats) VALUES (?,?,?,?,?)',
+                               (user_id, proj_name, repo_loc, len(vulns), ','.join(glob_pats))).lastrowid
 
         conn.execute('INSERT INTO membership(user_id,project_id,role) VALUES (?,?,?)', (user_id, proj_id, Role.OWNER))
 
         commits = vulns.values()
-        commit_rows = [(proj_id, v['commit-id'], v['message'], v['authored_date']) for v in commits]
+        commit_rows = [(proj_id, v['commit-id'], v['message'],
+                        v['authored_date'], match_commit(repo, v['commit-id'], glob_pats)) for v in commits]
 
-        cur = conn.executemany('INSERT INTO commits(project_id,hash,message,created_at) VALUES (?,?,?,?)', commit_rows)
+        cur = conn.executemany('INSERT INTO commits(project_id,hash,message,created_at,matched) VALUES (?,?,?,?,?)',
+                               commit_rows)
         if cur.rowcount > 0:
             # calculating ids of inserted records (tricky)
             inserted_id = conn.execute('SELECT MAX(id) FROM commits').fetchone()[0] - cur.rowcount + 1
             commit_cve = []
-            for comm in commits:
+            for comm_id, comm in zip(range(inserted_id, len(commits)), commits):
                 cve_list = comm.get('cve')
                 if cve_list:
                     for cve in set(cve_list):
-                        commit_cve.append((inserted_id, cve))
-                inserted_id += 1
+                        commit_cve.append((comm_id, cve))
 
             conn.executemany('INSERT INTO commit_cve(commit_id,cve_id) SELECT ?,id FROM cve_info WHERE cve_id=?',
                              commit_cve)
@@ -202,8 +213,9 @@ def is_member(user_id, proj_id):
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    username = request.json.get('username')
-    password = request.json.get('password')
+    body = request.json
+    username = body.get('username')
+    password = body.get('password')
 
     if not (username and password):
         return '', 401
@@ -255,12 +267,16 @@ def get_users():
 @app.route('/api/users/me/projects', methods=['POST'])
 @jwt_required()
 def create_project():
-    repo_url = request.json.get('repo_url')
-    proj_name = request.json.get('proj_name')
+    body = request.json
+
+    repo_url = body.get('repo_url')
+    proj_name = body.get('proj_name')
+    glob_pats = [pat.strip() for pat in body.get('glob_pats', '').split(',')]
+
     if not (repo_url and proj_name):
         return '', 400
 
-    Thread(target=create_project_from_repo, args=(get_jwt_identity(), repo_url, proj_name)).start()
+    Thread(target=create_project_from_repo, args=(get_jwt_identity(), repo_url, proj_name, glob_pats)).start()
 
     return '', 202
 
@@ -270,7 +286,7 @@ def create_project():
 @jwt_required()
 def get_projects():
     # also count number of commits?
-    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.owner_id,p.commit_n,u.full_name '
+    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.owner_id,p.commit_n,p.glob_pats,u.full_name '
                            'FROM membership m '
                            'JOIN projects p ON m.user_id=? AND m.project_id=p.id '
                            'JOIN users u ON p.owner_id=u.id', (get_jwt_identity(),)).fetchall()
@@ -281,7 +297,7 @@ def get_projects():
 @app.route('/api/users/me/projects/<proj_id>', methods=['GET'])
 @jwt_required()
 def get_project(proj_id):
-    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.owner_id,p.commit_n,u.full_name '
+    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.owner_id,p.commit_n,p.glob_pats,u.full_name '
                            'FROM membership m '
                            'JOIN projects p ON m.user_id=? AND m.project_id=? AND m.project_id=p.id '
                            'JOIN users u ON p.owner_id=u.id LIMIT 1', (get_jwt_identity(), proj_id)).fetchone()
@@ -292,10 +308,12 @@ def get_project(proj_id):
 @app.route('/api/users/me/projects/<proj_id>', methods=['PATCH'])
 @jwt_required()
 def update_project(proj_id):
+    # TODO: throw exception if body contains invalid fields!
     params, args = sql_params_args(
         request.json,
         {
-            'name': str
+            'name': str,
+            'glob_pats': str
         }
     )
     if not params:
@@ -415,11 +433,13 @@ def get_commits(proj_id):
         if not cols:
             return '', 400
 
+    matched = 'AND matched=1' if 'matched' in query else ''
+
     if 'unrated' in query:
-        data = db_conn.execute(f'SELECT {cols} FROM commits c WHERE c.project_id=? AND '
+        data = db_conn.execute(f'SELECT {cols} FROM commits c WHERE c.project_id=? {matched} AND '
                                f'NOT EXISTS(SELECT * FROM votes v WHERE v.commit_id=c.id)', (proj_id,)).fetchall()
     else:
-        data = db_conn.execute(f'SELECT {cols} FROM commits WHERE project_id=?', (proj_id,)).fetchall()
+        data = db_conn.execute(f'SELECT {cols} FROM commits WHERE project_id=? {matched}', (proj_id,)).fetchall()
 
     # bad approach, because database keys are reflected to the user
     keys = data[0].keys() if data else []
@@ -444,8 +464,9 @@ def get_commit_full_info(commit_id):
                                'WHERE EXISTS(SELECT * FROM commit_cve WHERE cve_id=ci.id AND commit_id=?)',
                                (commit_id,)).fetchall()
 
+    comm_hash = commit['hash']
     with git.Repo(pathjoin(config.REPOS_DIR, commit['repository'])) as repo:
-        patch = repo.git.diff(commit['hash'] + '~1', commit['hash'],
+        patch = repo.git.diff(comm_hash + '~1', comm_hash,
                               ignore_blank_lines=True, ignore_space_at_eol=True,
                               diff_filter='MA', no_prefix=True)
     return {
@@ -764,6 +785,7 @@ if __name__ == '__main__':
     app.run()
 
 # TODO: implement registration endpoint
+# TODO: verify parameter semantics
 
 # PROBLEMS
 # 1. input-value semantics aren't checked

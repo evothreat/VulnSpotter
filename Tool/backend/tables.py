@@ -27,6 +27,7 @@ PROJECTS_SCHEMA = '''
         name        TEXT,
         repository  TEXT,
         commit_n    INTEGER,
+        glob_pats   TEXT,
         FOREIGN KEY(owner_id) REFERENCES users(id) ON DELETE CASCADE
     )
 '''
@@ -38,6 +39,7 @@ COMMITS_SCHEMA = '''
         hash        TEXT,
         message     TEXT,
         created_at  INTEGER,
+        matched     BOOLEAN,
         FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
     )
 '''
