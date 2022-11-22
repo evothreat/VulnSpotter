@@ -9,22 +9,35 @@ import {Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/material";
 import TextField from "@mui/material/TextField";
 import EnhancedAlert from "../../components/EnhancedAlert";
 import {headerStyle, mainActionBtnStyle} from "../../style";
+import isGlob from "is-glob";
 
 
-function CreateProjectDialog({open, closeHandler, createHandler}) {
+function CreateProjectDialog({closeHandler, createHandler}) {
+
+    const [invalidGlob, setInvalidGlob] = useState(false);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        createHandler(e.target.repoUrl.value, e.target.projName.value);
+
+        const globPats = e.target.globPats.value;
+
+        if (globPats && globPats.split(',').some((pat) => pat && !isGlob(pat))) {
+            setInvalidGlob(true);
+        } else {
+            createHandler(e.target.repoUrl.value, e.target.projName.value, globPats);
+        }
     };
 
     return (
-        <Dialog open={open} onClose={closeHandler} maxWidth="xs" fullWidth>
+        <Dialog open={true} onClose={closeHandler} maxWidth="xs" fullWidth>
             <form onSubmit={handleSubmit}>
                 <DialogTitle>New Project</DialogTitle>
                 <DialogContent>
                     <TextField name="repoUrl" margin="dense" label="Repository URL" fullWidth required autoFocus/>
                     <TextField name="projName" margin="dense" label="Project name" fullWidth required/>
+                    <TextField name="globPats" margin="dense" label="Filename patterns (e.g. *.cpp, test_*.go, cat?.py)"
+                               fullWidth error={invalidGlob}
+                    />
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={closeHandler} variant="outlined">Cancel</Button>
@@ -46,9 +59,9 @@ export default function Home() {
     const showInfo = (msg) => setAlertMsg(msg);
     const hideInfo = () => setAlertMsg('');
 
-    const handleCreateInDlg = (repoUrl, projName) => {
+    const handleCreateInDlg = (repoUrl, projName, globPats) => {
         hideCreateDlg();
-        ProjectsService.create(repoUrl, projName)
+        ProjectsService.create(repoUrl, projName, globPats)
             .then(() => showInfo('Once the project is created, you will be notified'));
     };
 
@@ -65,8 +78,11 @@ export default function Home() {
             </Box>
 
             <ProjectsTable/>
-
-            <CreateProjectDialog open={openCreateDlg} closeHandler={hideCreateDlg} createHandler={handleCreateInDlg}/>
+            {
+                openCreateDlg
+                    ? <CreateProjectDialog closeHandler={hideCreateDlg} createHandler={handleCreateInDlg}/>
+                    : null
+            }
             {
                 alertMsg && <EnhancedAlert msg={alertMsg} severity="info" closeHandler={hideInfo}/>
             }

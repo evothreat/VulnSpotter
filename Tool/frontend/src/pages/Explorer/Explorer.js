@@ -77,9 +77,9 @@ export default function Explorer() {
         if (idsList.length > 0) {
             setCommitIds(new ArrayIterator(idsList));
         } else {
-            ProjectsService.getCommitIds(projId)
+            ProjectsService.getCommits(projId, {matched: true, fields: ['id']})
                 .then((data) => {
-                    setCommitIds(new ArrayIterator(data.map((v) => v.id), 516))
+                    setCommitIds(new ArrayIterator(data.map((v) => v.id)))
                 });
         }
     }, [projId, queryParams]);

@@ -128,6 +128,10 @@ ArrayIterator.prototype.next = function () {
     return this.array.length > this.currIx + 1 ? this.array[++this.currIx] : undefined;
 };
 
+ArrayIterator.prototype.hasNext = function () {
+    return !!this.array[this.currIx + 1];       // !! isn't necessary
+};
+
 ArrayIterator.prototype.curr = function () {
     return this.array[this.currIx];
 };

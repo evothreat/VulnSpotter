@@ -126,7 +126,7 @@ function CommitsTable() {
     const [endIx, setEndIx] = useState(MAX_ITEMS);
 
     useEffect(() => {
-        ProjectsService.getCommits(projId)
+        ProjectsService.getCommits(projId, {matched: true, unrated: true})
             .then((data) => {
                 data.forEach((c) => {
                     c.cve = Utils.findCVEs(c.message);

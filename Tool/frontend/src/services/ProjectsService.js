@@ -16,11 +16,15 @@ class ProjectsService {
         return api.get(`${this.basePath}/${id}`);
     }
 
-    create(repoUrl, projName) {
-        return api.post(this.basePath, {
+    create(repoUrl, projName, globPats) {
+        const body = {
             'repo_url': repoUrl,
             'proj_name': projName
-        });
+        }
+        if (globPats) {
+            body['glob_pats'] = globPats;
+        }
+        return api.post(this.basePath, body);
     }
 
     delete(id) {
@@ -39,14 +43,6 @@ class ProjectsService {
         return api.delete(`${this.basePath}/${projId}/members/${memberId}`);
     }
 
-    getCommits(id) {
-        return api.get(`${this.basePath}/${id}/commits`);
-    }
-
-    getUnratedCommits(id) {
-        return api.get(`${this.basePath}/${id}/commits?unrated`);
-    }
-
     getInvitations(id) {
         return api.get(`${this.basePath}/${id}/invitations`);
     }
@@ -55,12 +51,18 @@ class ProjectsService {
         return api.post(`${this.basePath}/${id}/invitations`, {'invitee_id': inviteeId});
     }
 
-    getCommitIds(id) {
-        return api.get(`${this.basePath}/${id}/commits?fields=id`);
-    }
-
-    getUnratedCommitIds(id) {
-        return api.get(`${this.basePath}/${id}/commits?unrated&fields=id`);
+    getCommits(id, opts) {
+        let queryArgs = [];
+        if (opts.unrated) {
+            queryArgs.push('unrated');
+        }
+        if (opts.matched) {
+            queryArgs.push('matched');
+        }
+        if (opts.fields) {  // maybe check length
+            queryArgs.push('fields=' + opts.fields.join(','));
+        }
+        return api.get(`${this.basePath}/${id}/commits?${queryArgs.join('&')}`);
     }
 }
 
