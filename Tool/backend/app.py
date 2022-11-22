@@ -143,8 +143,6 @@ def create_cve_records(repo_name, cve_list):
 
 
 def match_commit(repo, commit_id, patterns):
-    if not patterns:
-        return True
     filepaths = repo.git.diff(commit_id + '~1', commit_id, name_only=True)
     for fp in filepaths.split('\n'):
         if any(fnmatch(fp, pat) for pat in patterns):
@@ -180,8 +178,8 @@ def create_project_from_repo(user_id, repo_url, proj_name, glob_pats):
         conn.execute('INSERT INTO membership(user_id,project_id,role) VALUES (?,?,?)', (user_id, proj_id, Role.OWNER))
 
         commits = vulns.values()
-        commit_rows = [(proj_id, v['commit-id'], v['message'],
-                        v['authored_date'], match_commit(repo, v['commit-id'], glob_pats)) for v in commits]
+        commit_rows = [(proj_id, v['commit-id'], v['message'], v['authored_date'],
+                        not glob_pats or match_commit(repo, v['commit-id'], glob_pats)) for v in commits]
 
         cur = conn.executemany('INSERT INTO commits(project_id,hash,message,created_at,matched) VALUES (?,?,?,?,?)',
                                commit_rows)
