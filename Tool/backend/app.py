@@ -131,12 +131,12 @@ def notify(users, actor_id, activity, proj_id):
                                     'VALUES (?,?,?,?)', (actor_id, activity, proj_id, cur_time)).lastrowid
 
         db_conn.executemany('INSERT INTO notifications(user_id,update_id,is_seen,created_at) VALUES (?,?,?,?)',
-                            [(u, update_id, False, cur_time) for u in users])
+                            ((u, update_id, False, cur_time) for u in users))
 
 
 def create_cve_records(repo_name, cve_list):
     cve_info = get_cve_info(repo_name, list(cve_list))
-    rows = [(k, v['summary'], v['description'], v['score']) for k, v in cve_info.items()]
+    rows = ((k, v['summary'], v['description'], v['score']) for k, v in cve_info.items())
 
     with open_db_transaction() as conn:
         conn.executemany('INSERT OR IGNORE INTO cve_info(cve_id,summary,description,cvss_score) VALUES (?,?,?,?)', rows)
@@ -178,8 +178,9 @@ def create_project_from_repo(user_id, repo_url, proj_name, glob_pats):
         conn.execute('INSERT INTO membership(user_id,project_id,role) VALUES (?,?,?)', (user_id, proj_id, Role.OWNER))
 
         commits = vulns.values()
-        commit_rows = [(proj_id, v['commit-id'], v['message'], v['authored_date'],
-                        not glob_pats or match_commit(repo, v['commit-id'], glob_pats)) for v in commits]
+        # creating generator to save memory
+        commit_rows = ((proj_id, v['commit-id'], v['message'], v['authored_date'],
+                        not glob_pats or match_commit(repo, v['commit-id'], glob_pats)) for v in commits)
 
         cur = conn.executemany('INSERT INTO commits(project_id,hash,message,created_at,matched) VALUES (?,?,?,?,?)',
                                commit_rows)
@@ -448,7 +449,7 @@ def get_commits(proj_id):
 @jwt_required()
 def get_commit_full_info(commit_id):
     user_id = get_jwt_identity()
-    commit = db_conn.execute('SELECT c.id,c.hash,c.message,c.created_at,p.repository FROM commits c '
+    commit = db_conn.execute('SELECT c.id,c.hash,c.message,c.created_at,p.repository,p.glob_pats FROM commits c '
                              'JOIN projects p ON c.id=? AND c.project_id = p.id '
                              'AND EXISTS(SELECT * FROM membership m WHERE m.user_id=? AND m.project_id=p.id) LIMIT 1',
                              (commit_id, user_id)).fetchone()
@@ -463,8 +464,10 @@ def get_commit_full_info(commit_id):
                                (commit_id,)).fetchall()
 
     comm_hash = commit['hash']
+    pats = commit['glob_pats'].split(',') if 'matched' in request.args else []
+
     with git.Repo(pathjoin(config.REPOS_DIR, commit['repository'])) as repo:
-        patch = repo.git.diff(comm_hash + '~1', comm_hash,
+        patch = repo.git.diff(comm_hash + '~1', comm_hash, *pats,
                               ignore_blank_lines=True, ignore_space_at_eol=True,
                               diff_filter='MA', no_prefix=True)
     return {
