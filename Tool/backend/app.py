@@ -481,7 +481,7 @@ def get_commit_full_info(commit_id):
 @app.route('/api/users/me/commits/<commit_id>/patch', methods=['GET'])
 @jwt_required()
 def get_commit_patch(commit_id):
-    data = db_conn.execute('SELECT c.hash,p.repository FROM commits c '
+    data = db_conn.execute('SELECT c.hash,p.repository,p.glob_pats FROM commits c '
                            'JOIN projects p ON c.id=? AND c.project_id = p.id '
                            'AND EXISTS(SELECT * FROM membership m WHERE m.user_id=? AND m.project_id=p.id) LIMIT 1',
                            (commit_id, get_jwt_identity())).fetchone()
@@ -489,9 +489,12 @@ def get_commit_patch(commit_id):
         return '', 404
 
     comm_hash = data['hash']
+    pats = data['glob_pats'].split(',') if 'matched' in request.args else []
+
     with git.Repo(pathjoin(config.REPOS_DIR, data['repository'])) as repo:
         # includes only modified/added files!
-        return repo.git.diff(comm_hash + '~1', comm_hash, ignore_blank_lines=True, ignore_space_at_eol=True,
+        return repo.git.diff(comm_hash + '~1', comm_hash, *pats,
+                             ignore_blank_lines=True, ignore_space_at_eol=True,
                              diff_filter='MA', no_prefix=True), 200, {'Content-Type': 'text/plain'}
 
 
