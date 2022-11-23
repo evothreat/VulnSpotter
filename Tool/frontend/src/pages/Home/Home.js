@@ -8,7 +8,7 @@ import ProjectsService from "../../services/ProjectsService";
 import {Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/material";
 import TextField from "@mui/material/TextField";
 import EnhancedAlert from "../../components/EnhancedAlert";
-import {headerStyle, mainActionBtnStyle} from "../../style";
+import {headerStyle} from "../../style";
 import isGlob from "is-glob";
 
 
@@ -71,8 +71,7 @@ export default function Home() {
                 <Typography variant="h6">
                     Projects
                 </Typography>
-                <Button size="small" variant="contained" startIcon={<AddIcon/>} onClick={showCreateDlg}
-                        sx={mainActionBtnStyle}>
+                <Button size="small" variant="contained" startIcon={<AddIcon/>} onClick={showCreateDlg}>
                     New
                 </Button>
             </Box>

@@ -36,7 +36,7 @@ export function SearchBar({width, placeholder, changeHandler}) {
                         </IconButton>
                     </InputAdornment>
                 ),
-                style: {
+                sx: {
                     paddingLeft: '10px',
                     paddingRight: 0
                 }
