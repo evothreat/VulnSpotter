@@ -2,7 +2,7 @@ import * as React from "react";
 import {Fragment, useEffect, useMemo, useState} from "react";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
-import {Checkbox, Collapse} from "@mui/material";
+import {Autocomplete, Checkbox, Collapse, ToggleButton, ToggleButtonGroup} from "@mui/material";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
@@ -20,19 +20,36 @@ import Button from "@mui/material/Button";
 import FindInPageIcon from "@mui/icons-material/FindInPage";
 import cssStyle from "./Commits.module.css"
 import RouterLink from "../../components/RouterLink";
+import TextField from "@mui/material/TextField";
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import {headerStyle} from "../../style";
 
 
 const cveDetailUrl = 'https://nvd.nist.gov/vuln/detail/';
-
+const VULN_KEYWORDS = [
+    'race', 'racy',
+    'buffer', 'overflow', 'stack',
+    'integer', 'signedness', 'widthness', 'underflow',
+    'improper', 'unauthenticated', 'gain access', 'permission',
+    'cross site', 'CSS', 'XSS', 'htmlspecialchar',
+    'denial service', 'DOS', 'crash',
+    'deadlock',
+    'SQL', 'SQLI', 'injection',
+    'format', 'string', 'printf', 'scanf',
+    'request forgery', 'CSRF', 'XSRF', 'forged',
+    'security', 'vulnerability', 'vulnerable', 'hole', 'exploit', 'attack', 'bypass', 'backdoor',
+    'threat', 'expose', 'breach', 'violate', 'fatal', 'blacklist', 'overrun', 'insecure'
+];
 
 const headCells = [
     {
         label: '',
-        width: '2%'
+        width: '1%'
     },
     {
         label: 'Description',
-        width: '65%'
+        width: '68%'
     },
     {
         label: 'CVEs',
@@ -53,6 +70,7 @@ const MAX_ITEMS = 30;
 const TABLE_HEIGHT = '470px';
 const BOTTOM_OFFSET = '-70px';
 
+const cmpByCreationTime = Utils.createComparator('created_at', 'desc');
 
 function CommitRow({item}) {
     const [detailsOpen, setDetailsOpen] = useState(false);
@@ -116,24 +134,18 @@ function CommitRow({item}) {
     );
 }
 
-function CommitsTable() {
-    const {projId} = useParams();
+function CommitsTable({commits}) {
     const [items, setItems] = useState(null);
     const [sorter, setSorter] = useState({
-        order: 'desc',
-        orderBy: 'created_at'
+        order: null,
+        orderBy: null
     });
     const [endIx, setEndIx] = useState(MAX_ITEMS);
 
     useEffect(() => {
-        ProjectsService.getCommits(projId, {matched: true, unrated: true})
-            .then((data) => {
-                data.forEach((c) => {
-                    c.cve = Utils.findCVEs(c.message);
-                });
-                setItems(data);
-            });
-    }, [projId]);
+        setEndIx(MAX_ITEMS);
+        setItems(commits)
+    }, [commits]);
 
     const sortItems = (key) => {
         const isAsc = sorter.orderBy === key && sorter.order === 'asc';
@@ -147,7 +159,12 @@ function CommitsTable() {
     const showNextItems = () => setEndIx((curIx) => Math.min(items.length, curIx + MAX_ITEMS));
 
     const orderedItems = useMemo(
-        () => items && items.slice().sort(Utils.createComparator(sorter.orderBy, sorter.order)),
+        () => {
+            if (items === null || !(sorter.order && sorter.orderBy)) {
+                return items;
+            }
+            return items.slice().sort(Utils.createComparator(sorter.orderBy, sorter.order));
+        },
         [items, sorter]
     );
 
@@ -186,23 +203,116 @@ function CommitsTable() {
 }
 
 export default function Commits() {
+    const {projId} = useParams();
     const navigate = useNavigate();
+
+    const [commits, setCommits] = useState(null);
+    const [keywordFilter, setKeywordFilter] = useState({
+        keywords: [],
+        logicalOp: 'or'
+    });
+
+    useEffect(() => {
+        ProjectsService.getCommits(projId, {matched: true})  // let the user select whether unrated or not
+            .then((data) => {
+                data.forEach((c) => {
+                    c.cve = Utils.findCVEs(c.message);
+                });
+                data.sort(cmpByCreationTime);
+                setCommits(data);
+            });
+    }, [projId]);
 
     const gotoExplorer = () => navigate(`./explorer`);
 
+    const handleKwsChange = (e, kws) => {
+        setKeywordFilter({...keywordFilter, keywords: kws});
+    }
+
+    const handleLogicalOpChange = (e, val) => {
+        if (val) {
+            setKeywordFilter({...keywordFilter, logicalOp: val});
+        }
+    };
+
+    const filteredCommits = useMemo(() => {
+        if (keywordFilter.keywords.length === 0) {
+            return commits;     // maybe need to return copy?
+        }
+        const kwRegexes = keywordFilter.keywords.map((v) => new RegExp(v, 'i'));
+        let func;
+        if (keywordFilter.logicalOp === 'and') {
+            func = (arr, c) => {
+                if (kwRegexes.every((kw) => kw.test(c.message))) {
+                    arr.push(c);
+                }
+                return arr;
+            };
+        }
+        else {
+            func = (arr, c) => {
+                if (kwRegexes.some((kw) => kw.test(c.message))) {
+                    arr.push(c);
+                }
+                return arr;
+            };
+        }
+        return commits.reduce(func, []);
+    }, [commits, keywordFilter]);
+
     return (
         <Fragment>
-            <Box sx={{display: 'flex', mt: '45px', mb: '25px'}}>
+            <Box sx={{...headerStyle, mb: '20px'}}>
                 <Typography variant="h6">
                     Commits
                 </Typography>
-            </Box>
-            <Box sx={{mb: '10px', '& button': {textTransform: 'none'}}}>
+
                 <Button variant="contained" size="small" startIcon={<FindInPageIcon/>} onClick={gotoExplorer}>
                     Explore
                 </Button>
             </Box>
-            <CommitsTable/>
+            <Box sx={{display: 'flex', gap: '10px', flexDirection: 'column', mb: '5px'}}>
+
+                <ToggleButtonGroup color="primary" value="all" exclusive size="small" sx={{height: '35px'}}>
+                    <ToggleButton value="all">All</ToggleButton>
+                    <ToggleButton value="unrated">Unrated</ToggleButton>
+                    <ToggleButton value="rated">Rated</ToggleButton>
+                </ToggleButtonGroup>
+
+                <Box sx={{display: 'flex', justifyContent: 'space-between', gap: '10px'}}>
+                    <Autocomplete
+                        multiple
+                        freeSolo
+                        options={VULN_KEYWORDS}
+                        disableCloseOnSelect
+                        renderOption={(props, option, {selected}) => (
+                            <li {...props}>
+                                <Checkbox
+                                    icon={<CheckBoxOutlineBlankIcon fontSize="small"/>}
+                                    checkedIcon={<CheckBoxIcon fontSize="small"/>}
+                                    checked={selected}
+                                    disableRipple
+                                    sx={{padding: '0 10px 0 0'}}
+                                />
+                                {option}
+                            </li>
+                        )}
+                        renderInput={(params) => (
+                            <TextField {...params} variant="standard" label="Keywords"/>
+                        )}
+                        onChange={handleKwsChange}
+                        sx={{flex: '1'}}
+                    />
+                    <ToggleButtonGroup color="primary" value={keywordFilter.logicalOp} exclusive size="small"
+                                       onChange={handleLogicalOpChange} sx={{alignSelf: 'flex-end', height: '35px'}}>
+                        <ToggleButton value="or">OR</ToggleButton>
+                        <ToggleButton value="and">AND</ToggleButton>
+                    </ToggleButtonGroup>
+                </Box>
+            </Box>
+            {
+                commits && <CommitsTable commits={filteredCommits}/>
+            }
         </Fragment>
     );
 }

@@ -67,6 +67,10 @@ function splitArray(arr, n) {
     return res;
 }
 
+function areSameArrays(a, b) {
+    return a.length === b.length && a.every((v, i) => v === b[i]);
+}
+
 // doesn't create copy if string doesn't have space at begin/end
 function trim(str) {
     return 32 >= str.charCodeAt(0) || 32 >= str.charCodeAt(str.length - 1) ? str.trim() : str;
@@ -192,6 +196,7 @@ export {
     ArrayIterator,
     propsNotNull,
     isObjEmpty,
+    areSameArrays,
     complement,
     equals,
     remove
