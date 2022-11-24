@@ -16,8 +16,6 @@ import DiffViewerBody from "./DiffViewer/DiffViewerBody";
 import VotesService from "../../services/VotesService";
 
 
-// TODO: load only specific commits
-
 // store as global constant to avoid unnecessary useEffect call (in useHotkeys)
 const SWITCH_KEYS = ['1', '2', '3', '4'];
 const RATE_KEYS = ['v', 'b', 'n'];
@@ -77,7 +75,8 @@ export default function Explorer() {
         if (idsList.length > 0) {
             setCommitIds(new ArrayIterator(idsList));
         } else {
-            ProjectsService.getCommits(projId, {matched: true, fields: ['id']})
+            // load commits depending on filter in commits table?
+            ProjectsService.getCommits(projId, {matched: true, unrated: true, fields: ['id']})
                 .then((data) => {
                     setCommitIds(new ArrayIterator(data.map((v) => v.id)))
                 });
@@ -133,7 +132,15 @@ export default function Explorer() {
     }, [commitIds]);
 
     const refreshData = () => {
+        const diff = commitInfo.diffs.curr();
+        // check if vote for current diff was created or updated
+        const vote = voteUpdates.current[diff.id];
+        if (vote) {
+            diff.vote = vote;
+            // delete voteUpdates.current[diff.id];
+        }
         setCommitInfo((curInfo) => {
+            // NOTE: updating the actual state. Passing commitInfo would overwrite actual state...
             return {...curInfo};
         });
     };
@@ -142,13 +149,6 @@ export default function Explorer() {
         e?.preventDefault();
 
         if (commitInfo.diffs.prev()) {
-            // check if vote for previous diff was created or updated
-            const diff = commitInfo.diffs.curr();
-            const vote = voteUpdates.current[diff.id];
-            if (vote) {
-                diff.vote = vote;
-                // delete voteUpdates.current[diff.id];
-            }
             refreshData();
         } else if (commitIds.prev()) {
             backwards.current = true;
@@ -218,6 +218,8 @@ export default function Explorer() {
         }
     };
 
+    const reachedEnd = () => !commitIds.hasNext() && !commitInfo.diffs.hasNext();
+
     const rateDiff = (e, key) => {
         e.preventDefault();
 
@@ -245,12 +247,18 @@ export default function Explorer() {
                         id: data.resource_id,
                         choice: choice
                     };
+                    if (commitId === commitIds.curr() && reachedEnd()) {
+                        refreshData();
+                    }
                 });
         } else if (vote.choice !== choice) {
             VotesService.updateChoice(vote.id, choice)
                 .then(() => {
                     vote.choice = choice;
                     voteUpdates.current[diffId] = vote;
+                    if (commitId === commitIds.curr() && reachedEnd()) {
+                        refreshData();
+                    }
                 });
         }
         gotoNextDiff();
