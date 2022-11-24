@@ -239,9 +239,9 @@ export default function Commits() {
         if (keywordFilter.keywords.length === 0) {
             return commits;     // maybe need to return copy?
         }
-        const kwRegexes = keywordFilter.keywords.map((v) => new RegExp(v, 'i'));
         let func;
         if (keywordFilter.logicalOp === 'and') {
+            const kwRegexes = keywordFilter.keywords.map((v) => new RegExp(v, 'i'));
             func = (arr, c) => {
                 if (kwRegexes.every((kw) => kw.test(c.message))) {
                     arr.push(c);
@@ -250,8 +250,9 @@ export default function Commits() {
             };
         }
         else {
+            const kwRegex = new RegExp(keywordFilter.keywords.join('|'), 'i');   // faster than .some()
             func = (arr, c) => {
-                if (kwRegexes.some((kw) => kw.test(c.message))) {
+                if (kwRegex.test(c.message)) {
                     arr.push(c);
                 }
                 return arr;
