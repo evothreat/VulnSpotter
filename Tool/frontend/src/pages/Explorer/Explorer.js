@@ -89,7 +89,7 @@ export default function Explorer() {
         }
         const commitId = commitIds.curr();   // use commit from commit info?
 
-        CommitsService.getFullInfo(commitId)
+        CommitsService.getFullInfo(commitId, {matched: true})
             .then(({commit, votes, cve_list, patch}) => {
                 if (commitId !== commitIds.curr()) {
                     return;
