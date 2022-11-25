@@ -37,7 +37,7 @@ class CommitsService {
         })
     }
 
-    getFullInfo(id, opts) {
+    getFullInfo(id, opts={}) {
         if (opts.matched) {
             return api.get(`${this.basePath}/${id}/full_info?matched`);
         }
