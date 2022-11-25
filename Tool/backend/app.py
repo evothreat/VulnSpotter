@@ -150,6 +150,13 @@ def match_commit(repo, commit_id, patterns):
     return False
 
 
+def obtain_commit_patch(repo, commit_id, patterns):
+    pats = patterns.split(',') if patterns else ()
+    return repo.git.diff(commit_id + '~1', commit_id, *pats,
+                         ignore_blank_lines=True, ignore_space_at_eol=True,
+                         diff_filter='MA', no_prefix=True)
+
+
 def create_project_from_repo(user_id, repo_url, proj_name, glob_pats):
     parts = urlparse(repo_url)
     repo_loc = normpath(parts.netloc + parts.path.rstrip('.git'))
@@ -270,7 +277,7 @@ def create_project():
 
     repo_url = body.get('repo_url')
     proj_name = body.get('proj_name')
-    glob_pats = [pat.strip() for pat in body.get('glob_pats', '').split(',')]
+    glob_pats = [pat.strip() for pat in body.get('glob_pats', '').split(',') if pat]
 
     if not (repo_url and proj_name):
         return '', 400
@@ -463,13 +470,12 @@ def get_commit_full_info(commit_id):
                                'WHERE EXISTS(SELECT * FROM commit_cve WHERE cve_id=ci.id AND commit_id=?)',
                                (commit_id,)).fetchall()
 
-    comm_hash = commit['hash']
-    pats = commit['glob_pats'].split(',') if 'matched' in request.args else []
-
     with git.Repo(pathjoin(config.REPOS_DIR, commit['repository'])) as repo:
-        patch = repo.git.diff(comm_hash + '~1', comm_hash, *pats,
-                              ignore_blank_lines=True, ignore_space_at_eol=True,
-                              diff_filter='MA', no_prefix=True)
+        if 'matched' in request.args:
+            patch = obtain_commit_patch(repo, commit['hash'], commit['glob_pats'])
+        else:
+            patch = obtain_commit_patch(repo, commit['hash'])
+
     return {
         'commit': views.commit(commit),
         'votes': [views.vote(v) for v in votes],
@@ -488,14 +494,13 @@ def get_commit_patch(commit_id):
     if not data:
         return '', 404
 
-    comm_hash = data['hash']
-    pats = data['glob_pats'].split(',') if 'matched' in request.args else []
-
     with git.Repo(pathjoin(config.REPOS_DIR, data['repository'])) as repo:
-        # includes only modified/added files!
-        return repo.git.diff(comm_hash + '~1', comm_hash, *pats,
-                             ignore_blank_lines=True, ignore_space_at_eol=True,
-                             diff_filter='MA', no_prefix=True), 200, {'Content-Type': 'text/plain'}
+        if 'matched' in request.args:
+            patch = obtain_commit_patch(repo, data['hash'], data['glob_pats'])
+        else:
+            patch = obtain_commit_patch(repo, data['hash'])
+
+    return patch, 200, {'Content-Type': 'text/plain'}
 
 
 @app.route('/api/users/me/commits/<commit_id>/files', methods=['GET'])
