@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Fragment, useEffect, useMemo, useState} from "react";
+import {Fragment, useEffect, useMemo, useRef, useState} from "react";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import {Autocomplete, Checkbox, Collapse, ToggleButton, ToggleButtonGroup} from "@mui/material";
@@ -44,7 +44,7 @@ const VULN_KEYWORDS = [
 
 const headCells = [
     {
-        content: '',
+        content: <Checkbox size="small" disableRipple sx={{padding: 0}}/>,
         width: '1%'
     },
     {
@@ -72,22 +72,27 @@ const BOTTOM_OFFSET = '-50px';
 
 const cmpByCreationTime = Utils.createComparator('created_at', 'desc');
 
-function CommitRow({item}) {
+function CommitRow({item, checkHandler}) {
     const [detailsOpen, setDetailsOpen] = useState(false);
 
     const toggleDetails = () => setDetailsOpen((prevState) => !prevState);
+
+    const handleCheck = (e) => checkHandler(item.id, e.target.checked);
 
     return (
         <Fragment>
             <TableRow hover sx={{'& td': {borderBottom: 'unset', height: '30px'}}}>
                 <TableCell padding="checkbox">
-                    <Checkbox size="small" disableRipple/>
+                    <Checkbox size="small" disableRipple onChange={handleCheck}/>
                 </TableCell>
                 <TableCell>
                     {
                         <Box sx={{display: 'flex', alignItems: 'flex-end'}}>
                             <RouterLink to={`./explorer?commitIds=${item.id}`} underline="hover" color="inherit">
-                                {item.message.substring(0, 60).replace('\n', ' ⤶ ')}
+                                {
+                                    // do not replace last!
+                                    item.message.substring(0, 60).replace('\n', ' ⤶ ')
+                                }
                             </RouterLink>
                             {
                                 item.message.length > 60
@@ -134,7 +139,7 @@ function CommitRow({item}) {
     );
 }
 
-function CommitsTable({commits}) {
+function CommitsTable({commits, checkHandler}) {
     const [items, setItems] = useState(null);
     const [sorter, setSorter] = useState({
         order: null,
@@ -181,7 +186,9 @@ function CommitsTable({commits}) {
                                 ? <Fragment>
                                     {
                                         // find more efficient version
-                                        orderedItems.slice(0, endIx).map((it) => <CommitRow item={it} key={it.id}/>)
+                                        orderedItems.slice(0, endIx).map((it) =>
+                                            <CommitRow item={it} key={it.id} checkHandler={checkHandler}/>
+                                        )
                                     }
                                     <TableRow>
                                         <TableCell colSpan="100%">
@@ -211,6 +218,8 @@ export default function Commits() {
         keywords: [],
         logicalOp: 'or'
     });
+
+    const selectedIdsRef = useRef([]);
 
     useEffect(() => {
         ProjectsService.getCommits(projId, {matched: true})  // let the user select whether unrated or not
@@ -260,6 +269,19 @@ export default function Commits() {
         }
         return commits.reduce(func, []);
     }, [commits, keywordFilter]);
+
+    // pass 0 if all checked...
+    const handleCheck = (commitId, checked) => {
+        const selected = selectedIdsRef.current;
+        if (checked) {
+            selected.push(commitId);
+        } else {
+            const ix = selected.indexOf(commitId);
+            if (ix !== -1) {
+                selected.splice(ix, 1);
+            }
+        }
+    };
 
     return (
         <Fragment>
@@ -312,7 +334,7 @@ export default function Commits() {
                 </Box>
             </Box>
             {
-                commits && <CommitsTable commits={filteredCommits}/>
+                commits && <CommitsTable commits={filteredCommits} checkHandler={handleCheck}/>
             }
         </Fragment>
     );
