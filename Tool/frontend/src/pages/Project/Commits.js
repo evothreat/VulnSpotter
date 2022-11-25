@@ -225,6 +225,7 @@ export default function Commits() {
         ProjectsService.getCommits(projId, {matched: true})  // let the user select whether unrated or not
             .then((data) => {
                 data.forEach((c) => {
+                    c.message = c.message.trim();
                     c.cve = Utils.findCVEs(c.message);
                 });
                 data.sort(cmpByCreationTime);
