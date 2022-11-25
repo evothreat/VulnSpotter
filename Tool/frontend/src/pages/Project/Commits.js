@@ -44,21 +44,21 @@ const VULN_KEYWORDS = [
 
 const headCells = [
     {
-        label: '',
+        content: '',
         width: '1%'
     },
     {
-        label: 'Description',
+        content: 'Description',
         width: '68%'
     },
     {
-        label: 'CVEs',
+        content: 'CVEs',
         sortable: true,
         key: 'cve',
         width: '15%'
     },
     {
-        label: 'Created',
+        content: 'Created',
         sortable: true,
         key: 'created_at',
         width: '16%'
@@ -299,7 +299,7 @@ export default function Commits() {
                             </li>
                         )}
                         renderInput={(params) => (
-                            <TextField {...params} variant="standard" label="Keywords"/>
+                            <TextField {...params} variant="standard" label="Filter by keywords"/>
                         )}
                         onChange={handleKwsChange}
                         sx={{flex: '1'}}

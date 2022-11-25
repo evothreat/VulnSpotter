@@ -28,31 +28,31 @@ import {actionBtnStyle, headerStyle} from "../../style";
 
 const headCells = [
     {
-        label: 'Name',
+        content: 'Name',
         width: '30%',
         key: 'full_name',
         sortable: true
     },
     {
-        label: 'Username',
+        content: 'Username',
         width: '30%',
         key: 'username',
         sortable: true
     },
     {
-        label: 'Role',
+        content: 'Role',
         sortable: true,
         key: 'role',
         width: '20%'
     },
     {
-        label: 'Status',
+        content: 'Status',
         width: '10%',
         key: 'active',
         sortable: true
     },
     {
-        label: '',
+        content: '',
         sortable: false,
         width: '10%',
         align: 'right'

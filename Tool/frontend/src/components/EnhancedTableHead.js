@@ -25,9 +25,9 @@ function EnhancedTableHead({headCells, order, orderBy, sortReqHandler}) {
                                     direction={hc.key === orderBy ? order : 'asc'}
                                     data-key={hc.key}
                                     onClick={handleSortClick}>
-                                    {hc.label}
+                                    {hc.content}
                                 </TableSortLabel>
-                                : hc.label
+                                : hc.content
                         }
                     </TableCell>)}
             </TableRow>

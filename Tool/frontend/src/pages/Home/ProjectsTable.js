@@ -26,25 +26,25 @@ import RouterLink from "../../components/RouterLink";
 
 const headCells = [
     {
-        label: 'Name',
+        content: 'Name',
         key: 'name',
         sortable: true,
         width: '25%'
     },
     {
-        label: 'Owner',
+        content: 'Owner',
         key: 'owner_name',
         sortable: true,
         width: '25%'
     },
     {
-        label: 'Repository',
+        content: 'Repository',
         key: 'repository',
         sortable: true,
         width: '30%'
     },
     {
-        label: 'Commits',
+        content: 'Commits',
         key: 'commit_n',
         sortable: true,
         width: '10%'
