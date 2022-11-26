@@ -65,7 +65,7 @@ const headCells = [
     }
 ];
 
-const MAX_ITEMS = 30;
+const MAX_ITEMS = 20;
 
 const TABLE_HEIGHT = '425px';
 const BOTTOM_OFFSET = '-50px';
@@ -220,7 +220,7 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
                                                              checkHandler={checkHandler}/>
                                         )
                                     }
-                                    <TableRow key="waypoint123">
+                                    <TableRow key="1669486729">
                                         <TableCell colSpan="100%">
                                             <Waypoint bottomOffset={BOTTOM_OFFSET} onEnter={showNextItems}/>
                                         </TableCell>
