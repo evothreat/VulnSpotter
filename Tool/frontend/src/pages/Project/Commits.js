@@ -153,24 +153,28 @@ const PureTableHead = React.memo(EnhancedTableHead, (prev, curr) =>
 );
 
 function CommitsTable({commits, selectedIds, checkHandler}) {
-    const [items, setItems] = useState(null);
+    const containerRef = useRef(null);
     const [sorter, setSorter] = useState({
         order: null,
         orderBy: null
     });
-    const [endIx, setEndIx] = useState(MAX_ITEMS);
-
-    const containerRef = useRef(null);
-
-    useEffect(() => {
+    const [items, setItems] = useState({
+        values: commits,
+        endIx: MAX_ITEMS
+    });
+    if (items.values !== commits) {
         containerRef.current.scrollTop = 0;
-        setEndIx(MAX_ITEMS);
-        setItems(commits)
-    }, [commits]);
+        setItems({
+            values: commits,
+            endIx: MAX_ITEMS
+        });
+    }
 
     const sortItems = useCallback((key) => {
         containerRef.current.scrollTop = 0;
-        setEndIx(MAX_ITEMS);
+        setItems((curItems) => {
+            return {...curItems, endIx: MAX_ITEMS};
+        })
         setSorter((curSorter) => {
             const isAsc = curSorter.orderBy === key && curSorter.order === 'asc';
             return {
@@ -180,16 +184,23 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
         });
     }, []);
 
-    const showNextItems = () => setEndIx((curIx) => Math.min(items.length, curIx + MAX_ITEMS));
+    const showNextItems = () => {
+        setItems((curItems) => {
+            return {
+                ...curItems,
+                endIx: Math.min(curItems.values.length, curItems.endIx + MAX_ITEMS)
+            }
+        })
+    };
 
     const orderedItems = useMemo(
         () => {
-            if (items === null || !(sorter.order && sorter.orderBy)) {
-                return items;
+            if (items.values === null || !(sorter.order && sorter.orderBy)) {
+                return items.values;
             }
-            return items.slice().sort(Utils.createComparator(sorter.orderBy, sorter.order));
+            return items.values.slice().sort(Utils.createComparator(sorter.orderBy, sorter.order));
         },
-        [items, sorter]
+        [items.values, sorter]
     );
 
     // add items-list hash to key
@@ -204,12 +215,12 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
                             orderedItems.length > 0
                                 ? <Fragment>
                                     {
-                                        orderedItems.slice(0, endIx).map((it) =>
+                                        orderedItems.slice(0, items.endIx).map((it) =>
                                             <PureCommitRow item={it} key={it.id} checked={selectedIds.has(it.id)}
                                                              checkHandler={checkHandler}/>
                                         )
                                     }
-                                    <TableRow>
+                                    <TableRow key="waypoint123">
                                         <TableCell colSpan="100%">
                                             <Waypoint bottomOffset={BOTTOM_OFFSET} onEnter={showNextItems}/>
                                         </TableCell>
