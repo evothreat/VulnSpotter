@@ -68,7 +68,7 @@ const headCells = [
 const MAX_ITEMS = 20;
 
 const TABLE_HEIGHT = '425px';
-const BOTTOM_OFFSET = '-50px';
+const BOTTOM_OFFSET = '-40px';
 
 const cmpByCreationTime = Utils.createComparator('created_at', 'desc');
 
