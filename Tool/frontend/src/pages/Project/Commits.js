@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Fragment, useEffect, useMemo, useRef, useState} from "react";
+import {Fragment, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import {Autocomplete, Checkbox, Collapse, ToggleButton, ToggleButtonGroup} from "@mui/material";
@@ -72,7 +72,7 @@ const BOTTOM_OFFSET = '-50px';
 
 const cmpByCreationTime = Utils.createComparator('created_at', 'desc');
 
-function CommitRow({item, checkHandler}) {
+function CommitRow({item, checkHandler, checked}) {
     const [detailsOpen, setDetailsOpen] = useState(false);
 
     const toggleDetails = () => setDetailsOpen((prevState) => !prevState);
@@ -83,7 +83,7 @@ function CommitRow({item, checkHandler}) {
         <Fragment>
             <TableRow hover sx={{'& td': {borderBottom: 'unset', height: '30px'}}}>
                 <TableCell padding="checkbox">
-                    <Checkbox size="small" disableRipple onChange={handleCheck}/>
+                    <Checkbox size="small" disableRipple checked={checked} onChange={handleCheck}/>
                 </TableCell>
                 <TableCell>
                     {
@@ -139,7 +139,20 @@ function CommitRow({item, checkHandler}) {
     );
 }
 
-function CommitsTable({commits, checkHandler}) {
+const PureCommitRow = React.memo(CommitRow, (prev, curr) =>
+    prev.item.id === curr.item.id &&
+    prev.checked === curr.checked &&
+    prev.checkHandler === curr.checkHandler
+);
+
+const PureTableHead = React.memo(EnhancedTableHead, (prev, curr) =>
+    prev.headCells === curr.headCells &&
+    prev.order === curr.order &&
+    prev.orderBy === curr.orderBy &&
+    prev.sortReqHandler === curr.sortReqHandler
+);
+
+function CommitsTable({commits, selectedIds, checkHandler}) {
     const [items, setItems] = useState(null);
     const [sorter, setSorter] = useState({
         order: null,
@@ -147,19 +160,25 @@ function CommitsTable({commits, checkHandler}) {
     });
     const [endIx, setEndIx] = useState(MAX_ITEMS);
 
+    const containerRef = useRef(null);
+
     useEffect(() => {
+        containerRef.current.scrollTop = 0;
         setEndIx(MAX_ITEMS);
         setItems(commits)
     }, [commits]);
 
-    const sortItems = (key) => {
-        const isAsc = sorter.orderBy === key && sorter.order === 'asc';
+    const sortItems = useCallback((key) => {
+        containerRef.current.scrollTop = 0;
         setEndIx(MAX_ITEMS);
-        setSorter({
-            order: isAsc ? 'desc' : 'asc',
-            orderBy: key
+        setSorter((curSorter) => {
+            const isAsc = curSorter.orderBy === key && curSorter.order === 'asc';
+            return {
+                order: isAsc ? 'desc' : 'asc',
+                orderBy: key
+            };
         });
-    };
+    }, []);
 
     const showNextItems = () => setEndIx((curIx) => Math.min(items.length, curIx + MAX_ITEMS));
 
@@ -176,18 +195,18 @@ function CommitsTable({commits, checkHandler}) {
     // add items-list hash to key
     return orderedItems
         ? (
-            <TableContainer key={sorter.order + sorter.orderBy} sx={{height: TABLE_HEIGHT}}>
+            <TableContainer ref={containerRef} sx={{height: TABLE_HEIGHT}}>
                 <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
-                    <EnhancedTableHead headCells={headCells} order={sorter.order} orderBy={sorter.orderBy}
-                                       sortReqHandler={sortItems}/>
+                    <PureTableHead headCells={headCells} order={sorter.order} orderBy={sorter.orderBy}
+                                   sortReqHandler={sortItems}/>
                     <TableBody>
                         {
                             orderedItems.length > 0
                                 ? <Fragment>
                                     {
-                                        // find more efficient version
                                         orderedItems.slice(0, endIx).map((it) =>
-                                            <CommitRow item={it} key={it.id} checkHandler={checkHandler}/>
+                                            <PureCommitRow item={it} key={it.id} checked={selectedIds.has(it.id)}
+                                                             checkHandler={checkHandler}/>
                                         )
                                     }
                                     <TableRow>
@@ -218,8 +237,7 @@ export default function Commits() {
         keywords: [],
         logicalOp: 'or'
     });
-
-    const selectedIdsRef = useRef([]);
+    const [selectedIds, setSelectedIds] = useState(new Set());
 
     useEffect(() => {
         ProjectsService.getCommits(projId, {matched: true})  // let the user select whether unrated or not
@@ -272,17 +290,16 @@ export default function Commits() {
     }, [commits, keywordFilter]);
 
     // pass 0 if all checked...
-    const handleCheck = (commitId, checked) => {
-        const selected = selectedIdsRef.current;
-        if (checked) {
-            selected.push(commitId);
-        } else {
-            const ix = selected.indexOf(commitId);
-            if (ix !== -1) {
-                selected.splice(ix, 1);
+    const handleCheck = useCallback((commitId, checked) => {
+        setSelectedIds((selected) => {
+            if (checked) {
+                selected.add(commitId);
+            } else {
+                selected.delete(commitId);
             }
-        }
-    };
+            return new Set(selected);
+        });
+    }, []);
 
     return (
         <Fragment>
@@ -297,10 +314,10 @@ export default function Commits() {
             </Box>
             <Box sx={{display: 'flex', gap: '10px', flexDirection: 'column', mb: '5px'}}>
 
-                <ToggleButtonGroup color="primary" value="all" exclusive size="small" sx={{height: '35px'}}>
-                    <ToggleButton value="all">All</ToggleButton>
+                <ToggleButtonGroup color="primary" value="unrated" exclusive size="small" sx={{height: '35px'}}>
                     <ToggleButton value="unrated">Unrated</ToggleButton>
                     <ToggleButton value="rated">Rated</ToggleButton>
+                    <ToggleButton value="all">All</ToggleButton>
                 </ToggleButtonGroup>
 
                 <Box sx={{display: 'flex', justifyContent: 'space-between', gap: '10px'}}>
@@ -335,7 +352,7 @@ export default function Commits() {
                 </Box>
             </Box>
             {
-                commits && <CommitsTable commits={filteredCommits} checkHandler={handleCheck}/>
+                commits && <CommitsTable commits={filteredCommits} selectedIds={selectedIds} checkHandler={handleCheck}/>
             }
         </Fragment>
     );
