@@ -34,7 +34,7 @@ class CommitFilter {
         return this.result;
     }
 
-    changeOp(op) {
+    changeLogicalOp(op) {
         if (op !== this.logicalOp) {
             this.rest.push(...this.result);
             this.result = [];
@@ -45,7 +45,7 @@ class CommitFilter {
                     this.filterInRest((str) => kwsRegex.test(str));
                 }
                 else if (op === 'and') {
-                    const kwsRegexes = this.keywords.map((v) => new RegExp(v, 'i'));
+                    const kwsRegexes = this.keywords.map((kw) => new RegExp(kw, 'i'));
                     this.filterInRest((str) => {
                         for (const regex of kwsRegexes) {
                             if (!regex.test(str)) return false;
