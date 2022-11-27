@@ -64,10 +64,10 @@ class CommitFilter {
 
             if (this.keywords.length > 0) {
                 if (op === 'or') {
-                    this.searchInRest(matchOr(this.keywords));
+                    this.searchInResult(matchOr(this.keywords));
                 }
                 else if (op === 'and') {
-                    this.searchInRest(matchAnd(this.keywords));
+                    this.searchInResult(matchAnd(this.keywords));
                 }
             }
             this.logicalOp = op;
