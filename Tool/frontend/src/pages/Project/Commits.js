@@ -161,7 +161,7 @@ function CommitsTable({commitFilter, selectedIds, checkHandler}) {
         orderBy: null
     });
     const [items, setItems] = useState({
-        values: commitFilter.getEndResult(),
+        values: commitFilter.result,
         endIx: MAX_ITEMS
     });
     const filterRef = useRef(commitFilter);
@@ -170,7 +170,7 @@ function CommitsTable({commitFilter, selectedIds, checkHandler}) {
         filterRef.current = commitFilter;
         containerRef.current.scrollTop = 0;
         setItems({
-            values: commitFilter.getEndResult(),
+            values: commitFilter.result,
             endIx: MAX_ITEMS
         });
     }
@@ -266,15 +266,14 @@ export default function Commits() {
 
     const gotoExplorer = () => navigate(`./explorer`);
 
-    const handleKwsChange = (e, kws) => {
+    const handleKwsChange = useCallback((e, kws) =>
         setCommitFilter((curFilter) => {
             if (arrayEquals(kws, curFilter.keywords)) {
                 return curFilter;
             }
             curFilter.updateKeywords(kws);
             return curFilter.clone();
-        });
-    }
+        }), [])
 
     const handleLogicalOpChange = (e, val) => {
         if (val) {
@@ -300,6 +299,31 @@ export default function Commits() {
         });
     }, []);
 
+    const autocomplete = useMemo(() =>
+        <Autocomplete
+            multiple
+            freeSolo
+            options={VULN_KEYWORDS}
+            disableCloseOnSelect
+            renderOption={(props, option, {selected}) => (
+                <li {...props}>
+                    <Checkbox
+                        icon={<CheckBoxOutlineBlankIcon fontSize="small"/>}
+                        checkedIcon={<CheckBoxIcon fontSize="small"/>}
+                        checked={selected}
+                        disableRipple
+                        sx={{padding: '0 10px 0 0'}}
+                    />
+                    {option}
+                </li>
+            )}
+            renderInput={(params) => (
+                <TextField {...params} variant="standard" label="Filter by keywords"/>
+            )}
+            onChange={handleKwsChange}
+            sx={{flex: '1'}}
+        />, [handleKwsChange])
+
     return (
         <Fragment>
             <Box sx={{...headerStyle, mb: '20px'}}>
@@ -320,29 +344,9 @@ export default function Commits() {
                 </ToggleButtonGroup>
 
                 <Box sx={{display: 'flex', justifyContent: 'space-between', gap: '10px'}}>
-                    <Autocomplete
-                        multiple
-                        freeSolo
-                        options={VULN_KEYWORDS}
-                        disableCloseOnSelect
-                        renderOption={(props, option, {selected}) => (
-                            <li {...props}>
-                                <Checkbox
-                                    icon={<CheckBoxOutlineBlankIcon fontSize="small"/>}
-                                    checkedIcon={<CheckBoxIcon fontSize="small"/>}
-                                    checked={selected}
-                                    disableRipple
-                                    sx={{padding: '0 10px 0 0'}}
-                                />
-                                {option}
-                            </li>
-                        )}
-                        renderInput={(params) => (
-                            <TextField {...params} variant="standard" label="Filter by keywords"/>
-                        )}
-                        onChange={handleKwsChange}
-                        sx={{flex: '1'}}
-                    />
+                    {
+                        autocomplete
+                    }
                     {
                         commitFilter && (
                             <ToggleButtonGroup color="primary" value={commitFilter.logicalOp} exclusive size="small"

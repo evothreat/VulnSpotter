@@ -18,9 +18,9 @@ function matchAnd(kws) {
 
 class CommitFilter {
 
-    constructor(commits = [], result = [], keywords = [], logicalOp = 'or') {
-        this.rest = commits;
-        this.result = result;
+    constructor(commits, rest = [], keywords = [], logicalOp = 'or') {
+        this.result = commits;
+        this.rest = rest;
         this.keywords = keywords;
         this.logicalOp = logicalOp;
     }
@@ -36,24 +36,22 @@ class CommitFilter {
 
         if (this.logicalOp === 'or') {
             if (removedKws.length > 0) {
-                this.filterInResult(matchOr(kws));
-            }
-            if (addedKws.length > 0) {
-                this.filterInRest(matchOr(addedKws));
-            }
-        } else if (this.logicalOp === 'and') {
-            const matcher = matchAnd(kws);
-
-            if (removedKws.length > 0) {
-                this.filterInRest(matcher);
+                this.searchInResult(matchOr(kws));
             }
             if (addedKws.length > 0) {
                 if (this.keywords.length > 0) {
-                    this.filterInResult(matcher);
+                    this.searchInRest(matchOr(addedKws));
                 }
                 else {
-                    this.filterInRest(matcher);
+                    this.searchInResult(matchOr(addedKws));
                 }
+            }
+        } else if (this.logicalOp === 'and') {
+            if (removedKws.length > 0) {
+                this.searchInRest(matchAnd(kws));
+            }
+            if (addedKws.length > 0) {
+                this.searchInResult(matchAnd(kws));
             }
         }
         this.keywords = kws;
@@ -66,9 +64,10 @@ class CommitFilter {
 
             if (this.keywords.length > 0) {
                 if (op === 'or') {
-                    this.filterInRest(matchOr(this.keywords));
-                } else if (op === 'and') {
-                    this.filterInRest(matchAnd(this.keywords));
+                    this.searchInRest(matchOr(this.keywords));
+                }
+                else if (op === 'and') {
+                    this.searchInRest(matchAnd(this.keywords));
                 }
             }
             this.logicalOp = op;
@@ -76,7 +75,7 @@ class CommitFilter {
     }
 
     // NOTE: the following methods are private & should not be called from outside
-    filterInRest(matchFunc) {
+    searchInRest(matchFunc) {
         for (let i = this.rest.length - 1; i >= 0; i--) {
             const c = this.rest[i];
             if (matchFunc(c.message)) {
@@ -90,7 +89,7 @@ class CommitFilter {
         }
     }
 
-    filterInResult(matchFunc) {
+    searchInResult(matchFunc) {
         for (let i = this.result.length - 1; i >= 0; i--) {
             const c = this.result[i];
             if (!matchFunc(c.message)) {
@@ -105,20 +104,14 @@ class CommitFilter {
     }
 
     reset() {
-        // NOTE: do this to preserve element positions
         this.result.push(...this.rest);
-        this.rest = this.result;
-        this.result = [];
+        this.rest = [];
         this.keywords = [];
         //this.logicalOp = 'or';    // do not reset, cause it's user-defined value
     }
 
     clone() {
-        return new CommitFilter(this.rest, this.result, this.keywords, this.logicalOp);
-    }
-
-    getEndResult() {
-        return this.keywords.length > 0 ? this.result : this.rest;
+        return new CommitFilter(this.result, this.rest, this.keywords, this.logicalOp);
     }
 }
 
