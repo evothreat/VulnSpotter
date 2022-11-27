@@ -59,8 +59,8 @@ class CommitFilter {
 
     changeLogicalOp(op) {
         if (op !== this.logicalOp) {
-            this.rest.push(...this.result);
-            this.result = [];
+            this.result.push(...this.rest);
+            this.rest = [];
 
             if (this.keywords.length > 0) {
                 if (op === 'or') {
