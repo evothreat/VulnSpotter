@@ -9,6 +9,7 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 import * as Utils from "../../utils";
+import {arrayEquals} from "../../utils";
 import TableBody from "@mui/material/TableBody";
 import {Waypoint} from "react-waypoint";
 import TableContainer from "@mui/material/TableContainer";
@@ -24,6 +25,7 @@ import TextField from "@mui/material/TextField";
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import {headerStyle} from "../../style";
+import CommitFilter from "../../services/CommitFilter";
 
 
 const cveDetailUrl = 'https://nvd.nist.gov/vuln/detail/';
@@ -152,20 +154,23 @@ const PureTableHead = React.memo(EnhancedTableHead, (prev, curr) =>
     prev.sortReqHandler === curr.sortReqHandler
 );
 
-function CommitsTable({commits, selectedIds, checkHandler}) {
+function CommitsTable({commitFilter, selectedIds, checkHandler}) {
     const containerRef = useRef(null);
     const [sorter, setSorter] = useState({
         order: null,
         orderBy: null
     });
     const [items, setItems] = useState({
-        values: commits,
+        values: commitFilter.getEndResult(),
         endIx: MAX_ITEMS
     });
-    if (items.values !== commits) {
+    const filterRef = useRef(commitFilter);
+
+    if (filterRef.current !== commitFilter) {
+        filterRef.current = commitFilter;
         containerRef.current.scrollTop = 0;
         setItems({
-            values: commits,
+            values: commitFilter.getEndResult(),
             endIx: MAX_ITEMS
         });
     }
@@ -217,7 +222,7 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
                                     {
                                         orderedItems.slice(0, items.endIx).map((it) =>
                                             <PureCommitRow item={it} key={it.id} checked={selectedIds.has(it.id)}
-                                                             checkHandler={checkHandler}/>
+                                                           checkHandler={checkHandler}/>
                                         )
                                     }
                                     <TableRow key="1669486729">
@@ -243,11 +248,7 @@ export default function Commits() {
     const {projId} = useParams();
     const navigate = useNavigate();
 
-    const [commits, setCommits] = useState(null);
-    const [keywordFilter, setKeywordFilter] = useState({
-        keywords: [],
-        logicalOp: 'or'
-    });
+    const [commitFilter, setCommitFilter] = useState(null);
     const [selectedIds, setSelectedIds] = useState(new Set());
 
     useEffect(() => {
@@ -258,47 +259,34 @@ export default function Commits() {
                     c.cve = Utils.findCVEs(c.message);
                 });
                 data.sort(cmpByCreationTime);
-                setCommits(data);
+
+                setCommitFilter(new CommitFilter(data));
             });
     }, [projId]);
 
     const gotoExplorer = () => navigate(`./explorer`);
 
     const handleKwsChange = (e, kws) => {
-        setKeywordFilter({...keywordFilter, keywords: kws});
+        setCommitFilter((curFilter) => {
+            if (arrayEquals(kws, curFilter.keywords)) {
+                return curFilter;
+            }
+            curFilter.updateKeywords(kws);
+            return curFilter.clone();
+        });
     }
 
     const handleLogicalOpChange = (e, val) => {
         if (val) {
-            setKeywordFilter({...keywordFilter, logicalOp: val});
+            setCommitFilter((curFilter) => {
+                if (curFilter.logicalOp !== val) {
+                    curFilter.changeLogicalOp(val);
+                    return curFilter.clone();
+                }
+                return curFilter;
+            });
         }
     };
-
-    const filteredCommits = useMemo(() => {
-        if (keywordFilter.keywords.length === 0) {
-            return commits;     // maybe need to return copy?
-        }
-        let func;
-        if (keywordFilter.logicalOp === 'and') {
-            const kwRegexes = keywordFilter.keywords.map((v) => new RegExp(v, 'i'));
-            func = (arr, c) => {
-                if (kwRegexes.every((kw) => kw.test(c.message))) {
-                    arr.push(c);
-                }
-                return arr;
-            };
-        }
-        else {
-            const kwRegex = new RegExp(keywordFilter.keywords.join('|'), 'i');   // faster than .some()
-            func = (arr, c) => {
-                if (kwRegex.test(c.message)) {
-                    arr.push(c);
-                }
-                return arr;
-            };
-        }
-        return commits.reduce(func, []);
-    }, [commits, keywordFilter]);
 
     // pass 0 if all checked...
     const handleCheck = useCallback((commitId, checked) => {
@@ -355,15 +343,21 @@ export default function Commits() {
                         onChange={handleKwsChange}
                         sx={{flex: '1'}}
                     />
-                    <ToggleButtonGroup color="primary" value={keywordFilter.logicalOp} exclusive size="small"
-                                       onChange={handleLogicalOpChange} sx={{alignSelf: 'flex-end', height: '35px'}}>
-                        <ToggleButton value="or">OR</ToggleButton>
-                        <ToggleButton value="and">AND</ToggleButton>
-                    </ToggleButtonGroup>
+                    {
+                        commitFilter && (
+                            <ToggleButtonGroup color="primary" value={commitFilter.logicalOp} exclusive size="small"
+                                               onChange={handleLogicalOpChange}
+                                               sx={{alignSelf: 'flex-end', height: '35px'}}>
+                                <ToggleButton value="or">OR</ToggleButton>
+                                <ToggleButton value="and">AND</ToggleButton>
+                            </ToggleButtonGroup>
+                        )
+                    }
                 </Box>
             </Box>
             {
-                commits && <CommitsTable commits={filteredCommits} selectedIds={selectedIds} checkHandler={handleCheck}/>
+                commitFilter && <CommitsTable commitFilter={commitFilter} selectedIds={selectedIds}
+                                              checkHandler={handleCheck}/>
             }
         </Fragment>
     );

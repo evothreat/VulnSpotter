@@ -67,8 +67,18 @@ function splitArray(arr, n) {
     return res;
 }
 
-function areSameArrays(a, b) {
+function arrayEquals(a, b) {
     return a.length === b.length && a.every((v, i) => v === b[i]);
+}
+
+function arrayDiff(a, b) {
+    return a.filter((v) => b.indexOf(v) < 0);
+}
+
+function symmetricDiff(a, b) {
+    const diff = arrayDiff(a, b);
+    diff.push(...arrayDiff(b, a));
+    return diff;
 }
 
 // doesn't create copy if string doesn't have space at begin/end
@@ -196,7 +206,9 @@ export {
     ArrayIterator,
     propsNotNull,
     isObjEmpty,
-    areSameArrays,
+    arrayEquals,
+    arrayDiff,
+    symmetricDiff,
     complement,
     equals,
     remove
