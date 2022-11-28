@@ -158,14 +158,7 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
             containerRef.current.scrollTop = 0;
         }
         endIxRef.current = MAX_ITEMS;
-        setShowedItems((curPart) => {
-            const part = commitsRef.current.slice(0, MAX_ITEMS);
-            // re-render only if parts not equal
-            if (curPart && arrayEquals(curPart, part)) {
-                return curPart;
-            }
-            return part;
-        });
+        setShowedItems(commitsRef.current.slice(0, MAX_ITEMS));
     };
 
     if (commitsRef.current !== commits) {
@@ -186,19 +179,19 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
     };
 
     const showNextItems = () => {
-        setShowedItems(
-            commitsRef.current.slice(
-                0,
-                Math.min(commitsRef.current.length, endIxRef.current + MAX_ITEMS)
-            )
-        );
+        setShowedItems((items) => {
+            if (endIxRef.current === commitsRef.current.length) {
+                return items;
+            }
+            endIxRef.current = Math.min(commitsRef.current.length, endIxRef.current + MAX_ITEMS);
+            return commitsRef.current.slice(0, endIxRef.current);
+        });
     };
 
     const handleSelectAll = (checked) => {
         if (checked) {
             checkHandler(commitsRef.current.map((c) => c.id), checked);
-        }
-        else {
+        } else {
             // NOTE: do not pass commitIds, cause it not necessary
             checkHandler([], checked);
         }
@@ -209,7 +202,8 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
         ? (
             <TableContainer ref={containerRef} sx={{height: TABLE_HEIGHT}}>
                 <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
-                    <EnhancedTableHead headCells={headCells} order={sorterRef.current.order} orderBy={sorterRef.current.orderBy}
+                    <EnhancedTableHead headCells={headCells} order={sorterRef.current.order}
+                                       orderBy={sorterRef.current.orderBy}
                                        sortReqHandler={sortItems}
                                        selectAllCheckbox selectAllHandler={handleSelectAll}
                                        selectAllChecked={commitsRef.current.length > 0 && commitsRef.current.length === selectedIds.size}/>
@@ -220,7 +214,7 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
                                     {
                                         showedItems.map((it) =>
                                             <PureCommitRow item={it} key={it.id} checked={selectedIds.has(it.id)}
-                                            checkHandler={checkHandler}/>
+                                                           checkHandler={checkHandler}/>
                                         )
                                     }
                                     <TableRow key="1669486729">
@@ -328,9 +322,9 @@ export default function Commits() {
             <Box sx={{display: 'flex', gap: '10px', flexDirection: 'column', mb: '5px'}}>
 
                 <ToggleButtonGroup color="primary" value="unrated" exclusive size="small" sx={{height: '35px'}}>
-                    <ToggleButton value="unrated">Unrated</ToggleButton>
-                    <ToggleButton value="rated">Rated</ToggleButton>
-                    <ToggleButton value="all">All</ToggleButton>
+                    <ToggleButton disableRipple value="unrated">Unrated</ToggleButton>
+                    <ToggleButton disableRipple value="rated">Rated</ToggleButton>
+                    <ToggleButton disableRipple value="all">All</ToggleButton>
                 </ToggleButtonGroup>
 
                 <Box sx={{display: 'flex', justifyContent: 'space-between', gap: '10px'}}>
