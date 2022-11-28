@@ -47,7 +47,7 @@ const VULN_KEYWORDS = [
 const headCells = [
     {
         content: <Checkbox size="small" disableRipple sx={{padding: 0}}/>,
-        width: '1%'
+        width: '1%',
     },
     {
         content: 'Description',
@@ -147,13 +147,6 @@ const PureCommitRow = React.memo(CommitRow, (prev, curr) =>
     prev.checkHandler === curr.checkHandler
 );
 
-const PureTableHead = React.memo(EnhancedTableHead, (prev, curr) =>
-    prev.headCells === curr.headCells &&
-    prev.order === curr.order &&
-    prev.orderBy === curr.orderBy &&
-    prev.sortReqHandler === curr.sortReqHandler
-);
-
 function CommitsTable({commitFilter, selectedIds, checkHandler}) {
     const containerRef = useRef(null);
     const [sorter, setSorter] = useState({
@@ -166,6 +159,7 @@ function CommitsTable({commitFilter, selectedIds, checkHandler}) {
     });
     const filterRef = useRef(commitFilter);
 
+    // NOTE: use arrayEquals instead
     if (filterRef.current !== commitFilter) {
         filterRef.current = commitFilter;
         containerRef.current.scrollTop = 0;
@@ -213,8 +207,8 @@ function CommitsTable({commitFilter, selectedIds, checkHandler}) {
         ? (
             <TableContainer ref={containerRef} sx={{height: TABLE_HEIGHT}}>
                 <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
-                    <PureTableHead headCells={headCells} order={sorter.order} orderBy={sorter.orderBy}
-                                   sortReqHandler={sortItems}/>
+                    <EnhancedTableHead headCells={headCells} order={sorter.order} orderBy={sorter.orderBy}
+                                       sortReqHandler={sortItems}/>
                     <TableBody>
                         {
                             orderedItems.length > 0
