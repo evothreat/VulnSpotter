@@ -2,7 +2,7 @@ import * as React from "react";
 import {Fragment, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
-import {Autocomplete, Checkbox, Collapse, ToggleButton, ToggleButtonGroup} from "@mui/material";
+import {Autocomplete, Collapse, ToggleButton, ToggleButtonGroup} from "@mui/material";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
@@ -22,10 +22,9 @@ import FindInPageIcon from "@mui/icons-material/FindInPage";
 import cssStyle from "./Commits.module.css"
 import RouterLink from "../../components/RouterLink";
 import TextField from "@mui/material/TextField";
-import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
-import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import {headerStyle} from "../../style";
 import CommitFilter from "../../services/CommitFilter";
+import SimpleCheckbox from "../../components/SimpleCheckbox";
 
 
 const cveDetailUrl = 'https://nvd.nist.gov/vuln/detail/';
@@ -81,7 +80,7 @@ function CommitRow({item, checkHandler, checked}) {
         <Fragment>
             <TableRow hover sx={{'& td': {borderBottom: 'unset', height: '30px'}}}>
                 <TableCell padding="checkbox">
-                    <Checkbox size="small" disableRipple checked={checked} onChange={handleCheck}/>
+                    <SimpleCheckbox checked={checked} onChange={handleCheck}/>
                 </TableCell>
                 <TableCell>
                     {
@@ -307,18 +306,6 @@ export default function Commits() {
             freeSolo
             options={VULN_KEYWORDS}
             disableCloseOnSelect
-            renderOption={(props, option, {selected}) => (
-                <li {...props}>
-                    <Checkbox
-                        icon={<CheckBoxOutlineBlankIcon fontSize="small"/>}
-                        checkedIcon={<CheckBoxIcon fontSize="small"/>}
-                        checked={selected}
-                        disableRipple
-                        sx={{padding: '0 10px 0 0'}}
-                    />
-                    {option}
-                </li>
-            )}
             renderInput={(params) => (
                 <TextField {...params} variant="standard" label="Filter by keywords"/>
             )}

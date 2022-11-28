@@ -1,8 +1,9 @@
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
-import {Checkbox, TableSortLabel} from "@mui/material";
+import {TableSortLabel} from "@mui/material";
 import * as React from "react";
+import SimpleCheckbox from "./SimpleCheckbox";
 
 
 function EnhancedTableHead({headCells, order, orderBy, sortReqHandler, selectAllCheckbox, selectAllHandler, selectAllChecked}) {
@@ -13,9 +14,8 @@ function EnhancedTableHead({headCells, order, orderBy, sortReqHandler, selectAll
                     selectAllCheckbox
                         ?
                         <TableCell key="check" sx={{width: '1%'}}>
-                            <Checkbox size="small" disableRipple sx={{padding: 0}}
-                                      checked={selectAllChecked}
-                                      onChange={(e) => selectAllHandler(e.target.checked)}/>
+                            <SimpleCheckbox checked={selectAllChecked}
+                                            onChange={(e) => selectAllHandler(e.target.checked)}/>
                         </TableCell>
                         : null
                 }
