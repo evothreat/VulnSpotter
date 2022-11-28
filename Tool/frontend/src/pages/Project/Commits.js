@@ -46,10 +46,6 @@ const VULN_KEYWORDS = [
 
 const headCells = [
     {
-        content: <Checkbox size="small" disableRipple sx={{padding: 0}}/>,
-        width: '1%',
-    },
-    {
         content: 'Description',
         width: '68%'
     },
@@ -204,7 +200,8 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
             <TableContainer ref={containerRef} sx={{height: TABLE_HEIGHT}}>
                 <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
                     <EnhancedTableHead headCells={headCells} order={sorter.order} orderBy={sorter.orderBy}
-                                       sortReqHandler={sortItems}/>
+                                       sortReqHandler={sortItems}
+                                       selectAllCheckbox selectAllHandler={(checked) => checkHandler(0, checked)}/>
                     <TableBody>
                         {
                             orderedItems.length > 0
