@@ -110,8 +110,8 @@ class CommitFilter {
         //this.logicalOp = 'or';    // do not reset, cause it's user-defined value
     }
 
-    shallowCopy() {
-        return new CommitFilter(this.result, this.rest, this.keywords, this.logicalOp);
+    clone() {
+        return new CommitFilter(this.result.slice(), this.rest.slice(), this.keywords.slice(), this.logicalOp);
     }
 }
 

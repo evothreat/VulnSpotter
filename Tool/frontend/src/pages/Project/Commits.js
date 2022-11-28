@@ -144,58 +144,59 @@ const PureCommitRow = React.memo(CommitRow, (prev, curr) =>
 
 function CommitsTable({commits, selectedIds, checkHandler}) {
     const containerRef = useRef(null);
-    const [sorter, setSorter] = useState({
+
+    const [showedItems, setShowedItems] = useState(null);
+    const commitsRef = useRef(null);
+    const endIxRef = useRef(null);
+    const sorterRef = useRef({
         order: null,
         orderBy: null
     });
-    const [items, setItems] = useState({
-        values: commits.slice(),
-        endIx: MAX_ITEMS
-    });
-    if (!arrayEquals(items.values, commits)) {
-        containerRef.current.scrollTop = 0;
-        setItems({
-            values: commits.slice(),
-            endIx: MAX_ITEMS
-        });
-    }
 
-    const sortItems = useCallback((key) => {
-        containerRef.current.scrollTop = 0;
-        setItems((curItems) => {
-            return {...curItems, endIx: MAX_ITEMS};
-        })
-        setSorter((curSorter) => {
-            const isAsc = curSorter.orderBy === key && curSorter.order === 'asc';
-            return {
-                order: isAsc ? 'desc' : 'asc',
-                orderBy: key
-            };
-        });
-    }, []);
-
-    const showNextItems = () => {
-        setItems((curItems) => {
-            return {
-                ...curItems,
-                endIx: Math.min(curItems.values.length, curItems.endIx + MAX_ITEMS)
+    const resetState = () => {
+        if (containerRef.current) {
+            containerRef.current.scrollTop = 0;
+        }
+        endIxRef.current = MAX_ITEMS;
+        setShowedItems((curPart) => {
+            const part = commitsRef.current.slice(0, MAX_ITEMS);
+            // re-render only if parts not equal
+            if (curPart && arrayEquals(curPart, part)) {
+                return curPart;
             }
-        })
+            return part;
+        });
     };
 
-    const orderedItems = useMemo(
-        () => {
-            if (items.values === null || !(sorter.order && sorter.orderBy)) {
-                return items.values;
-            }
-            return items.values.slice().sort(Utils.createComparator(sorter.orderBy, sorter.order));
-        },
-        [items.values, sorter]
-    );
+    if (commitsRef.current !== commits) {
+        commitsRef.current = commits;
+        resetState();
+    }
+
+    const sortItems = (key) => {
+        const isAsc = sorterRef.current.orderBy === key && sorterRef.current.order === 'asc';
+
+        sorterRef.current.orderBy = key;
+        sorterRef.current.order = isAsc ? 'desc' : 'asc';
+
+        commitsRef.current.sort(
+            Utils.createComparator(sorterRef.current.orderBy, sorterRef.current.order)
+        );
+        resetState();
+    };
+
+    const showNextItems = () => {
+        setShowedItems(
+            commitsRef.current.slice(
+                0,
+                Math.min(commitsRef.current.length, endIxRef.current + MAX_ITEMS)
+            )
+        );
+    };
 
     const handleSelectAll = (checked) => {
         if (checked) {
-            checkHandler(items.values.map((it) => it.id), checked);
+            checkHandler(commitsRef.current.map((c) => c.id), checked);
         }
         else {
             // NOTE: do not pass commitIds, cause it not necessary
@@ -204,22 +205,22 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
     };
 
     // add items-list hash to key
-    return orderedItems
+    return showedItems
         ? (
             <TableContainer ref={containerRef} sx={{height: TABLE_HEIGHT}}>
                 <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
-                    <EnhancedTableHead headCells={headCells} order={sorter.order} orderBy={sorter.orderBy}
+                    <EnhancedTableHead headCells={headCells} order={sorterRef.current.order} orderBy={sorterRef.current.orderBy}
                                        sortReqHandler={sortItems}
                                        selectAllCheckbox selectAllHandler={handleSelectAll}
-                                       selectAllChecked={items.values.length > 0 && items.values.length === selectedIds.size}/>
+                                       selectAllChecked={commitsRef.current.length > 0 && commitsRef.current.length === selectedIds.size}/>
                     <TableBody>
                         {
-                            orderedItems.length > 0
+                            showedItems.length > 0
                                 ? <Fragment>
                                     {
-                                        orderedItems.slice(0, items.endIx).map((it) =>
+                                        showedItems.map((it) =>
                                             <PureCommitRow item={it} key={it.id} checked={selectedIds.has(it.id)}
-                                                           checkHandler={checkHandler}/>
+                                            checkHandler={checkHandler}/>
                                         )
                                     }
                                     <TableRow key="1669486729">
@@ -269,7 +270,7 @@ export default function Commits() {
                 return curFilter;
             }
             curFilter.updateKeywords(kws);
-            return curFilter.shallowCopy();
+            return curFilter.clone();
         }), [])
 
     const handleLogicalOpChange = (e, val) => {
@@ -277,7 +278,7 @@ export default function Commits() {
             setCommitFilter((curFilter) => {
                 if (curFilter.logicalOp !== val) {
                     curFilter.changeLogicalOp(val);
-                    return curFilter.shallowCopy();
+                    return curFilter.clone();
                 }
                 return curFilter;
             });
