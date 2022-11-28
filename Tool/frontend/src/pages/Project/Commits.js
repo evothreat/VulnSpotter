@@ -145,53 +145,46 @@ const PureCommitRow = React.memo(CommitRow, (prev, curr) =>
 function CommitsTable({commits, selectedIds, checkHandler}) {
     const containerRef = useRef(null);
 
-    const [showedItems, setShowedItems] = useState(null);
-    const commitsRef = useRef(null);
-    const endIxRef = useRef(null);
-    const sorterRef = useRef(null);
+    const [state, setState] = useState({});
 
-    const reduceItemsInView = () => {
+    if (state.items !== commits) {
         if (containerRef.current) {
             containerRef.current.scrollTop = 0;
         }
-        endIxRef.current = MAX_ITEMS;
-        setShowedItems(commitsRef.current.slice(0, MAX_ITEMS));
-    };
-
-    if (commitsRef.current !== commits) {
-        commitsRef.current = commits;
-        sorterRef.current = {
+        setState({
+            items: commits,
+            endIx: MAX_ITEMS,
             order: null,
             orderBy: null
-        };
-        reduceItemsInView();
+        });
     }
 
     const sortItems = (key) => {
-        const isAsc = sorterRef.current.orderBy === key && sorterRef.current.order === 'asc';
+        containerRef.current.scrollTop = 0;
 
-        sorterRef.current.orderBy = key;
-        sorterRef.current.order = isAsc ? 'desc' : 'asc';
-
-        commitsRef.current.sort(
-            Utils.createComparator(sorterRef.current.orderBy, sorterRef.current.order)
-        );
-        reduceItemsInView();
+        setState((curState) => {
+            const isAsc = curState.orderBy === key && curState.order === 'asc';
+            curState.orderBy = key;
+            curState.order = isAsc ? 'desc' : 'asc';
+            curState.endIx = MAX_ITEMS;
+            curState.items.sort(Utils.createComparator(curState.orderBy, curState.order));
+            return {...curState};
+        });
     };
 
     const showNextItems = () => {
-        setShowedItems((items) => {
-            if (endIxRef.current === commitsRef.current.length) {
-                return items;
+        setState((curState) => {
+            if (curState.endIx === curState.items.length) {
+                return curState;
             }
-            endIxRef.current = Math.min(commitsRef.current.length, endIxRef.current + MAX_ITEMS);
-            return commitsRef.current.slice(0, endIxRef.current);
+            curState.endIx = Math.min(curState.items.length, curState.endIx + MAX_ITEMS);
+            return {...curState};
         });
     };
 
     const handleSelectAll = (checked) => {
         if (checked) {
-            checkHandler(commitsRef.current.map((c) => c.id), checked);
+            checkHandler(state.items.map((it) => it.id), checked);
         } else {
             // NOTE: do not pass commitIds, cause it not necessary
             checkHandler([], checked);
@@ -199,21 +192,21 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
     };
 
     // add items-list hash to key
-    return showedItems
+    return state.items
         ? (
             <TableContainer ref={containerRef} sx={{height: TABLE_HEIGHT}}>
                 <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
-                    <EnhancedTableHead headCells={headCells} order={sorterRef.current.order}
-                                       orderBy={sorterRef.current.orderBy}
+                    <EnhancedTableHead headCells={headCells} order={state.order}
+                                       orderBy={state.orderBy}
                                        sortReqHandler={sortItems}
                                        selectAllCheckbox selectAllHandler={handleSelectAll}
-                                       selectAllChecked={commitsRef.current.length > 0 && commitsRef.current.length === selectedIds.size}/>
+                                       selectAllChecked={state.items.length > 0 && state.items.length === selectedIds.size}/>
                     <TableBody>
                         {
-                            showedItems.length > 0
+                            state.items.length > 0
                                 ? <Fragment>
                                     {
-                                        showedItems.map((it) =>
+                                        state.items.slice(0, state.endIx).map((it) =>
                                             <PureCommitRow item={it} key={it.id} checked={selectedIds.has(it.id)}
                                                            checkHandler={checkHandler}/>
                                         )
