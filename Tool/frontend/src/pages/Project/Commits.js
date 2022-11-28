@@ -163,12 +163,14 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
         containerRef.current.scrollTop = 0;
 
         setState((curState) => {
-            const isAsc = curState.orderBy === key && curState.order === 'asc';
-            curState.orderBy = key;
-            curState.order = isAsc ? 'desc' : 'asc';
-            curState.endIx = MAX_ITEMS;
-            curState.items.sort(Utils.createComparator(curState.orderBy, curState.order));
-            return {...curState};
+            const order = curState.orderBy === key && curState.order === 'asc' ? 'desc' : 'asc';
+            return {
+                ...curState,
+                orderBy: key,
+                order: order,
+                endIx: MAX_ITEMS,
+                items: curState.items.sort(Utils.createComparator(key, order))  // bad, because we are modifying original array
+            };
         });
     };
 
@@ -177,8 +179,10 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
             if (curState.endIx === curState.items.length) {
                 return curState;
             }
-            curState.endIx = Math.min(curState.items.length, curState.endIx + MAX_ITEMS);
-            return {...curState};
+            return {
+                ...curState,
+                endIx: Math.min(curState.items.length, curState.endIx + MAX_ITEMS)
+            };
         });
     };
 
