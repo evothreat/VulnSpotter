@@ -334,8 +334,8 @@ export default function Commits() {
                             <ToggleButtonGroup color="primary" value={commitFilter.logicalOp} exclusive size="small"
                                                onChange={handleLogicalOpChange}
                                                sx={{alignSelf: 'flex-end', height: '35px'}}>
-                                <ToggleButton value="or">OR</ToggleButton>
-                                <ToggleButton value="and">AND</ToggleButton>
+                                <ToggleButton disableRipple value="or">OR</ToggleButton>
+                                <ToggleButton disableRipple value="and">AND</ToggleButton>
                             </ToggleButtonGroup>
                         )
                     }
