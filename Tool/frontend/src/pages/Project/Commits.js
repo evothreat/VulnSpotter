@@ -194,6 +194,16 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
         [items.values, sorter]
     );
 
+    const handleSelectAll = (checked) => {
+        if (checked) {
+            checkHandler(items.values.map((it) => it.id), checked);
+        }
+        else {
+            // NOTE: do not pass commitIds, cause it not necessary
+            checkHandler([], checked);
+        }
+    };
+
     // add items-list hash to key
     return orderedItems
         ? (
@@ -201,7 +211,8 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
                 <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
                     <EnhancedTableHead headCells={headCells} order={sorter.order} orderBy={sorter.orderBy}
                                        sortReqHandler={sortItems}
-                                       selectAllCheckbox selectAllHandler={(checked) => checkHandler(0, checked)}/>
+                                       selectAllCheckbox selectAllHandler={handleSelectAll}
+                                       selectAllChecked={items.values.length === selectedIds.size}/>
                     <TableBody>
                         {
                             orderedItems.length > 0
@@ -276,14 +287,18 @@ export default function Commits() {
 
     // pass 0 if all checked...
     const handleCheck = useCallback((commitId, checked) => {
-        setSelectedIds((selected) => {
-            if (checked) {
-                selected.add(commitId);
-            } else {
-                selected.delete(commitId);
-            }
-            return new Set(selected);
-        });
+        if (Array.isArray(commitId)) {
+            setSelectedIds(() => new Set(commitId));
+        } else {
+            setSelectedIds((selected) => {
+                if (checked) {
+                    selected.add(commitId);
+                } else {
+                    selected.delete(commitId);
+                }
+                return new Set(selected);
+            });
+        }
     }, []);
 
     const autocomplete = useMemo(() =>
