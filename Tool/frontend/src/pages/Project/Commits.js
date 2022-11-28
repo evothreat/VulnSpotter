@@ -211,7 +211,7 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
                     <EnhancedTableHead headCells={headCells} order={sorter.order} orderBy={sorter.orderBy}
                                        sortReqHandler={sortItems}
                                        selectAllCheckbox selectAllHandler={handleSelectAll}
-                                       selectAllChecked={items.values.length === selectedIds.size}/>
+                                       selectAllChecked={items.values.length > 0 && items.values.length === selectedIds.size}/>
                     <TableBody>
                         {
                             orderedItems.length > 0
