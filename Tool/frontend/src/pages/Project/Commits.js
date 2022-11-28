@@ -148,12 +148,9 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
     const [showedItems, setShowedItems] = useState(null);
     const commitsRef = useRef(null);
     const endIxRef = useRef(null);
-    const sorterRef = useRef({
-        order: null,
-        orderBy: null
-    });
+    const sorterRef = useRef(null);
 
-    const resetState = () => {
+    const reduceItemsInView = () => {
         if (containerRef.current) {
             containerRef.current.scrollTop = 0;
         }
@@ -163,7 +160,11 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
 
     if (commitsRef.current !== commits) {
         commitsRef.current = commits;
-        resetState();
+        sorterRef.current = {
+            order: null,
+            orderBy: null
+        };
+        reduceItemsInView();
     }
 
     const sortItems = (key) => {
@@ -175,7 +176,7 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
         commitsRef.current.sort(
             Utils.createComparator(sorterRef.current.orderBy, sorterRef.current.order)
         );
-        resetState();
+        reduceItemsInView();
     };
 
     const showNextItems = () => {
