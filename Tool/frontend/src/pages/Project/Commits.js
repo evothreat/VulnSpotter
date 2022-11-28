@@ -147,24 +147,20 @@ const PureCommitRow = React.memo(CommitRow, (prev, curr) =>
     prev.checkHandler === curr.checkHandler
 );
 
-function CommitsTable({commitFilter, selectedIds, checkHandler}) {
+function CommitsTable({commits, selectedIds, checkHandler}) {
     const containerRef = useRef(null);
     const [sorter, setSorter] = useState({
         order: null,
         orderBy: null
     });
     const [items, setItems] = useState({
-        values: commitFilter.result,
+        values: commits.slice(),
         endIx: MAX_ITEMS
     });
-    const filterRef = useRef(commitFilter);
-
-    // NOTE: use arrayEquals instead
-    if (filterRef.current !== commitFilter) {
-        filterRef.current = commitFilter;
+    if (!arrayEquals(items.values, commits)) {
         containerRef.current.scrollTop = 0;
         setItems({
-            values: commitFilter.result,
+            values: commits.slice(),
             endIx: MAX_ITEMS
         });
     }
@@ -266,7 +262,7 @@ export default function Commits() {
                 return curFilter;
             }
             curFilter.updateKeywords(kws);
-            return curFilter.clone();
+            return curFilter.shallowCopy();
         }), [])
 
     const handleLogicalOpChange = (e, val) => {
@@ -274,7 +270,7 @@ export default function Commits() {
             setCommitFilter((curFilter) => {
                 if (curFilter.logicalOp !== val) {
                     curFilter.changeLogicalOp(val);
-                    return curFilter.clone();
+                    return curFilter.shallowCopy();
                 }
                 return curFilter;
             });
@@ -354,7 +350,7 @@ export default function Commits() {
                 </Box>
             </Box>
             {
-                commitFilter && <CommitsTable commitFilter={commitFilter} selectedIds={selectedIds}
+                commitFilter && <CommitsTable commits={commitFilter.result} selectedIds={selectedIds}
                                               checkHandler={handleCheck}/>
             }
         </Fragment>

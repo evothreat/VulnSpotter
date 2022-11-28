@@ -68,7 +68,17 @@ function splitArray(arr, n) {
 }
 
 function arrayEquals(a, b) {
-    return a.length === b.length && a.every((v, i) => v === b[i]);
+    if (a.length !== b.length) {
+        return false;
+    }
+    let i = 0;
+    let j = a.length - 1;
+    while (j-- >= i++) {
+        if (a[i] !== b[i] || a[j] !== b[j]) {
+            return false;
+        }
+    }
+    return true;
 }
 
 function arrayDiff(a, b) {

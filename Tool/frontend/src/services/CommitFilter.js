@@ -18,8 +18,8 @@ function matchAnd(kws) {
 
 class CommitFilter {
 
-    constructor(commits, rest = [], keywords = [], logicalOp = 'or') {
-        this.result = commits;
+    constructor(result, rest = [], keywords = [], logicalOp = 'or') {
+        this.result = result;
         this.rest = rest;
         this.keywords = keywords;
         this.logicalOp = logicalOp;
@@ -110,7 +110,7 @@ class CommitFilter {
         //this.logicalOp = 'or';    // do not reset, cause it's user-defined value
     }
 
-    clone() {
+    shallowCopy() {
         return new CommitFilter(this.result, this.rest, this.keywords, this.logicalOp);
     }
 }
