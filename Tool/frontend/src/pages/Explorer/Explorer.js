@@ -1,8 +1,7 @@
 import Box from "@mui/material/Box";
 import DiffViewer from "./DiffViewer/DiffViewer";
 import React, {useEffect, useRef, useState} from "react";
-import ProjectsService from "../../services/ProjectsService";
-import {useNavigate, useParams, useSearchParams} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
 import CommitsService from "../../services/CommitsService";
 import {createLineDiff, DiffType, parsePatch} from "../../diffUtils";
 import Typography from "@mui/material/Typography";
@@ -38,9 +37,8 @@ function MessageWindow({message, setWinRef}) {
 }
 
 export default function Explorer() {
-    const {projId} = useParams();
     const navigate = useNavigate();
-    const [queryParams,] = useSearchParams();
+    const location = useLocation();
 
     const [commitIds, setCommitIds] = useState(null);
     const [commitInfo, setCommitInfo] = useState({
@@ -62,26 +60,8 @@ export default function Explorer() {
     const curDiff = commitInfo.diffs?.curr();
 
     useEffect(() => {
-        const idsStr = queryParams.get('commitIds');
-        const idsList = [];
-        if (idsStr) {
-            for (const v of idsStr.split(',')) {
-                // maybe check whether valid id?
-                if (v) {
-                    idsList.push(parseInt(v));
-                }
-            }
-        }
-        if (idsList.length > 0) {
-            setCommitIds(new ArrayIterator(idsList));
-        } else {
-            // load commits depending on filter in commits table?
-            ProjectsService.getCommits(projId, {matched: true, unrated: true, fields: ['id']})
-                .then((data) => {
-                    setCommitIds(new ArrayIterator(data.map((v) => v.id)))
-                });
-        }
-    }, [projId, queryParams]);
+        setCommitIds(new ArrayIterator(location.state.commitIds));
+    }, [location.state]);
 
     useEffect(() => {
         if (!commitIds) {

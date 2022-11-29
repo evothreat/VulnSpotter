@@ -85,9 +85,8 @@ function CommitRow({item, checkHandler, checked}) {
                 <TableCell>
                     {
                         <Box sx={{display: 'flex', alignItems: 'flex-end'}}>
-                            <RouterLink to={`./explorer?commitIds=${item.id}`} underline="hover" color="inherit">
+                            <RouterLink to={'./explorer'} state={{commitIds: [item.id]}} underline="hover" color="inherit">
                                 {
-                                    // do not replace last!
                                     item.message.substring(0, 60).replace('\n', ' ⤶ ')
                                 }
                             </RouterLink>
@@ -255,7 +254,13 @@ export default function Commits() {
             });
     }, [projId]);
 
-    const gotoExplorer = () => navigate(`./explorer`);
+    const gotoExplorer = () => {
+        navigate('./explorer', {
+            state: {
+                commitIds: Array.from(selectedIds)
+            }
+        });
+    };
 
     const handleKwsChange = useCallback((e, kws) => {
         // if any rows selected - deselect them
