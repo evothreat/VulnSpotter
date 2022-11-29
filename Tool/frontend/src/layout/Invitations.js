@@ -1,4 +1,4 @@
-import {Badge, Fade, List, ListItem, ListItemIcon, ListItemText, ListSubheader, Popover} from "@mui/material";
+import {Fade, List, ListItem, ListItemIcon, ListItemText, ListSubheader, Popover} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import * as Utils from "../utils";
 import Box from "@mui/material/Box";
@@ -6,11 +6,11 @@ import * as React from "react";
 import {Fragment, useEffect, useState} from "react";
 import InvitationsService from "../services/InvitationsService";
 import IconButton from "@mui/material/IconButton";
-import {newMsgBadgeStyle} from "../style";
 import EmailIcon from "@mui/icons-material/Email";
 import ForwardToInboxIcon from '@mui/icons-material/ForwardToInbox';
 import Button from "@mui/material/Button";
 import EmptyListMsg from "./EmptyListMsg";
+import NewMessageBadge from "../components/NewMessageBadge";
 
 
 // put buttons in secondary
@@ -100,9 +100,9 @@ export default function Invitations() {
     return (
         <Fragment>
             <IconButton color="inherit" onClick={handleOpen}>
-                <Badge sx={newMsgBadgeStyle} overlap="circular" badgeContent={invitations.length}>
+                <NewMessageBadge badgeContent={invitations.length}>
                     <EmailIcon/>
-                </Badge>
+                </NewMessageBadge>
             </IconButton>
 
             <Popover

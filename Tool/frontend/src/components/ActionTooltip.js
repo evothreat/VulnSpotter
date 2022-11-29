@@ -13,13 +13,13 @@ const tooltipStyle = {
     }
 };
 
-export default function ActionTooltip({children, ...props}) {
+export default function ActionTooltip(props) {
     return (
         <Tooltip placement="top"
                  arrow
                  TransitionComponent={Fade}
                  componentsProps={tooltipStyle}
-                 children={children}
+                 children={props.children}
                  {...props}
         />
     );

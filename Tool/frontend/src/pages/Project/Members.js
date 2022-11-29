@@ -9,8 +9,6 @@ import TableBody from "@mui/material/TableBody";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import Box from "@mui/material/Box";
-import ActionTooltip from "../../components/ActionTooltip";
-import IconButton from "@mui/material/IconButton";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import Button from "@mui/material/Button";
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
@@ -23,7 +21,9 @@ import ProjectsService from "../../services/ProjectsService";
 import EnhancedAlert from "../../components/EnhancedAlert";
 import InvitationsService from "../../services/InvitationsService";
 import {useParams} from "react-router-dom";
-import {actionBtnStyle, headerStyle} from "../../style";
+import MainActionButton from "../../components/MainActionButton";
+import ActionButton from "../../components/ActionButton";
+import PageHeader from "../../components/PageHeader";
 
 
 const headCells = [
@@ -80,14 +80,13 @@ function MembersList({items, setItemToDelete}) {
                             <TableCell align="right">
                                 {
                                     it.role !== Role.OWNER
-                                        ? <Box sx={{display: 'flex', justifyContent: 'right'}}>
-                                            <ActionTooltip title="Remove">
-                                                <IconButton disableRipple sx={actionBtnStyle} data-item-id={it.id}
-                                                            onClick={handleDelClick}>
+                                        ? (
+                                            <Box sx={{display: 'flex', justifyContent: 'right'}}>
+                                                <ActionButton data-item-id={it.id} onClick={handleDelClick}>
                                                     <DeleteForeverIcon fontSize="inherit"/>
-                                                </IconButton>
-                                            </ActionTooltip>
-                                        </Box>
+                                                </ActionButton>
+                                            </Box>
+                                        )
                                         : null
                                 }
                             </TableCell>
@@ -265,14 +264,14 @@ export default function Members() {
 
     return (
         <Fragment>
-            <Box sx={headerStyle}>
+            <PageHeader>
                 <Typography variant="h6">
                     Members
                 </Typography>
-                <Button size="small" variant="contained" startIcon={<PersonAddAlt1Icon/>} onClick={showInviteDlg}>
+                <MainActionButton startIcon={<PersonAddAlt1Icon/>} onClick={showInviteDlg}>
                     Invite
-                </Button>
-            </Box>
+                </MainActionButton>
+            </PageHeader>
             {
                 projMembers && <MembersTable items={projMembers} setItems={setProjMembers}/>
             }

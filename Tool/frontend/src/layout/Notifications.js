@@ -1,18 +1,17 @@
 import {getMessage} from "./message";
-import {Badge, Fade, List, ListItem, ListItemIcon, ListItemText, ListSubheader, Popover} from "@mui/material";
+import {Fade, List, ListItem, ListItemIcon, ListItemText, ListSubheader, Popover} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import * as Utils from "../utils";
 import Box from "@mui/material/Box";
-import ActionTooltip from "../components/ActionTooltip";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
 import * as React from "react";
 import {Fragment, useEffect, useState} from "react";
 import NotificationsService from "../services/NotificationsService";
 import NotificationsIcon from "@mui/icons-material/Notifications";
-import {newMsgBadgeStyle} from "../style";
 import CircleIcon from "@mui/icons-material/Circle";
 import EmptyListMsg from "./EmptyListMsg";
+import NewMessageBadge from "../components/NewMessageBadge";
 
 
 // TODO: delete notifications after seeing them automatically?
@@ -55,11 +54,9 @@ function NotificationsHeader({deleteHandler}) {
                 justifyContent: 'space-between',
             }}>
                 <Typography variant="subtitle1" sx={{color: '#505050'}}>Notifications</Typography>
-                <ActionTooltip title="Delete all" placement="left">
-                    <IconButton onClick={deleteHandler}>
-                        <DeleteIcon fontSize="small"/>
-                    </IconButton>
-                </ActionTooltip>
+                <IconButton onClick={deleteHandler}>
+                    <DeleteIcon fontSize="small"/>
+                </IconButton>
             </Box>
         </ListSubheader>
     );
@@ -131,9 +128,9 @@ export default function Notifications() {
     return (
         <Fragment>
             <IconButton color="inherit" onClick={handleOpen}>
-                <Badge sx={newMsgBadgeStyle} overlap="circular" badgeContent={notifs.filter((n) => !n.is_seen).length}>
+                <NewMessageBadge badgeContent={notifs.filter((n) => !n.is_seen).length}>
                     <NotificationsIcon/>
-                </Badge>
+                </NewMessageBadge>
             </IconButton>
 
             <Popover

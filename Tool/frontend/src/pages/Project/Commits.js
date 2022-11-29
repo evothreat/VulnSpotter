@@ -17,14 +17,14 @@ import Table from "@mui/material/Table";
 import EnhancedTableHead from "../../components/EnhancedTableHead";
 import ProjectsService from "../../services/ProjectsService";
 import {useNavigate, useParams} from "react-router-dom";
-import Button from "@mui/material/Button";
 import FindInPageIcon from "@mui/icons-material/FindInPage";
 import cssStyle from "./Commits.module.css"
 import RouterLink from "../../components/RouterLink";
 import TextField from "@mui/material/TextField";
-import {headerStyle} from "../../style";
 import CommitFilter from "../../services/CommitFilter";
 import SimpleCheckbox from "../../components/SimpleCheckbox";
+import MainActionButton from "../../components/MainActionButton";
+import PageHeader from "../../components/PageHeader";
 
 
 const cveDetailUrl = 'https://nvd.nist.gov/vuln/detail/';
@@ -323,15 +323,15 @@ export default function Commits() {
 
     return (
         <Fragment>
-            <Box sx={{...headerStyle, mb: '20px'}}>
+            <PageHeader sx={{mb: '20px'}}>
                 <Typography variant="h6">
                     Commits
                 </Typography>
 
-                <Button variant="contained" size="small" startIcon={<FindInPageIcon/>} onClick={gotoExplorer}>
+                <MainActionButton startIcon={<FindInPageIcon/>} onClick={gotoExplorer}>
                     Explore
-                </Button>
-            </Box>
+                </MainActionButton>
+            </PageHeader>
             <Box sx={{display: 'flex', gap: '10px', flexDirection: 'column', mb: '5px'}}>
 
                 <ToggleButtonGroup color="primary" value="unrated" exclusive size="small" sx={{height: '35px'}}>

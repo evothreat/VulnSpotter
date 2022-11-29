@@ -8,8 +8,9 @@ import ProjectsService from "../../services/ProjectsService";
 import {Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/material";
 import TextField from "@mui/material/TextField";
 import EnhancedAlert from "../../components/EnhancedAlert";
-import {headerStyle} from "../../style";
 import isGlob from "is-glob";
+import MainActionButton from "../../components/MainActionButton";
+import PageHeader from "../../components/PageHeader";
 
 
 function CreateProjectDialog({closeHandler, createHandler}) {
@@ -67,14 +68,14 @@ export default function Home() {
 
     return (
         <Box sx={{width: '990px', mr: 'auto', ml: 'auto'}}>
-            <Box sx={headerStyle}>
+            <PageHeader>
                 <Typography variant="h6">
                     Projects
                 </Typography>
-                <Button size="small" variant="contained" startIcon={<AddIcon/>} onClick={showCreateDlg}>
+                <MainActionButton startIcon={<AddIcon/>} onClick={showCreateDlg}>
                     New
-                </Button>
-            </Box>
+                </MainActionButton>
+            </PageHeader>
 
             <ProjectsTable/>
             {
