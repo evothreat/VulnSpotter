@@ -43,7 +43,7 @@ def match_commit(repo, commit_id, patterns):
     return False
 
 
-def obtain_commit_patch(repo, commit_id, patterns):
+def obtain_commit_patch(repo, commit_id, patterns=None):
     pats = patterns.split(',') if patterns else ()
     return repo.git.diff(commit_id + '~1', commit_id, *pats,
                          ignore_blank_lines=True, ignore_space_at_eol=True,
