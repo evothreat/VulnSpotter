@@ -13,7 +13,6 @@ from enums import *
 from safe_sql import SafeSql
 from utils import pathjoin, unix_time, sql_params_args
 
-
 app = Flask(__name__)
 jwt = JWTManager(app)
 
@@ -702,6 +701,26 @@ def delete_member(proj_id, member_id):
     # TODO: notify deleted user
 
     return '', 204
+
+
+@app.route('/api/users/me/projects/<proj_id>/export', methods=['GET'])
+# @jwt_required()
+def get_export_data(proj_id):
+    data = db_conn.execute('SELECT c.hash,'
+                           'SUM(CASE WHEN v.choice=2 THEN 1 ELSE 0 END) neutral,'
+                           'SUM(CASE WHEN v.choice=1 THEN 1 ELSE 0 END ) positive,'
+                           'SUM(CASE WHEN v.choice=-1 THEN 1 ELSE 0 END ) negative FROM commits c '
+                           'JOIN votes v ON c.project_id=? AND c.id = v.commit_id '
+                           'GROUP BY c.hash',
+                           (proj_id,)).fetchall()
+    res = []
+    for d in data:
+        row = {}
+        for k in d.keys():
+            row[k] = d[k]
+        res.append(row)
+
+    return res, 200
 
 
 if __name__ == '__main__':
