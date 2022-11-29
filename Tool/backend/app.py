@@ -386,9 +386,9 @@ def get_commit_full_info(commit_id):
 
     with git.Repo(pathjoin(config.REPOS_DIR, commit['repository'])) as repo:
         if 'matched' in request.args:
-            patch = helpers.obtain_commit_patch(repo, commit['hash'], commit['glob_pats'])
+            patch = helpers.get_commit_patch(repo, commit['hash'], commit['glob_pats'])
         else:
-            patch = helpers.obtain_commit_patch(repo, commit['hash'])
+            patch = helpers.get_commit_patch(repo, commit['hash'])
 
     return {
         'commit': views.commit(commit),
@@ -410,9 +410,9 @@ def get_commit_patch(commit_id):
 
     with git.Repo(pathjoin(config.REPOS_DIR, data['repository'])) as repo:
         if 'matched' in request.args:
-            patch = helpers.obtain_commit_patch(repo, data['hash'], data['glob_pats'])
+            patch = helpers.get_commit_patch(repo, data['hash'], data['glob_pats'])
         else:
-            patch = helpers.obtain_commit_patch(repo, data['hash'])
+            patch = helpers.get_commit_patch(repo, data['hash'])
 
     return patch, 200, {'Content-Type': 'text/plain'}
 
