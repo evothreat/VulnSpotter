@@ -64,11 +64,13 @@ export default function Explorer() {
     }, [location.state]);
 
     useEffect(() => {
-        if (!commitIds || !commitIds.curr()) {
+        if (!commitIds) {
             return;
         }
         const commitId = commitIds.curr();
-
+        if (!commitId) {
+            return;
+        }
         CommitsService.getFullInfo(commitId, {matched: true})
             .then(({commit, votes, cve_list, patch}) => {
                 if (commitId !== commitIds.curr()) {
