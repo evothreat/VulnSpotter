@@ -64,10 +64,10 @@ export default function Explorer() {
     }, [location.state]);
 
     useEffect(() => {
-        if (!commitIds || !commitIds.hasNext()) {
+        if (!commitIds || !commitIds.curr()) {
             return;
         }
-        const commitId = commitIds.curr();   // use commit from commit info?
+        const commitId = commitIds.curr();
 
         CommitsService.getFullInfo(commitId, {matched: true})
             .then(({commit, votes, cve_list, patch}) => {
@@ -256,7 +256,7 @@ export default function Explorer() {
             <Box sx={{flex: '1', display: 'flex', flexDirection: 'column', gap: '2px'}}>
                 {
                     // render message
-                    commitInfo.commit &&
+                    curCommit &&
                     <MessageWindow message={curCommit.message} setWinRef={(el) => windowRefs[0].current = el}/>
                 }
                 {
