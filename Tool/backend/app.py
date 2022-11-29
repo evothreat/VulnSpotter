@@ -1,25 +1,18 @@
-from contextlib import contextmanager
-from fnmatch import fnmatch
-from os.path import isdir, basename
 from threading import Thread
-from urllib.parse import urlparse
 
 import git
 from flask import Flask, request
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, create_refresh_token
-from git_vuln_finder import find as find_vulns
 from werkzeug.security import generate_password_hash, check_password_hash
 
 import config
+import helpers
 import tables
 import views
-from cve_utils import get_cve_info
 from enums import *
 from safe_sql import SafeSql
-from utils import pathjoin, unix_time, normpath, sql_params_args
+from utils import pathjoin, unix_time, sql_params_args
 
-sqlite3.register_adapter(bool, int)
-sqlite3.register_converter('BOOLEAN', lambda v: bool(int(v)))
 
 app = Flask(__name__)
 jwt = JWTManager(app)
@@ -28,9 +21,11 @@ app.config['JWT_SECRET_KEY'] = config.JWT_SECRET_KEY
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = config.JWT_ACCESS_TOKEN_EXPIRES
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = config.JWT_REFRESH_TOKEN_EXPIRES
 
+helpers.register_boolean_type()
 db_conn = sqlite3.connect(config.DB_PATH,
                           check_same_thread=False, isolation_level=None,
                           detect_types=sqlite3.PARSE_DECLTYPES, factory=SafeSql)
+
 # to enable foreign keys constraint
 # this constraint must be enabled on each connection
 db_conn.execute('PRAGMA foreign_keys=ON')
@@ -108,22 +103,6 @@ def setup_db():
                         ])
 
 
-@contextmanager
-def open_db_transaction():
-    conn = sqlite3.connect(config.DB_PATH, isolation_level=None, detect_types=sqlite3.PARSE_DECLTYPES)
-    conn.execute('PRAGMA foreign_keys=ON')
-    try:
-        conn.execute('BEGIN')
-        yield conn
-    except BaseException as e:
-        conn.rollback()
-        conn.close()
-        raise e
-    else:
-        conn.commit()
-        conn.close()
-
-
 def notify(users, actor_id, activity, proj_id):
     with db_conn:
         cur_time = unix_time()
@@ -132,79 +111,6 @@ def notify(users, actor_id, activity, proj_id):
 
         db_conn.executemany('INSERT INTO notifications(user_id,update_id,is_seen,created_at) VALUES (?,?,?,?)',
                             ((u, update_id, False, cur_time) for u in users))
-
-
-def create_cve_records(repo_name, cve_list):
-    cve_info = get_cve_info(repo_name, list(cve_list))
-    rows = ((k, v['summary'], v['description'], v['score']) for k, v in cve_info.items())
-
-    with open_db_transaction() as conn:
-        conn.executemany('INSERT OR IGNORE INTO cve_info(cve_id,summary,description,cvss_score) VALUES (?,?,?,?)', rows)
-
-
-def match_commit(repo, commit_id, patterns):
-    filepaths = repo.git.diff(commit_id + '~1', commit_id, name_only=True)
-    for fp in filepaths.split('\n'):
-        if any(fnmatch(fp, pat) for pat in patterns):
-            return True
-    return False
-
-
-def obtain_commit_patch(repo, commit_id, patterns):
-    pats = patterns.split(',') if patterns else ()
-    return repo.git.diff(commit_id + '~1', commit_id, *pats,
-                         ignore_blank_lines=True, ignore_space_at_eol=True,
-                         diff_filter='MA', no_prefix=True)
-
-
-def create_project_from_repo(user_id, repo_url, proj_name, glob_pats):
-    parts = urlparse(repo_url)
-    repo_loc = normpath(parts.netloc + parts.path.rstrip('.git'))
-    repo_name = basename(repo_loc)
-    repo_dir = pathjoin(config.REPOS_DIR, repo_loc)
-    try:
-        if isdir(repo_dir):
-            repo = git.Repo(repo_dir)
-            repo.remotes.origin.pull()
-        else:
-            repo = git.Repo.clone_from(f'{parts.scheme}://:@{repo_loc}', repo_dir)
-    except git.exc.GitError:
-        notify((user_id,), 1, Action.CREATE, None)
-        return
-
-    vulns, found_cve_list, _ = find_vulns(repo_dir)
-
-    # cve-information doesn't depend on commits & so can be inserted independently
-    # garbage is collected on function return, so do this work in separate function
-    create_cve_records(repo_name, found_cve_list)
-
-    with open_db_transaction() as conn:
-        proj_id = conn.execute('INSERT INTO projects(owner_id,name,repository,commit_n,glob_pats) VALUES (?,?,?,?,?)',
-                               (user_id, proj_name, repo_loc, len(vulns), ','.join(glob_pats))).lastrowid
-
-        conn.execute('INSERT INTO membership(user_id,project_id,role) VALUES (?,?,?)', (user_id, proj_id, Role.OWNER))
-
-        commits = vulns.values()
-        # creating generator to save memory
-        commit_rows = ((proj_id, v['commit-id'], v['message'], v['authored_date'],
-                        not glob_pats or match_commit(repo, v['commit-id'], glob_pats)) for v in commits)
-
-        cur = conn.executemany('INSERT INTO commits(project_id,hash,message,created_at,matched) VALUES (?,?,?,?,?)',
-                               commit_rows)
-        if cur.rowcount > 0:
-            # calculating ids of inserted records (tricky)
-            inserted_id = conn.execute('SELECT MAX(id) FROM commits').fetchone()[0] - cur.rowcount + 1
-            commit_cve = []
-            for comm_id, comm in zip(range(inserted_id, len(commits)), commits):
-                cve_list = comm.get('cve')
-                if cve_list:
-                    for cve in set(cve_list):
-                        commit_cve.append((comm_id, cve))
-
-            conn.executemany('INSERT INTO commit_cve(commit_id,cve_id) SELECT ?,id FROM cve_info WHERE cve_id=?',
-                             commit_cve)
-
-    notify((user_id,), 1, Action.CREATE, proj_id)
 
 
 def is_owner(user_id, proj_id):
@@ -270,6 +176,15 @@ def get_users():
     return [views.user(d) for d in data]
 
 
+def handle_create_project(user_id, *args):
+    try:
+        proj_id = helpers.create_project_from_repo(user_id, *args)
+    except Exception:
+        proj_id = None
+
+    notify((user_id,), 1, Action.CREATE, proj_id)
+
+
 @app.route('/api/users/me/projects', methods=['POST'])
 @jwt_required()
 def create_project():
@@ -282,7 +197,7 @@ def create_project():
     if not (repo_url and proj_name):
         return '', 400
 
-    Thread(target=create_project_from_repo, args=(get_jwt_identity(), repo_url, proj_name, glob_pats)).start()
+    Thread(target=handle_create_project, args=(get_jwt_identity(), repo_url, proj_name, glob_pats)).start()
 
     return '', 202
 
@@ -472,9 +387,9 @@ def get_commit_full_info(commit_id):
 
     with git.Repo(pathjoin(config.REPOS_DIR, commit['repository'])) as repo:
         if 'matched' in request.args:
-            patch = obtain_commit_patch(repo, commit['hash'], commit['glob_pats'])
+            patch = helpers.obtain_commit_patch(repo, commit['hash'], commit['glob_pats'])
         else:
-            patch = obtain_commit_patch(repo, commit['hash'])
+            patch = helpers.obtain_commit_patch(repo, commit['hash'])
 
     return {
         'commit': views.commit(commit),
@@ -496,9 +411,9 @@ def get_commit_patch(commit_id):
 
     with git.Repo(pathjoin(config.REPOS_DIR, data['repository'])) as repo:
         if 'matched' in request.args:
-            patch = obtain_commit_patch(repo, data['hash'], data['glob_pats'])
+            patch = helpers.obtain_commit_patch(repo, data['hash'], data['glob_pats'])
         else:
-            patch = obtain_commit_patch(repo, data['hash'])
+            patch = helpers.obtain_commit_patch(repo, data['hash'])
 
     return patch, 200, {'Content-Type': 'text/plain'}
 
