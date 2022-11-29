@@ -60,11 +60,11 @@ export default function Explorer() {
     const curDiff = commitInfo.diffs?.curr();
 
     useEffect(() => {
-        setCommitIds(new ArrayIterator(location.state.commitIds));
+        setCommitIds(new ArrayIterator(location.state?.commitIds || []));
     }, [location.state]);
 
     useEffect(() => {
-        if (!commitIds) {
+        if (!commitIds || !commitIds.hasNext()) {
             return;
         }
         const commitId = commitIds.curr();   // use commit from commit info?
