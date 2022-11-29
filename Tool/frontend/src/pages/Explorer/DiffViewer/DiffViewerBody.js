@@ -264,9 +264,10 @@ export default function DiffViewerBody({codeLines, getMoreLines, setWinRef}) {
                         setLineHunks((curHunks) => {
                             const ix = curHunks?.findIndex((h) => h.id === hunkId);
                             if (ix > -1) {
+                                const newHunks = curHunks.slice();
                                 const newHunk = createHunk(newLines, true);
-                                curHunks.splice(direction > 0 ? ix : ix + 1, 0, newHunk);
-                                return curHunks.slice();
+                                newHunks.splice(direction > 0 ? ix : ix + 1, 0, newHunk);
+                                return newHunks;
                             }
                             return curHunks;
                         });
