@@ -165,7 +165,6 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
         setState((curState) => {
             const order = curState.orderBy === key && curState.order === 'asc' ? 'desc' : 'asc';
             return {
-                ...curState,
                 orderBy: key,
                 order: order,
                 endIx: MAX_ITEMS,
@@ -190,7 +189,6 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
         if (checked) {
             checkHandler(state.items.map((it) => it.id), checked);
         } else {
-            // NOTE: do not pass commitIds, cause it not necessary
             checkHandler([], checked);
         }
     };
@@ -292,8 +290,8 @@ export default function Commits() {
         }
     };
 
-    // pass 0 if all checked...
     const handleCheck = useCallback((commitId, checked) => {
+        // if multiple ids passed - take them
         if (Array.isArray(commitId)) {
             setSelectedIds(() => new Set(commitId));
         } else {
