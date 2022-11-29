@@ -94,7 +94,8 @@ function CommitRow({item, checkHandler, checked}) {
                             {
                                 item.message.length > 60
                                     ? (
-                                        <IconButton onClick={toggleDetails} sx={{padding: 0, borderRadius: 0, height: '14px'}}>
+                                        <IconButton onClick={toggleDetails}
+                                                    sx={{padding: 0, borderRadius: 0, height: '14px'}}>
                                             <MoreHorizIcon/>
                                         </IconButton>
                                     )
@@ -256,14 +257,23 @@ export default function Commits() {
 
     const gotoExplorer = () => navigate(`./explorer`);
 
-    const handleKwsChange = useCallback((e, kws) =>
+    const handleKwsChange = useCallback((e, kws) => {
+        // if any rows selected - deselect them
+        setSelectedIds((ids) => {
+            if (ids.size > 0) {
+                return new Set();
+            }
+            return ids;
+        });
+
         setCommitFilter((curFilter) => {
             if (arrayEquals(kws, curFilter.keywords)) {
                 return curFilter;
             }
             curFilter.updateKeywords(kws);
             return curFilter.clone();
-        }), [])
+        });
+    }, [])
 
     const handleLogicalOpChange = (e, val) => {
         if (val) {
