@@ -107,24 +107,24 @@ def create_project_from_repo(user_id, repo_url, proj_name, glob_pats):
             # calculating ids of inserted records (tricky)
             inserted_id = conn.execute('SELECT MAX(id) FROM commits').fetchone()[0] - cur.rowcount + 1
 
-            commit_cve_rows = []
-            commit_diffs_rows = []
+            commit_cve = []
+            commit_diff = []
 
             for commit_id, commit in zip(range(inserted_id, len(matched_commits)), matched_commits):
                 # diffs
                 for diff in commit['diffs']:
-                    commit_diffs_rows.append((commit_id, diff))
+                    commit_diff.append((commit_id, diff))
 
-                # cve's
+                # cves
                 cve_list = commit.get('cve')
                 if cve_list:
                     for cve in set(cve_list):
-                        commit_cve_rows.append((commit_id, cve))
+                        commit_cve.append((commit_id, cve))
 
             conn.executemany('INSERT INTO commit_cve(commit_id,cve_id) SELECT ?,id FROM cve_info WHERE cve_id=?',
-                             commit_cve_rows)
+                             commit_cve)
 
-            conn.executemany('INSERT INTO commit_diffs(commit_id,content) VALUES (?,?)', commit_diffs_rows)
+            conn.executemany('INSERT INTO commit_diffs(commit_id,content) VALUES (?,?)', commit_diff)
 
         if len(unmatched_commits) > 0:
             conn.executemany('INSERT INTO unmatched_commits(project_id,commit_hash) VALUES (?,?)',
