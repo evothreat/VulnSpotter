@@ -95,7 +95,7 @@ def create_project_from_repo(user_id, repo_url, proj_name, glob_pats):
 
     with open_db_transaction() as conn:
         proj_id = conn.execute('INSERT INTO projects(owner_id,name,repository,commit_n,glob_pats) VALUES (?,?,?,?,?)',
-                               (user_id, proj_name, repo_loc, len(vulns), ','.join(glob_pats))).lastrowid
+                               (user_id, proj_name, repo_loc, len(matched_commits), ','.join(glob_pats))).lastrowid
 
         conn.execute('INSERT INTO membership(user_id,project_id,role) VALUES (?,?,?)', (user_id, proj_id, Role.OWNER))
 
@@ -110,7 +110,7 @@ def create_project_from_repo(user_id, repo_url, proj_name, glob_pats):
             commit_cve = []
             commit_diff = []
 
-            for commit_id, commit in zip(range(inserted_id, len(matched_commits)), matched_commits):
+            for commit_id, commit in zip(range(inserted_id, len(matched_commits) + 1), matched_commits):
                 # diffs
                 for diff in commit['diffs']:
                     commit_diff.append((commit_id, diff))

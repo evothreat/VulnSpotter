@@ -162,7 +162,7 @@ def get_current_user():
     return views.user(data)
 
 
-@app.route('/api/users/<user_id>', methods=['GET'])
+@app.route('/api/users/<int:user_id>', methods=['GET'])
 @jwt_required()
 def get_user(user_id):
     data = db_conn.execute('SELECT id,username,full_name,email FROM users WHERE id=? LIMIT 1',
@@ -218,7 +218,7 @@ def get_projects():
     return [views.project(d) for d in data]
 
 
-@app.route('/api/users/me/projects/<proj_id>', methods=['GET'])
+@app.route('/api/users/me/projects/<int:proj_id>', methods=['GET'])
 @jwt_required()
 def get_project(proj_id):
     data = db_conn.execute('SELECT p.id,p.name,p.repository,p.owner_id,p.commit_n,p.glob_pats,u.full_name '
@@ -229,7 +229,7 @@ def get_project(proj_id):
     return views.project(data) if data else ('', 404)
 
 
-@app.route('/api/users/me/projects/<proj_id>', methods=['PATCH'])
+@app.route('/api/users/me/projects/<int:proj_id>', methods=['PATCH'])
 @jwt_required()
 def update_project(proj_id):
     # TODO: throw exception if body contains invalid fields!
@@ -256,7 +256,7 @@ def update_project(proj_id):
     return '', 204
 
 
-@app.route('/api/users/me/projects/<proj_id>', methods=['DELETE'])
+@app.route('/api/users/me/projects/<int:proj_id>', methods=['DELETE'])
 @jwt_required()
 def delete_project(proj_id):
     with db_conn:
@@ -283,7 +283,7 @@ def get_notifications():
     return [views.notification(d) for d in data]
 
 
-@app.route('/api/users/me/notifications/<notif_id>', methods=['PATCH'])
+@app.route('/api/users/me/notifications/<int:notif_id>', methods=['PATCH'])
 @jwt_required()
 def update_notification(notif_id):
     params, args = helpers.sql_params_args(
@@ -307,7 +307,7 @@ def update_notification(notif_id):
     return '', 204
 
 
-@app.route('/api/users/me/notifications/<notif_id>', methods=['DELETE'])
+@app.route('/api/users/me/notifications/<int:notif_id>', methods=['DELETE'])
 @jwt_required()
 def delete_notification(notif_id):
     with db_conn:
@@ -340,7 +340,7 @@ def delete_notifications():
     return '', 204
 
 
-@app.route('/api/users/me/projects/<proj_id>/commits', methods=['GET'])
+@app.route('/api/users/me/projects/<int:proj_id>/commits', methods=['GET'])
 @jwt_required()
 def get_commits(proj_id):
     if not is_member(get_jwt_identity(), proj_id):
@@ -367,7 +367,7 @@ def get_commits(proj_id):
     return [{k: d[k] for k in keys} for d in data]
 
 
-@app.route('/api/users/me/commits/<commit_id>/full_info', methods=['GET'])
+@app.route('/api/users/me/commits/<int:commit_id>/full_info', methods=['GET'])
 @jwt_required()
 def get_commit_full_info(commit_id):
     user_id = get_jwt_identity()
@@ -395,7 +395,7 @@ def get_commit_full_info(commit_id):
     }
 
 
-@app.route('/api/users/me/commits/<commit_id>/files', methods=['GET'])
+@app.route('/api/users/me/commits/<int:commit_id>/files', methods=['GET'])
 @jwt_required()
 def get_commit_file_lines(commit_id):
     filepath = request.args.get('path')
@@ -447,7 +447,7 @@ def get_commit_file_lines(commit_id):
         return lines, 200, {'Content-Type': 'text/plain'}
 
 
-@app.route('/api/users/me/commits/<commit_id>/cve', methods=['GET'])
+@app.route('/api/users/me/commits/<int:commit_id>/cve', methods=['GET'])
 @jwt_required()
 def get_cve_list(commit_id):
     ismember = db_conn.execute('SELECT 1 FROM commits c WHERE c.id=? '
@@ -484,7 +484,7 @@ def create_vote():
     return {'resource_id': record_id}, 201
 
 
-@app.route('/api/users/me/votes/<vote_id>', methods=['GET'])
+@app.route('/api/users/me/votes/<int:vote_id>', methods=['GET'])
 @jwt_required()
 def get_vote(vote_id):
     data = db_conn.execute('SELECT v.id,v.user_id,v.diff_id,v.choice FROM votes v '
@@ -494,7 +494,7 @@ def get_vote(vote_id):
     return views.vote(data) if data else ('', 404)
 
 
-@app.route('/api/users/me/votes/<vote_id>', methods=['PATCH'])
+@app.route('/api/users/me/votes/<int:vote_id>', methods=['PATCH'])
 @jwt_required()
 def update_vote(vote_id):
     params, args = helpers.sql_params_args(
@@ -518,7 +518,7 @@ def update_vote(vote_id):
     return '', 204
 
 
-@app.route('/api/users/me/projects/<proj_id>/invitations', methods=['POST'])
+@app.route('/api/users/me/projects/<int:proj_id>/invitations', methods=['POST'])
 @jwt_required()
 def create_invitation(proj_id):
     owner_id = get_jwt_identity()
@@ -539,7 +539,7 @@ def create_invitation(proj_id):
     return {'resource_id': record_id}, 201
 
 
-@app.route('/api/users/me/projects/<proj_id>/invitations', methods=['GET'])
+@app.route('/api/users/me/projects/<int:proj_id>/invitations', methods=['GET'])
 @jwt_required()
 def get_sent_invitations(proj_id):
     data = db_conn.execute('SELECT i.id,i.invitee_id,i.project_id,i.role,u.username,u.full_name '
@@ -550,7 +550,7 @@ def get_sent_invitations(proj_id):
     return [views.sent_invitation(d) for d in data]
 
 
-@app.route('/api/users/me/sent-invitations/<invitation_id>', methods=['GET'])
+@app.route('/api/users/me/sent-invitations/<int:invitation_id>', methods=['GET'])
 @jwt_required()
 def get_sent_invitation(invitation_id):
     data = db_conn.execute('SELECT i.id,i.invitee_id,i.project_id,i.role,u.username,u.full_name '
@@ -562,7 +562,7 @@ def get_sent_invitation(invitation_id):
     return views.sent_invitation(data) if data else ('', 404)
 
 
-@app.route('/api/users/me/sent-invitations/<invitation_id>', methods=['DELETE'])
+@app.route('/api/users/me/sent-invitations/<int:invitation_id>', methods=['DELETE'])
 @jwt_required()
 def delete_sent_invitation(invitation_id):
     with db_conn:
@@ -584,7 +584,7 @@ def get_invitations():
     return [views.invitation(d) for d in data]
 
 
-@app.route('/api/users/me/invitations/<invitation_id>', methods=['PATCH'])
+@app.route('/api/users/me/invitations/<int:invitation_id>', methods=['PATCH'])
 @jwt_required()
 def accept_invitation(invitation_id):
     with db_conn:
@@ -600,7 +600,7 @@ def accept_invitation(invitation_id):
     return '', 204
 
 
-@app.route('/api/users/me/invitations/<invitation_id>', methods=['DELETE'])
+@app.route('/api/users/me/invitations/<int:invitation_id>', methods=['DELETE'])
 @jwt_required()
 def delete_invitation(invitation_id):
     with db_conn:
@@ -612,7 +612,7 @@ def delete_invitation(invitation_id):
     return '', 204
 
 
-@app.route('/api/users/me/projects/<proj_id>/members', methods=['GET'])
+@app.route('/api/users/me/projects/<int:proj_id>/members', methods=['GET'])
 @jwt_required()
 def get_members(proj_id):
     if not is_owner(get_jwt_identity(), proj_id):
@@ -624,7 +624,7 @@ def get_members(proj_id):
     return [views.member(d) for d in data]
 
 
-@app.route('/api/users/me/projects/<proj_id>/members/<member_id>', methods=['DELETE'])
+@app.route('/api/users/me/projects/<int:proj_id>/members/<int:member_id>', methods=['DELETE'])
 @jwt_required()
 def delete_member(proj_id, member_id):
     owner_id = get_jwt_identity()
@@ -643,14 +643,15 @@ def delete_member(proj_id, member_id):
     return '', 204
 
 
-@app.route('/api/users/me/projects/<proj_id>/export', methods=['GET'])
-# @jwt_required()
+@app.route('/api/users/me/projects/<int:proj_id>/export', methods=['GET'])
+#@jwt_required()
 def get_export_data(proj_id):
     data = db_conn.execute('SELECT c.hash,'
                            'SUM(CASE WHEN v.choice=2 THEN 1 ELSE 0 END) neutral,'
                            'SUM(CASE WHEN v.choice=1 THEN 1 ELSE 0 END ) positive,'
                            'SUM(CASE WHEN v.choice=-1 THEN 1 ELSE 0 END ) negative FROM commits c '
-                           'JOIN votes v ON c.project_id=? AND c.id = v.commit_id '
+                           'JOIN commit_diffs cd ON c.project_id=? AND cd.commit_id=c.id '
+                           'JOIN votes v ON cd.id = v.diff_id '
                            'GROUP BY c.hash',
                            (proj_id,)).fetchall()
     res = []
