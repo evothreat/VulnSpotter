@@ -1,6 +1,5 @@
 import api from "./api";
 
-// TODO: create main class & inherit methods from it
 
 class ProjectsService {
 

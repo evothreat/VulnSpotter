@@ -19,9 +19,6 @@ import VotesService from "../../services/VotesService";
 const SWITCH_KEYS = ['1', '2', '3', '4'];
 const RATE_KEYS = ['v', 'b', 'n'];
 
-function getDiffId(commitId, filepath) {
-    return commitId + filepath;
-}
 
 function MessageWindow({message, setWinRef}) {
     return (
@@ -72,31 +69,23 @@ export default function Explorer() {
             return;
         }
         CommitsService.getFullInfo(commitId, {matched: true})
-            .then(({commit, votes, cve_list, patch}) => {
+            .then(({commit, cve_list, diffs}) => {
                 if (commitId !== commitIds.curr()) {
                     return;
                 }
                 // patch
-                const diffs = new ArrayIterator(parsePatch(patch));
-                // assign votes to diffs
-                const votesMap = votes.reduce((dict, v) => {
-                    dict[v.filepath] = {
-                        id: v.id,
-                        choice: v.choice
+                const parsedDiffs = new ArrayIterator(diffs.map((diff) => {
+                    return {
+                        ...diff,
+                        content: parsePatch(diff.content)[0]
                     };
-                    return dict;
-                }, {});
-
-                for (let diff = diffs.begin(); diff; diff = diffs.next()) {
-                    diff.id = getDiffId(commitId, diff.newFileName);
-                    diff.vote = votesMap[diff.newFileName] || {};
-                }
+                }));
                 // determine diff to begin with
                 if (backwards.current) {
                     backwards.current = false;
-                    diffs.seek(-1);
+                    parsedDiffs.seek(-1);
                 } else {
-                    diffs.seek(0);
+                    parsedDiffs.seek(0);
                 }
                 // cveList
                 for (const cve of cve_list) {
@@ -104,7 +93,7 @@ export default function Explorer() {
                 }
                 setCommitInfo({
                     commit: commit,
-                    diffs: diffs,
+                    diffs: parsedDiffs,
                     cveList: cve_list,
                 });
             });
@@ -156,7 +145,7 @@ export default function Explorer() {
     const getMoreLines = async (prevLineno, curLineno, dir, beginLeft, beginRight) => {
         try {
             const data = await CommitsService.getFileLines(
-                curCommit.id, curDiff.newFileName,
+                curCommit.id, curDiff.content.newFileName,
                 prevLineno, curLineno, dir
             );
             if (data.length === 0) {
@@ -219,11 +208,10 @@ export default function Explorer() {
         const commitId = curCommit.id;
         const diffId = curDiff.id;
 
-        const filepath = curDiff.newFileName;
         const vote = {...curDiff.vote};
 
         if (isObjEmpty(vote)) {
-            CommitsService.createVote(commitId, filepath, choice)
+            VotesService.create(diffId, choice)
                 .then((data) => {
                     voteUpdates.current[diffId] = {
                         id: data.resource_id,
@@ -273,10 +261,10 @@ export default function Explorer() {
                     // we need this flexbox because if diffs is null, the left column will stretch
                     curDiff && (
                         <DiffViewer>
-                            <DiffViewerHeader stats={curDiff.stats} diffState={curDiff.vote?.choice}
-                                              oldFileName={curDiff.oldFileName} newFileName={curDiff.newFileName}/>
+                            <DiffViewerHeader stats={curDiff.content.stats} diffState={curDiff.vote?.choice}
+                                              oldFileName={curDiff.content.oldFileName} newFileName={curDiff.content.newFileName}/>
 
-                            <DiffViewerBody codeLines={curDiff.lines} getMoreLines={getMoreLines}
+                            <DiffViewerBody codeLines={curDiff.content.lines} getMoreLines={getMoreLines}
                                             setWinRef={{
                                                 setLeftRef: (el) => windowRefs[2].current = el,
                                                 setRightRef: (el) => windowRefs[3].current = el

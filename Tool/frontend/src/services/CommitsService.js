@@ -10,10 +10,6 @@ class CommitsService {
         return api.get(`${this.basePath}/${id}`);
     }
 
-    getPatch(id) {
-        return api.get(`${this.basePath}/${id}/patch`);
-    }
-
     getFileLines(id, filepath, prevLineno, curLineno, direction) {
         let urlPath = `${this.basePath}/${id}/files?path=${filepath}&cur_lineno=${curLineno}&dir=${direction}`;
         if (prevLineno) {
@@ -24,17 +20,6 @@ class CommitsService {
 
     getCveList(id) {
         return api.get(`${this.basePath}/${id}/cve`);
-    }
-
-    getVotes(id) {
-        return api.get(`${this.basePath}/${id}/votes`);
-    }
-
-    createVote(id, filepath, choice) {
-        return api.post(`${this.basePath}/${id}/votes`, {
-            'filepath': filepath,
-            'choice': choice
-        })
     }
 
     getFullInfo(id, opts={}) {
