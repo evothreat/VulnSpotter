@@ -240,7 +240,7 @@ export default function Commits() {
     const [selectedIds, setSelectedIds] = useState(new Set());
 
     useEffect(() => {
-        ProjectsService.getCommits(projId, {matched: true})  // let the user select whether unrated or not
+        ProjectsService.getCommits(projId)  // let the user select whether unrated or not
             .then((data) => {
                 data.forEach((c) => {
                     c.message = c.message.trim();

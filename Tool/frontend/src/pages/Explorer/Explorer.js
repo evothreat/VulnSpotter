@@ -68,7 +68,7 @@ export default function Explorer() {
         if (!commitId) {
             return;
         }
-        CommitsService.getFullInfo(commitId, {matched: true})
+        CommitsService.getFullInfo(commitId)
             .then(({commit, cve_list, diffs}) => {
                 if (commitId !== commitIds.curr()) {
                     return;

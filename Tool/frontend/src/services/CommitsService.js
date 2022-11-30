@@ -22,10 +22,7 @@ class CommitsService {
         return api.get(`${this.basePath}/${id}/cve`);
     }
 
-    getFullInfo(id, opts={}) {
-        if (opts.matched) {
-            return api.get(`${this.basePath}/${id}/full_info?matched`);
-        }
+    getFullInfo(id) {
         return api.get(`${this.basePath}/${id}/full_info`);
     }
 }

@@ -55,9 +55,6 @@ class ProjectsService {
         if (opts.unrated) {
             queryArgs.push('unrated');
         }
-        if (opts.matched) {
-            queryArgs.push('matched');
-        }
         if (opts.fields) {  // maybe check length
             queryArgs.push('fields=' + opts.fields.join(','));
         }
