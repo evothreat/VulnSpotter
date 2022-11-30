@@ -39,8 +39,16 @@ COMMITS_SCHEMA = '''
         hash        TEXT,
         message     TEXT,
         created_at  INTEGER,
-        matched     BOOLEAN,
         FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
+    )
+'''
+
+COMMIT_DIFFS_SCHEMA = '''
+    CREATE TABLE commit_diffs (
+        id          INTEGER PRIMARY KEY,
+        commit_id   INTEGER,
+        content     TEXT,
+        FOREIGN KEY(commit_id) REFERENCES commits(id) ON DELETE CASCADE
     )
 '''
 
@@ -80,20 +88,19 @@ INVITATIONS_SCHEMA = '''
     )
 '''
 
-# (commit_id,filepath) should be unique?
 VOTES_SCHEMA = '''
     CREATE TABLE votes (
-        id          INTEGER PRIMARY KEY,
-        user_id     INTEGER,
-        commit_id   INTEGER,
-        filepath    TEXT,
-        choice      TINYINT,
+        id         INTEGER PRIMARY KEY,
+        user_id    INTEGER,
+        diff_id    INTEGER,
+        choice     TINYINT,
         FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
-        FOREIGN KEY(commit_id) REFERENCES commits(id) ON DELETE CASCADE
+        FOREIGN KEY(diff_id) REFERENCES commit_diffs(id) ON DELETE CASCADE,
+        UNIQUE(user_id, diff_id)
     )
 '''
 
-# although cve-ids are unique, they take too much space
+# although cve-ids are unique, they take too much space (bad using them as foreign keys)
 # NOTE: we do not delete on cascade, so they can be reused later
 CVE_INFO_SCHEMA = '''
     CREATE TABLE cve_info (
@@ -112,6 +119,15 @@ COMMIT_CVE_SCHEMA = '''
         FOREIGN KEY(commit_id) REFERENCES commits(id) ON DELETE CASCADE,
         FOREIGN KEY(cve_id) REFERENCES cve_info(id) ON DELETE CASCADE,
         PRIMARY KEY(commit_id, cve_id)
+    )
+'''
+
+UNMATCHED_COMMITS_SCHEMA = '''
+    CREATE TABLE unmatched_commits (
+        id          INTEGER PRIMARY KEY,
+        project_id  INTEGER,
+        commit_hash TEXT,
+        FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
     )
 '''
 

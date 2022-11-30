@@ -1,3 +1,4 @@
+import traceback
 from threading import Thread
 
 import git
@@ -11,7 +12,7 @@ import tables
 import views
 from enums import *
 from safe_sql import SafeSql
-from utils import pathjoin, unix_time, sql_params_args
+from utils import pathjoin, unix_time
 
 app = Flask(__name__)
 jwt = JWTManager(app)
@@ -47,6 +48,8 @@ def setup_db():
     db_conn.execute(tables.VOTES_SCHEMA)
     db_conn.execute(tables.CVE_INFO_SCHEMA)
     db_conn.execute(tables.COMMIT_CVE_SCHEMA)
+    db_conn.execute(tables.COMMIT_DIFFS_SCHEMA)
+    db_conn.execute(tables.UNMATCHED_COMMITS_SCHEMA)
 
     # TEST DATA
     # users
@@ -179,6 +182,7 @@ def handle_create_project(user_id, *args):
     try:
         proj_id = helpers.create_project_from_repo(user_id, *args)
     except Exception:
+        traceback.print_exc()
         proj_id = None
 
     notify((user_id,), 1, Action.CREATE, proj_id)
@@ -229,7 +233,7 @@ def get_project(proj_id):
 @jwt_required()
 def update_project(proj_id):
     # TODO: throw exception if body contains invalid fields!
-    params, args = sql_params_args(
+    params, args = helpers.sql_params_args(
         request.json,
         {
             'name': str,
@@ -282,7 +286,7 @@ def get_notifications():
 @app.route('/api/users/me/notifications/<notif_id>', methods=['PATCH'])
 @jwt_required()
 def update_notification(notif_id):
-    params, args = sql_params_args(
+    params, args = helpers.sql_params_args(
         request.json,
         {
             'is_seen': bool
@@ -353,13 +357,10 @@ def get_commits(proj_id):
         if not cols:
             return '', 400
 
-    matched = 'AND matched=1' if 'matched' in query else ''
+    # NOTE: compare number of votes with number of diffs??
+    unrated = 'AND NOT EXISTS(SELECT * FROM votes v WHERE v.commit_id=c.id)' if 'unrated' in query else ''
 
-    if 'unrated' in query:
-        data = db_conn.execute(f'SELECT {cols} FROM commits c WHERE c.project_id=? {matched} AND '
-                               f'NOT EXISTS(SELECT * FROM votes v WHERE v.commit_id=c.id)', (proj_id,)).fetchall()
-    else:
-        data = db_conn.execute(f'SELECT {cols} FROM commits WHERE project_id=? {matched}', (proj_id,)).fetchall()
+    data = db_conn.execute(f'SELECT {cols} FROM commits c WHERE c.project_id=? {unrated}', (proj_id,)).fetchall()
 
     # bad approach, because database keys are reflected to the user
     keys = data[0].keys() if data else []
@@ -377,44 +378,21 @@ def get_commit_full_info(commit_id):
     if not commit:
         return '', 404
 
-    votes = db_conn.execute('SELECT v.id,v.user_id,v.commit_id,v.filepath,v.choice FROM votes v '
-                            'WHERE v.commit_id=? AND v.user_id=? ', (commit_id, user_id)).fetchall()
-
     cve_list = db_conn.execute('SELECT ci.id,ci.cve_id,ci.summary,ci.description,ci.cvss_score FROM cve_info ci '
                                'WHERE EXISTS(SELECT * FROM commit_cve WHERE cve_id=ci.id AND commit_id=?)',
                                (commit_id,)).fetchall()
 
-    with git.Repo(pathjoin(config.REPOS_DIR, commit['repository'])) as repo:
-        if 'matched' in request.args:
-            patch = helpers.get_commit_patch(repo, commit['hash'], commit['glob_pats'])
-        else:
-            patch = helpers.get_commit_patch(repo, commit['hash'])
+    diffs = db_conn.execute(
+        'SELECT cd.id,cd.commit_id,cd.content,v.id AS vote_id, v.user_id,v.choice FROM commit_diffs cd '
+        'LEFT JOIN votes v ON v.diff_id=cd.id AND v.user_id=?'
+        'WHERE cd.commit_id=?',
+        (user_id, commit_id)).fetchall()
 
     return {
         'commit': views.commit(commit),
-        'votes': [views.vote(v) for v in votes],
         'cve_list': [views.cve_info(ci) for ci in cve_list],
-        'patch': patch
+        'diffs': [views.diff(d) for d in diffs]
     }
-
-
-@app.route('/api/users/me/commits/<commit_id>/patch', methods=['GET'])
-@jwt_required()
-def get_commit_patch(commit_id):
-    data = db_conn.execute('SELECT c.hash,p.repository,p.glob_pats FROM commits c '
-                           'JOIN projects p ON c.id=? AND c.project_id = p.id '
-                           'AND EXISTS(SELECT * FROM membership m WHERE m.user_id=? AND m.project_id=p.id) LIMIT 1',
-                           (commit_id, get_jwt_identity())).fetchone()
-    if not data:
-        return '', 404
-
-    with git.Repo(pathjoin(config.REPOS_DIR, data['repository'])) as repo:
-        if 'matched' in request.args:
-            patch = helpers.get_commit_patch(repo, data['hash'], data['glob_pats'])
-        else:
-            patch = helpers.get_commit_patch(repo, data['hash'])
-
-    return patch, 200, {'Content-Type': 'text/plain'}
 
 
 @app.route('/api/users/me/commits/<commit_id>/files', methods=['GET'])
@@ -485,23 +463,20 @@ def get_cve_list(commit_id):
     return [views.cve_info(d) for d in data]
 
 
-# TODO: handle case, if vote already exists?
-@app.route('/api/users/me/commits/<commit_id>/votes', methods=['POST'])
+@app.route('/api/users/me/votes', methods=['POST'])
 @jwt_required()
-def create_vote(commit_id):
+def create_vote():
     user_id = get_jwt_identity()
 
-    filepath = request.json.get('filepath')
+    diff_id = request.json.get('diff_id')
     choice = request.json.get('choice')
-    if not (filepath and choice):
+    if not (diff_id and choice):
         return '', 400
 
     with db_conn:
-        record_id = db_conn.execute('INSERT INTO votes(user_id,commit_id,filepath,choice) '
-                                    'SELECT ?,?,?,? '
-                                    'WHERE EXISTS(SELECT * FROM commits c WHERE c.id=? AND '
-                                    'EXISTS(SELECT * FROM membership m WHERE m.user_id=? AND m.project_id=c.project_id))',
-                                    (user_id, commit_id, filepath, choice, commit_id, user_id)).lastrowid
+        # WARNING: we do not check if the user has right to rate the diff!
+        record_id = db_conn.execute('INSERT INTO votes(user_id,diff_id,choice) VALUES (?,?,?) ',
+                                    (user_id, diff_id, choice)).lastrowid
 
     if record_id is None:
         return '', 422
@@ -512,7 +487,7 @@ def create_vote(commit_id):
 @app.route('/api/users/me/votes/<vote_id>', methods=['GET'])
 @jwt_required()
 def get_vote(vote_id):
-    data = db_conn.execute('SELECT v.id,v.user_id,v.commit_id,v.filepath,v.choice FROM votes v '
+    data = db_conn.execute('SELECT v.id,v.user_id,v.diff_id,v.choice FROM votes v '
                            'WHERE v.id=? AND v.user_id=? LIMIT 1',
                            (vote_id, get_jwt_identity())).fetchone()
 
@@ -522,7 +497,7 @@ def get_vote(vote_id):
 @app.route('/api/users/me/votes/<vote_id>', methods=['PATCH'])
 @jwt_required()
 def update_vote(vote_id):
-    params, args = sql_params_args(
+    params, args = helpers.sql_params_args(
         request.json,
         {
             'choice': int
@@ -543,41 +518,6 @@ def update_vote(vote_id):
     return '', 204
 
 
-@app.route('/api/users/me/commits/<commit_id>/votes', methods=['GET'])
-@jwt_required()
-def get_votes_for_commit(commit_id):
-    data = db_conn.execute('SELECT v.id,v.user_id,v.commit_id,v.filepath,v.choice FROM votes v '
-                           'WHERE v.commit_id=? AND v.user_id=? '
-                           'AND EXISTS(SELECT * FROM commits c WHERE c.id=v.commit_id AND '
-                           'EXISTS(SELECT * FROM membership m WHERE m.user_id=v.user_id AND m.project_id=c.project_id))',
-                           (commit_id, get_jwt_identity())).fetchall()
-
-    return [views.vote(d) for d in data]
-
-
-@app.route('/api/users/me/projects/<proj_id>/votes', methods=['GET'])
-@jwt_required()
-def get_votes_for_project(proj_id):
-    user_id = get_jwt_identity()
-
-    if 'all' in request.args and is_owner(user_id, proj_id):
-        data = db_conn.execute('SELECT v.id,v.user_id,v.commit_id,v.filepath,v.choice FROM votes v '
-                               'WHERE EXISTS(SELECT * FROM commits c WHERE c.id=v.commit_id AND c.project_id=?)',
-                               (proj_id,)).fetchall()
-
-        return [views.vote(d) for d in data]
-
-    if is_member(user_id, proj_id):
-        data = db_conn.execute('SELECT v.id,v.user_id,v.commit_id,v.filepath,v.choice FROM votes v '
-                               'WHERE v.user_id=? AND '
-                               'EXISTS(SELECT * FROM commits c WHERE c.id=v.commit_id AND c.project_id=?)',
-                               (user_id, proj_id)).fetchall()
-
-        return [views.vote(d) for d in data]
-
-    return '', 404  # or not authorized
-
-
 @app.route('/api/users/me/projects/<proj_id>/invitations', methods=['POST'])
 @jwt_required()
 def create_invitation(proj_id):
@@ -588,7 +528,7 @@ def create_invitation(proj_id):
     if not invitee_id:
         return '', 400
 
-    # insert only if the current user is owner of the project & same invitation not already exist
+    # insert only if the current user is owner of the project
     with db_conn:
         record_id = db_conn.execute('INSERT OR IGNORE INTO invitations(invitee_id,project_id,role) '
                                     'SELECT ?,?,? WHERE EXISTS(SELECT * FROM projects p WHERE p.id=? AND p.owner_id=?)',

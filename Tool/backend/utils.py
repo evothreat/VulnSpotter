@@ -47,12 +47,18 @@ def normpath(s):
     return res.lstrip('/')
 
 
-def sql_params_args(data, allowed_map):
-    params = ''
-    args = []
-    for k, v in data.items():
-        if k in allowed_map and isinstance(v, (allowed_map[k])):
-            params += k + '=?,'
-            args.append(v)
+def split_on_startswith(s, delim):
+    if not s:
+        return []
+    delim = '\n' + delim
+    i = 0
+    j = s.find(delim)
+    res = []
+    while j != -1:
+        if j > i:
+            res.append(s[i:j])
+        i = j + 1
+        j = s.find(delim, j + len(delim))
 
-    return params.rstrip(','), args
+    res.append(s[i:len(s)])
+    return res

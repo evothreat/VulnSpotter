@@ -91,8 +91,7 @@ def vote(d):
     return {
         'id': d['id'],
         'user_id': d['user_id'],
-        'commit_id': d['commit_id'],
-        'filepath': d['filepath'],
+        'diff_id': d['diff_id'],
         'choice': d['choice']
     }
 
@@ -104,4 +103,17 @@ def cve_info(d):
         'summary': d['summary'],
         'description': d['description'],
         'cvss_score': d['cvss_score']
+    }
+
+
+def diff(d):
+    return {
+        'id': d['id'],
+        'commit_id': d['commit_id'],
+        'content': d['content'],
+        'vote': {
+            'id': d['vote_id'],
+            'user_id': d['user_id'],
+            'choice': d['choice']
+        } if d['vote_id'] else None
     }
