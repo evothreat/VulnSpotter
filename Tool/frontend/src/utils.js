@@ -122,10 +122,10 @@ function nextNonSpace(str) {
     return '';
 }
 
-function normalizeText(text) {
+function normalizeText(text, factor=0.8) {
     const parts = text.split('\n');
     const rowSize = Math.max(...parts.map((p) => p.length));
-    const minSize = rowSize * 0.8;
+    const minSize = rowSize * factor;
     let res = '';
     for (let p of parts) {
         if (p === '') {

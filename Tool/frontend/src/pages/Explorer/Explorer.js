@@ -40,7 +40,7 @@ export default function Explorer() {
     const [commitIds, setCommitIds] = useState(null);
     const [commitInfo, setCommitInfo] = useState({
         commit: null,
-        diffs: null,
+        diffsInfo: null,
         cveList: null,
     });
     const backwards = useRef(false);
@@ -54,7 +54,7 @@ export default function Explorer() {
     ];
 
     const curCommit = commitInfo.commit;
-    const curDiff = commitInfo.diffs?.curr();
+    const curDiffInfo = commitInfo.diffsInfo?.curr();
 
     useEffect(() => {
         setCommitIds(new ArrayIterator(location.state?.commitIds || []));
@@ -69,23 +69,23 @@ export default function Explorer() {
             return;
         }
         CommitsService.getFullInfo(commitId)
-            .then(({commit, cve_list, diffs}) => {
+            .then(({commit, cve_list, diffs_info}) => {
                 if (commitId !== commitIds.curr()) {
                     return;
                 }
                 // patch
-                const parsedDiffs = new ArrayIterator(diffs.map((diff) => {
+                const diffsInfo = new ArrayIterator(diffs_info.map((di) => {
                     return {
-                        ...diff,
-                        content: parsePatch(diff.content)[0]
+                        ...di,
+                        content: parsePatch(di.content)[0]
                     };
                 }));
                 // determine diff to begin with
                 if (backwards.current) {
                     backwards.current = false;
-                    parsedDiffs.seek(-1);
+                    diffsInfo.seek(-1);
                 } else {
-                    parsedDiffs.seek(0);
+                    diffsInfo.seek(0);
                 }
                 // cveList
                 for (const cve of cve_list) {
@@ -93,7 +93,7 @@ export default function Explorer() {
                 }
                 setCommitInfo({
                     commit: commit,
-                    diffs: parsedDiffs,
+                    diffsInfo: diffsInfo,
                     cveList: cve_list,
                 });
             });
@@ -103,12 +103,12 @@ export default function Explorer() {
     }, [commitIds]);
 
     const refreshData = () => {
-        const diff = commitInfo.diffs.curr();
+        const diffInfo = commitInfo.diffsInfo.curr();
         // check if vote for current diff was created or updated
-        const vote = voteUpdates.current[diff.id];
+        const vote = voteUpdates.current[diffInfo.id];
         if (vote) {
-            diff.vote = vote;
-            // delete voteUpdates.current[diff.id];
+            diffInfo.vote = vote;
+            // delete voteUpdates.current[diffInfo.id];
         }
         setCommitInfo((curInfo) => {
             // NOTE: updating the actual state. Passing commitInfo would overwrite actual state...
@@ -119,7 +119,7 @@ export default function Explorer() {
     const gotoPrevDiff = (e) => {
         e?.preventDefault();
 
-        if (commitInfo.diffs.prev()) {
+        if (commitInfo.diffsInfo.prev()) {
             refreshData();
         } else if (commitIds.prev()) {
             backwards.current = true;
@@ -132,7 +132,7 @@ export default function Explorer() {
     const gotoNextDiff = (e) => {
         e?.preventDefault();
 
-        if (commitInfo.diffs.next()) {
+        if (commitInfo.diffsInfo.next()) {
             refreshData();
         } else if (commitIds.next()) {
             console.log('ID:', commitIds.curr());
@@ -145,7 +145,7 @@ export default function Explorer() {
     const getMoreLines = async (prevLineno, curLineno, dir, beginLeft, beginRight) => {
         try {
             const data = await CommitsService.getFileLines(
-                curCommit.id, curDiff.content.newFileName,
+                curCommit.id, curDiffInfo.content.newFileName,
                 prevLineno, curLineno, dir
             );
             if (data.length === 0) {
@@ -189,7 +189,7 @@ export default function Explorer() {
         }
     };
 
-    const reachedEnd = () => !commitIds.hasNext() && !commitInfo.diffs.hasNext();
+    const reachedEnd = () => !commitIds.hasNext() && !commitInfo.diffsInfo.hasNext();
 
     const rateDiff = (e, key) => {
         e.preventDefault();
@@ -206,9 +206,9 @@ export default function Explorer() {
                 choice = 2;
         }
         const commitId = curCommit.id;
-        const diffId = curDiff.id;
+        const diffId = curDiffInfo.id;
 
-        const vote = {...curDiff.vote};
+        const vote = {...curDiffInfo.vote};
 
         if (isObjEmpty(vote)) {
             VotesService.create(diffId, choice)
@@ -259,12 +259,13 @@ export default function Explorer() {
             <Box sx={{flex: '2.5', display: 'flex'}}>
                 {
                     // we need this flexbox because if diffs is null, the left column will stretch
-                    curDiff && (
+                    curDiffInfo && (
                         <DiffViewer>
-                            <DiffViewerHeader stats={curDiff.content.stats} diffState={curDiff.vote?.choice}
-                                              oldFileName={curDiff.content.oldFileName} newFileName={curDiff.content.newFileName}/>
+                            <DiffViewerHeader stats={curDiffInfo.content.stats} diffState={curDiffInfo.vote?.choice}
+                                              oldFileName={curDiffInfo.content.oldFileName}
+                                              newFileName={curDiffInfo.content.newFileName}/>
 
-                            <DiffViewerBody codeLines={curDiff.content.lines} getMoreLines={getMoreLines}
+                            <DiffViewerBody codeLines={curDiffInfo.content.lines} getMoreLines={getMoreLines}
                                             setWinRef={{
                                                 setLeftRef: (el) => windowRefs[2].current = el,
                                                 setRightRef: (el) => windowRefs[3].current = el
