@@ -106,7 +106,8 @@ def cve_info(d):
     }
 
 
-def diff(d):
+# NOTE: maybe store diff as separate object (diff() + vote())
+def diff_info(d):
     return {
         'id': d['id'],
         'commit_id': d['commit_id'],

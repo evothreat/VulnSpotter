@@ -382,7 +382,7 @@ def get_commit_full_info(commit_id):
                                'WHERE EXISTS(SELECT * FROM commit_cve WHERE cve_id=ci.id AND commit_id=?)',
                                (commit_id,)).fetchall()
 
-    diffs = db_conn.execute(
+    diffs_info = db_conn.execute(
         'SELECT cd.id,cd.commit_id,cd.content,v.id AS vote_id, v.user_id,v.choice FROM commit_diffs cd '
         'LEFT JOIN votes v ON v.diff_id=cd.id AND v.user_id=?'
         'WHERE cd.commit_id=?',
@@ -391,7 +391,7 @@ def get_commit_full_info(commit_id):
     return {
         'commit': views.commit(commit),
         'cve_list': [views.cve_info(ci) for ci in cve_list],
-        'diffs': [views.diff(d) for d in diffs]
+        'diffs_info': [views.diff_info(d) for d in diffs_info]
     }
 
 
@@ -646,13 +646,13 @@ def delete_member(proj_id, member_id):
 @app.route('/api/users/me/projects/<int:proj_id>/export', methods=['GET'])
 #@jwt_required()
 def get_export_data(proj_id):
-    data = db_conn.execute('SELECT c.hash,'
+    data = db_conn.execute('SELECT c.hash,v.diff_id,'
                            'SUM(CASE WHEN v.choice=2 THEN 1 ELSE 0 END) neutral,'
                            'SUM(CASE WHEN v.choice=1 THEN 1 ELSE 0 END ) positive,'
                            'SUM(CASE WHEN v.choice=-1 THEN 1 ELSE 0 END ) negative FROM commits c '
                            'JOIN commit_diffs cd ON c.project_id=? AND cd.commit_id=c.id '
                            'JOIN votes v ON cd.id = v.diff_id '
-                           'GROUP BY c.hash',
+                           'GROUP BY v.diff_id',
                            (proj_id,)).fetchall()
     res = []
     for d in data:
