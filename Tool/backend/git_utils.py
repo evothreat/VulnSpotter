@@ -36,15 +36,14 @@ def parse_diff_linenos(diff):
         for line in code_lines:
             marker = line[0]
             if marker != prev_marker:
-                if occur_n > 0:
-                    if prev_marker == '-':
-                        removed_lineno.append(format_range(old_start - occur_n, old_start - 1))
+                if prev_marker == '-':
+                    removed_lineno.append(format_range(old_start - occur_n, old_start - 1))
 
-                    elif prev_marker == '+':
-                        added_lineno.append(format_range(new_start - occur_n, new_start - 1))
+                elif prev_marker == '+':
+                    added_lineno.append(format_range(new_start - occur_n, new_start - 1))
 
-                    prev_marker = marker
-                    occur_n = 1
+                prev_marker = marker
+                occur_n = 1
             else:
                 occur_n += 1
 
