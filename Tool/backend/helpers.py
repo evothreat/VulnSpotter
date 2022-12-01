@@ -13,9 +13,11 @@ import config
 from cve_utils import get_cve_info
 from enums import Role
 from git_utils import parse_diff_linenos
-from utils import normpath, pathjoin, split_on_startswith
+from utils import normpath, pathjoin, split_on_startswith, pad_list
+
 
 MAX_DIFF_ROWS = 50
+GET_DIFF_ROWS_STMT = f"SELECT id,content FROM commit_diffs cd WHERE id IN ({(MAX_DIFF_ROWS * '?,').rstrip(',')})"
 
 
 def sql_params_args(data, allowed_map):
@@ -180,15 +182,19 @@ def gen_export_file(proj_id):
                               'SUM(CASE WHEN v.choice=-1 THEN 1 ELSE 0 END ) negative FROM commits c '
                               'JOIN commit_diffs cd ON c.project_id=? AND cd.commit_id=c.id '
                               'JOIN votes v ON cd.id = v.diff_id '
-                              'GROUP BY v.diff_id',
+                              'GROUP BY v.diff_id ORDER BY v.diff_id',  # maybe sort on application-side?
                               (proj_id,)).fetchall()
 
+    diff_ids = []
     diffs_info_map = {}
     commit_hashes = set()
 
     # NOTE: commit_ids may have different order than insertion order
     for di in diffs_info:
-        diffs_info_map[di['diff_id']] = di
+        diff_id = di['diff_id']
+        diff_ids.append(diff_id)
+        diffs_info_map[diff_id] = di
+
         commit_hashes.add(di['commit_hash'])
 
     parent_hash_map = {}
@@ -197,21 +203,17 @@ def gen_export_file(proj_id):
 
     export_fpath = pathjoin(config.EXPORTS_DIR, gen_export_filename(proj_info['name'])) + '.json'
 
-    diff_n = len(diffs_info)
-
     with open(export_fpath, 'w') as f:
         f.write('[\n')
 
         commit_obj = {}
 
-        for i in range(0, diff_n, MAX_DIFF_ROWS):
-            # WARNING: bad, because someone could rate diff while exporting (maybe just skip new diffs)
-            # TODO: optimize this query... (maybe just use diff ids and 'in'-operator)
-            diffs = conn.execute('SELECT cd.id,cd.content FROM commit_diffs cd '
-                                 'WHERE EXISTS(SELECT * FROM commits c WHERE c.id=cd.commit_id AND c.project_id=?) '
-                                 'AND EXISTS(SELECT * FROM votes v WHERE v.diff_id=cd.id)'
-                                 'GROUP BY cd.id LIMIT ?,?',
-                                 (proj_id, i, MAX_DIFF_ROWS)).fetchall()
+        # iterate over diff ids!
+        for i in range(0, len(diff_ids), MAX_DIFF_ROWS):
+            diff_ids_part = diff_ids[i:i + MAX_DIFF_ROWS]   # index doesn't exceed maximum
+            pad_list(diff_ids_part, MAX_DIFF_ROWS)
+
+            diffs = conn.execute(GET_DIFF_ROWS_STMT, diff_ids_part).fetchall()
 
             for diff in diffs:
                 diff_info = diffs_info_map[diff['id']]

@@ -62,3 +62,8 @@ def split_on_startswith(s, delim):
 
     res.append(s[i:len(s)])
     return res
+
+
+def pad_list(lis, size, elem=None):
+    for _ in range(size - len(lis)):
+        lis.append(elem)
