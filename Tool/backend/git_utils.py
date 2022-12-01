@@ -3,7 +3,6 @@ import re
 RE_HEADER = re.compile(r'^diff --git (?:a/)?(.*) (?:b/)?(.*)$', re.MULTILINE)
 RE_OLD_FILENAME = re.compile(r'^\+\+\+ (?:a/)?(.*)$', re.MULTILINE)
 RE_NEW_FILENAME = re.compile(r'^--- (?:b/)?(.*)$', re.MULTILINE)
-# NOTE: do we need start/end-modifiers here?
 RE_HUNK_HEADER = re.compile(r'^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@', re.MULTILINE)
 
 
