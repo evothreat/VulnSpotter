@@ -1,8 +1,10 @@
+import json
 import sqlite3
 from contextlib import contextmanager
 from fnmatch import fnmatch
 from os.path import basename, isdir
 from urllib.parse import urlparse
+from time import strftime
 
 import git
 from git_vuln_finder import find as find_vulns
@@ -10,12 +12,33 @@ from git_vuln_finder import find as find_vulns
 import config
 from cve_utils import get_cve_info
 from enums import Role
+from git_utils import parse_diff_linenos
 from utils import normpath, pathjoin, split_on_startswith
+
+MAX_DIFF_ROWS = 50
+
+
+def sql_params_args(data, allowed_map):
+    params = ''
+    args = []
+    for k, v in data.items():
+        if k in allowed_map and isinstance(v, (allowed_map[k])):
+            params += k + '=?,'
+            args.append(v)
+
+    return params.rstrip(','), args
 
 
 def register_boolean_type():
     sqlite3.register_adapter(bool, int)
     sqlite3.register_converter('BOOLEAN', lambda v: bool(int(v)))
+
+
+def dict_factory(cursor, row):
+    d = {}
+    for i, col in enumerate(cursor.description):
+        d[col[0]] = row[i]
+    return d
 
 
 @contextmanager
@@ -35,16 +58,22 @@ def open_db_transaction():
         conn.close()
 
 
-def match_commit(repo, commit_id, patterns):
-    filepaths = repo.git.diff(commit_id + '~1', commit_id, name_only=True)
+def match_commit(repo, commit_hash, patterns):
+    filepaths = repo.git.diff(commit_hash + '~1', commit_hash, name_only=True)
     for fp in filepaths.split('\n'):
         if any(fnmatch(fp, pat) for pat in patterns):
             return True
     return False
 
 
-def get_commit_diffs(repo, commit_id, patterns=()):
-    patch = repo.git.diff(commit_id + '~1', commit_id, *patterns,
+def get_commit_parent_hash(repo_dir, commit_hashes):
+    if len(commit_hashes) == 0:
+        return []
+    return git.Repo(repo_dir).git.rev_parse(*(chash + '~' for chash in commit_hashes)).split('\n')
+
+
+def get_commit_diffs(repo, commit_hash, patterns=()):
+    patch = repo.git.diff(commit_hash + '~1', commit_hash, *patterns,
                           stdout_as_string=False, ignore_blank_lines=True, ignore_space_at_eol=True,
                           diff_filter='MA', no_prefix=True).decode('utf-8', 'replace')
 
@@ -81,6 +110,7 @@ def create_project_from_repo(user_id, repo_url, proj_name, glob_pats):
     matched_commits = []
     unmatched_commits = []
 
+    # TODO: use generator to save memory
     for c in commits:
         diffs = get_commit_diffs(repo, c['commit-id'], glob_pats)
         if diffs:
@@ -133,12 +163,82 @@ def create_project_from_repo(user_id, repo_url, proj_name, glob_pats):
     return proj_id
 
 
-def sql_params_args(data, allowed_map):
-    params = ''
-    args = []
-    for k, v in data.items():
-        if k in allowed_map and isinstance(v, (allowed_map[k])):
-            params += k + '=?,'
-            args.append(v)
+def gen_export_filename(proj_name):
+    return strftime(f'{proj_name}_%Y-%m-%d_%H-%M-%S')
 
-    return params.rstrip(','), args
+
+def gen_export_file(proj_id):
+    conn = sqlite3.connect(config.DB_PATH, isolation_level=None, detect_types=sqlite3.PARSE_DECLTYPES)
+    conn.row_factory = dict_factory
+
+    proj_info = conn.execute('SELECT name,repository FROM projects WHERE id=?', (proj_id,)).fetchone()
+    repo_dir = pathjoin(config.REPOS_DIR, proj_info['repository'])
+
+    diffs_info = conn.execute('SELECT c.hash AS commit_hash,v.diff_id,'
+                              'SUM(CASE WHEN v.choice=2 THEN 1 ELSE 0 END) neutral,'
+                              'SUM(CASE WHEN v.choice=1 THEN 1 ELSE 0 END ) positive,'
+                              'SUM(CASE WHEN v.choice=-1 THEN 1 ELSE 0 END ) negative FROM commits c '
+                              'JOIN commit_diffs cd ON c.project_id=? AND cd.commit_id=c.id '
+                              'JOIN votes v ON cd.id = v.diff_id '
+                              'GROUP BY v.diff_id',
+                              (proj_id,)).fetchall()
+
+    diffs_info_map = {}
+    commit_hashes = set()
+
+    # NOTE: commit_ids may have different order than insertion order
+    for di in diffs_info:
+        diffs_info_map[di['diff_id']] = di
+        commit_hashes.add(di['commit_hash'])
+
+    parent_hash_map = {}
+    for parent_hash, curr_hash in zip(get_commit_parent_hash(repo_dir, commit_hashes), commit_hashes):
+        parent_hash_map[curr_hash] = parent_hash
+
+    export_fpath = pathjoin(config.EXPORTS_DIR, gen_export_filename(proj_info['name'])) + '.json'
+
+    diff_n = len(diffs_info)
+
+    with open(export_fpath, 'w') as f:
+        f.write('[\n')
+
+        commit_obj = {}
+
+        for i in range(0, diff_n, MAX_DIFF_ROWS):
+            # WARNING: bad, because someone could rate diff while exporting (maybe just skip new diffs)
+            # TODO: optimize this query... (maybe just use diff ids and 'in'-operator)
+            diffs = conn.execute('SELECT cd.id,cd.content FROM commit_diffs cd '
+                                 'WHERE EXISTS(SELECT * FROM commits c WHERE c.id=cd.commit_id AND c.project_id=?) '
+                                 'AND EXISTS(SELECT * FROM votes v WHERE v.diff_id=cd.id)'
+                                 'GROUP BY cd.id LIMIT ?,?',
+                                 (proj_id, i, MAX_DIFF_ROWS)).fetchall()
+
+            for diff in diffs:
+                diff_info = diffs_info_map[diff['id']]
+                commit_hash = diff_info['commit_hash']
+
+                if commit_obj.get('commit_hash') != commit_hash:
+                    if commit_obj:
+                        json.dump(commit_obj, f, indent=4)
+                        f.write(',\n')
+
+                    commit_obj['commit_hash'] = commit_hash
+                    commit_obj['parent_hash'] = parent_hash_map[commit_hash]
+                    commit_obj['files'] = []
+
+                diff_obj = parse_diff_linenos(diff['content'])
+                diff_obj['votes'] = {
+                    'positive': diff_info['positive'],
+                    'negative': diff_info['negative'],
+                    'neutral': diff_info['neutral']
+                }
+                commit_obj['files'].append(diff_obj)
+
+        if commit_obj:
+            json.dump(commit_obj, f, indent=4)
+
+        f.write('\n]')
+
+    conn.close()
+
+    return export_fpath

@@ -646,22 +646,8 @@ def delete_member(proj_id, member_id):
 @app.route('/api/users/me/projects/<int:proj_id>/export', methods=['GET'])
 #@jwt_required()
 def get_export_data(proj_id):
-    data = db_conn.execute('SELECT c.hash,v.diff_id,'
-                           'SUM(CASE WHEN v.choice=2 THEN 1 ELSE 0 END) neutral,'
-                           'SUM(CASE WHEN v.choice=1 THEN 1 ELSE 0 END ) positive,'
-                           'SUM(CASE WHEN v.choice=-1 THEN 1 ELSE 0 END ) negative FROM commits c '
-                           'JOIN commit_diffs cd ON c.project_id=? AND cd.commit_id=c.id '
-                           'JOIN votes v ON cd.id = v.diff_id '
-                           'GROUP BY v.diff_id',
-                           (proj_id,)).fetchall()
-    res = []
-    for d in data:
-        row = {}
-        for k in d.keys():
-            row[k] = d[k]
-        res.append(row)
-
-    return res, 200
+    export_fpath = helpers.gen_export_file(proj_id)
+    return export_fpath, 200
 
 
 if __name__ == '__main__':
