@@ -61,7 +61,7 @@ def open_db_transaction():
 
 
 def match_commit(repo, commit_hash, patterns):
-    filepaths = repo.git.diff(commit_hash + '~1', commit_hash, name_only=True)
+    filepaths = repo.git.diff(commit_hash + '~', commit_hash, name_only=True)
     for fp in filepaths.split('\n'):
         if any(fnmatch(fp, pat) for pat in patterns):
             return True
@@ -74,18 +74,20 @@ def get_commit_parent_hash(repo_dir, commit_hashes):
     return git.Repo(repo_dir).git.rev_parse(*(chash + '~' for chash in commit_hashes)).split('\n')
 
 
+# NOTE: some commits will never match, if all their files renamed or deleted
 def get_commit_diffs(repo, commit_hash, patterns=()):
-    patch = repo.git.diff(commit_hash + '~1', commit_hash, *patterns,
+    patch = repo.git.diff(commit_hash + '~', commit_hash, *patterns,
                           stdout_as_string=False, ignore_blank_lines=True, ignore_space_at_eol=True,
                           diff_filter='MA', no_prefix=True).decode('utf-8', 'replace')
 
     diffs = split_on_startswith(patch, 'diff --git')
     if len(diffs) > 0:
-        diffs.pop(0)  # pop header (efficient, cause normally there aren't many diffs)
+        diffs.pop(0)
     return diffs
 
 
 def create_cve_records(repo_name, cve_list):
+    # TODO: first check with IN-clause which cve's already exist/not exist
     cve_info = get_cve_info(repo_name, list(cve_list))
     rows = ((k, v['summary'], v['description'], v['score']) for k, v in cve_info.items())
 
@@ -112,7 +114,7 @@ def create_project_from_repo(user_id, repo_url, proj_name, glob_pats):
     matched_commits = []
     unmatched_commits = []
 
-    # TODO: use generator to save memory
+    # NOTE: need to optimize this?
     for c in commits:
         diffs = get_commit_diffs(repo, c['commit-id'], glob_pats)
         if diffs:
@@ -122,7 +124,6 @@ def create_project_from_repo(user_id, repo_url, proj_name, glob_pats):
             unmatched_commits.append(c)
 
     # cve-information doesn't depend on commits & so can be inserted independently
-    # garbage is collected on function return, so do this work in separate function
     create_cve_records(repo_name, found_cve_list)
 
     with open_db_transaction() as conn:
