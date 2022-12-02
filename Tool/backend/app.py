@@ -232,14 +232,17 @@ def get_project(proj_id):
 @app.route('/api/users/me/projects/<int:proj_id>', methods=['PATCH'])
 @jwt_required()
 def update_project(proj_id):
-    # TODO: throw exception if body contains invalid fields!
-    params, args = helpers.sql_params_args(
-        request.json,
-        {
-            'name': str,
-            'glob_pats': str
-        }
-    )
+    try:
+        params, args = helpers.sql_params_args(
+            request.json,
+            {
+                'name': str,
+                'glob_pats': str
+            }
+        )
+    except KeyError:
+        return '', 400
+
     if not params:
         return '', 422
 
@@ -286,12 +289,16 @@ def get_notifications():
 @app.route('/api/users/me/notifications/<int:notif_id>', methods=['PATCH'])
 @jwt_required()
 def update_notification(notif_id):
-    params, args = helpers.sql_params_args(
-        request.json,
-        {
-            'is_seen': bool
-        }
-    )
+    try:
+        params, args = helpers.sql_params_args(
+            request.json,
+            {
+                'is_seen': bool
+            }
+        )
+    except KeyError:
+        return '', 400
+
     if not params:
         return '', 422
 
@@ -497,12 +504,16 @@ def get_vote(vote_id):
 @app.route('/api/users/me/votes/<int:vote_id>', methods=['PATCH'])
 @jwt_required()
 def update_vote(vote_id):
-    params, args = helpers.sql_params_args(
-        request.json,
-        {
-            'choice': int
-        }
-    )
+    try:
+        params, args = helpers.sql_params_args(
+            request.json,
+            {
+                'choice': int
+            }
+        )
+    except KeyError:
+        return '', 400
+
     if not params:
         return '', 400
 
