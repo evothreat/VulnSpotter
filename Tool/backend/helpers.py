@@ -13,6 +13,7 @@ import config
 from cve_utils import get_cve_info
 from enums import Role
 from git_utils import parse_diff_linenos
+from profiler import profile
 from utils import normpath, pathjoin, split_on_startswith, pad_list
 
 
@@ -80,10 +81,7 @@ def get_commit_diffs(repo, commit_hash, patterns=()):
                           stdout_as_string=False, ignore_all_space=True, ignore_blank_lines=True,
                           diff_filter='MA', no_prefix=True).decode('utf-8', 'replace')
 
-    diffs = split_on_startswith(patch, 'diff --git')
-    if len(diffs) > 0:
-        diffs.pop(0)
-    return diffs
+    return split_on_startswith(patch, 'diff')
 
 
 def create_cve_records(repo_name, cve_list):
