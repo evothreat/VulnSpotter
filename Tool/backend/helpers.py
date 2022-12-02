@@ -77,7 +77,7 @@ def get_commit_parent_hash(repo_dir, commit_hashes):
 # NOTE: some commits will never match, if all their files renamed or deleted
 def get_commit_diffs(repo, commit_hash, patterns=()):
     patch = repo.git.diff(commit_hash + '~', commit_hash, *patterns,
-                          stdout_as_string=False, ignore_blank_lines=True, ignore_space_at_eol=True,
+                          stdout_as_string=False, ignore_all_space=True, ignore_blank_lines=True,
                           diff_filter='MA', no_prefix=True).decode('utf-8', 'replace')
 
     diffs = split_on_startswith(patch, 'diff --git')
