@@ -24,14 +24,19 @@ def parse_diff_linenos(diff):
 
     hunk_headers = tuple(re.finditer(RE_HUNK_HEADER, diff))
 
-    # NOTE: check for copied/moved/deleted files!
+    # file moved/renamed
+    if not hunk_headers:
+        return res
+
     old_start, old_lines_n, new_start, new_lines_n = map(int, hunk_headers[0].groups())
 
+    # file added
     if old_start == 0 and old_lines_n == 0:
         res['old_filepath'] = None
         added.append(format_range(new_start, new_lines_n))
         return res
 
+    # file deleted
     if new_start == 0 and new_lines_n == 0:
         res['new_filepath'] = None
         removed.append(format_range(old_start, old_lines_n))
