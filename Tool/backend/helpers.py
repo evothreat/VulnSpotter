@@ -3,8 +3,8 @@ import sqlite3
 from contextlib import contextmanager
 from fnmatch import fnmatch
 from os.path import basename, isdir
-from urllib.parse import urlparse
 from time import strftime
+from urllib.parse import urlparse
 
 import git
 from git_vuln_finder import find as find_vulns
@@ -12,10 +12,8 @@ from git_vuln_finder import find as find_vulns
 import config
 from cve_utils import get_cve_info
 from enums import Role
-from git_utils import parse_diff_linenos
-from profiler import profile
+from git_utils import parse_diff_linenos, parse_diff_filetype
 from utils import normpath, pathjoin, split_on_startswith, pad_list
-
 
 MAX_DIFF_ROWS = 50
 GET_DIFF_ROWS_STMT = f"SELECT id,content FROM commit_diffs cd WHERE id IN ({(MAX_DIFF_ROWS * '?,').rstrip(',')})"
@@ -117,6 +115,11 @@ def create_project_from_repo(user_id, repo_url, proj_name, glob_pats):
         diffs = get_commit_diffs(repo, c['commit-id'], glob_pats)
         if diffs:
             c['diffs'] = diffs
+            c['filetypes'] = ','.join(
+                sorted(set(
+                    t for d in diffs if (t := parse_diff_filetype(d))
+                ))
+            )
             matched_commits.append(c)
         else:
             unmatched_commits.append(c)
@@ -131,8 +134,10 @@ def create_project_from_repo(user_id, repo_url, proj_name, glob_pats):
         conn.execute('INSERT INTO membership(user_id,project_id,role) VALUES (?,?,?)', (user_id, proj_id, Role.OWNER))
 
         # creating generator to save memory
-        cur = conn.executemany('INSERT INTO commits(project_id,hash,message,created_at) VALUES (?,?,?,?)',
-                               ((proj_id, c['commit-id'], c['message'], c['authored_date']) for c in matched_commits))
+        cur = conn.executemany(
+            'INSERT INTO commits(project_id,hash,message,filetypes,created_at) VALUES (?,?,?,?,?)',
+            ((proj_id, c['commit-id'], c['message'], c['filetypes'], c['authored_date']) for c in matched_commits)
+        )
 
         if cur.rowcount > 0:
             # calculating ids of inserted records (tricky)
@@ -209,7 +214,7 @@ def gen_export_file(proj_id):
 
         # iterate over diff ids!
         for i in range(0, len(diff_ids), MAX_DIFF_ROWS):
-            diff_ids_part = diff_ids[i:i + MAX_DIFF_ROWS]   # index doesn't exceed maximum
+            diff_ids_part = diff_ids[i:i + MAX_DIFF_ROWS]  # index doesn't exceed maximum
             pad_list(diff_ids_part, MAX_DIFF_ROWS)
 
             diffs = conn.execute(GET_DIFF_ROWS_STMT, diff_ids_part).fetchall()

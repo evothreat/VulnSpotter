@@ -38,6 +38,7 @@ COMMITS_SCHEMA = '''
         project_id  INTEGER,
         hash        TEXT,
         message     TEXT,
+        filetypes   TEXT,
         created_at  INTEGER,
         FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
     )
