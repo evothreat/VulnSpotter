@@ -38,7 +38,9 @@ def get_cve_details(hint, cve_ids, max_tries=3, start_index=0):
     if data['totalResults'] == 0:
         return {}
 
-    cve_ids = cve_ids if isinstance(cve_ids, set) else set(cve_ids)
+    if not isinstance(cve_ids, set):
+        cve_ids = set(cve_ids)
+
     res = {}
     for v in data['vulnerabilities']:
         cve = v['cve']
