@@ -13,14 +13,13 @@ def format_range(start, end):
 
 def parse_diff_linenos(diff):
     diff_header = parse_diff_header(diff)
+    removed, added = [], []
     res = {
         'old_filepath': diff_header[0],
         'new_filepath': diff_header[1],
-        'removed_lineno': [],
-        'added_lineno': []
+        'removed_linenos': removed,
+        'added_linenos': added
     }
-    removed = res['removed_lineno']
-    added = res['added_lineno']
 
     hunk_headers = tuple(re.finditer(RE_HUNK_HEADER, diff))
 
