@@ -165,12 +165,8 @@ def create_commit_records(conn, proj_id, commits):
         commit_diff = []
 
         for commit_id, commit in zip(range(inserted_id, len(commits) + 1), commits):
-            # diffs
-            for diff in commit['diffs']:
-                commit_diff.append((commit_id, diff))
-            # cves
-            for cve in commit['cves']:
-                commit_cve.append((commit_id, cve))
+            commit_diff.extend((commit_id, diff) for diff in commit['diffs'])
+            commit_cve.extend((commit_id, cve) for cve in commit['cves'])
 
         conn.executemany('INSERT INTO commit_cve(commit_id,cve_id) SELECT ?,id FROM cve_info WHERE cve_id=?',
                          commit_cve)
