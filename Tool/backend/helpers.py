@@ -101,7 +101,7 @@ def create_cve_records(repo_name, cve_list):
 
 
 @profile
-def create_project_from_repo(user_id, repo_url, proj_name, patterns):
+def create_project_from_repo(user_id, repo_url, proj_name, filetypes):
     parts = urlparse(repo_url)
     repo_loc = normpath(parts.netloc + parts.path.rstrip('.git'))
     repo_name = basename(repo_loc)
@@ -118,10 +118,12 @@ def create_project_from_repo(user_id, repo_url, proj_name, patterns):
     matched_commits = []
     unmatched_commit_hashes = []
 
+    ext_patterns = tuple('*' + t for t in filetypes)
+
     # NOTE: need to optimize this?
     for c in vulns.values():
         chash = c['commit-id']
-        diffs = get_commit_diffs(repo, chash, patterns)
+        diffs = get_commit_diffs(repo, chash, ext_patterns)
         if diffs:
             matched_commits.append({
                 'hash': chash,
@@ -138,8 +140,8 @@ def create_project_from_repo(user_id, repo_url, proj_name, patterns):
     create_cve_records(repo_name, found_cve_list)
 
     with open_db_transaction() as conn:
-        proj_id = conn.execute('INSERT INTO projects(owner_id,name,repository,commit_n,glob_pats) VALUES (?,?,?,?,?)',
-                               (user_id, proj_name, repo_loc, len(matched_commits), ','.join(patterns))).lastrowid
+        proj_id = conn.execute('INSERT INTO projects(owner_id,name,repository,commit_n,filetypes) VALUES (?,?,?,?,?)',
+                               (user_id, proj_name, repo_loc, len(matched_commits), ','.join(filetypes))).lastrowid
 
         conn.execute('INSERT INTO membership(user_id,project_id,role) VALUES (?,?,?)', (user_id, proj_id, Role.OWNER))
 
@@ -174,28 +176,29 @@ def create_commit_records(conn, proj_id, commits):
         conn.executemany('INSERT INTO commit_diffs(commit_id,content) VALUES (?,?)', commit_diff)
 
 
-def redistribute_commits(proj_id, patterns):
+def redistribute_commits(proj_id, filetypes):
     with open_db_transaction() as conn:
-        repo_dir, old_pats = conn.execute('SELECT repository,glob_pats FROM projects WHERE id=?', proj_id).fetchone()
-        old_pats = old_pats.split(',')  # changing variable type...
+        repo_dir, old_types = conn.execute('SELECT repository,filetypes FROM projects WHERE id=?', proj_id).fetchone()
+        old_types = old_types.split(',')  # changing variable type...
 
-        new_pats = tuple(p for p in patterns if p not in old_pats)
-        del_pats = tuple(p for p in old_pats if p not in patterns)
+        new_types = tuple(p for p in filetypes if p not in old_types)
+        deleted_types = tuple(p for p in old_types if p not in filetypes)
 
-        if not (new_pats and del_pats):
+        if not (new_types and deleted_types):
             return False
 
-        if new_pats:
+        if new_types:
+            repo = git.Repo(repo_dir)
+            ext_patterns = tuple('*' + t for t in filetypes)
+
             old_unmatched = map(
                 lambda t: t[0],
                 conn.execute('SELECT commit_hash FROM unmatched_commits WHERE project_id=?', (proj_id,)).fetchall()
             )
             new_unmatched = []
-
-            repo = git.Repo(repo_dir)
             commits = []
             for chash in old_unmatched:
-                diffs = get_commit_diffs(repo, chash, new_pats)
+                diffs = get_commit_diffs(repo, chash, ext_patterns)
                 if diffs:
                     c = repo.commit(chash)
                     commits.append({
@@ -214,10 +217,10 @@ def redistribute_commits(proj_id, patterns):
             )
             create_commit_records(conn, proj_id, commits)
 
-        if del_pats:
+        if deleted_types:
             # NOTE: remove all where only deleted patterns occur
-            del_pats_ph = ' OR '.join('LIKE ?' for _ in del_pats)
-            args = (proj_id, *del_pats)
+            del_pats_ph = ' OR '.join('LIKE ?' for _ in deleted_types)
+            args = (proj_id, *deleted_types)
 
             # copy to another table
             conn.execute('INSERT INTO unmatched_commits(project_id,commit_hash) '
@@ -227,7 +230,7 @@ def redistribute_commits(proj_id, patterns):
             # remove from current table
             conn.execute(f'DELETE FROM commits WHERE project_id=? AND filetypes {del_pats_ph}', args)
 
-        conn.execute('UPDATE projects SET glob_pats=? WHERE id=?', (','.join(patterns), proj_id))
+        conn.execute('UPDATE projects SET filetypes=? WHERE id=?', (','.join(filetypes), proj_id))
 
     return True
 

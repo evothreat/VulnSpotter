@@ -195,12 +195,12 @@ def create_project():
 
     repo_url = body.get('repo_url')
     proj_name = body.get('proj_name')
-    glob_pats = [pat.strip() for pat in body.get('glob_pats', '').split(',') if pat]
+    filetypes = [t.strip() for t in body.get('filetypes', '').split(',') if t]
 
     if not (repo_url and proj_name):
         return '', 400
 
-    Thread(target=handle_create_project, args=(get_jwt_identity(), repo_url, proj_name, glob_pats)).start()
+    Thread(target=handle_create_project, args=(get_jwt_identity(), repo_url, proj_name, filetypes)).start()
 
     return '', 202
 
@@ -210,7 +210,7 @@ def create_project():
 @jwt_required()
 def get_projects():
     # also count number of commits?
-    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.owner_id,p.commit_n,p.glob_pats,u.full_name '
+    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.owner_id,p.commit_n,p.filetypes,u.full_name '
                            'FROM membership m '
                            'JOIN projects p ON m.user_id=? AND m.project_id=p.id '
                            'JOIN users u ON p.owner_id=u.id', (get_jwt_identity(),)).fetchall()
@@ -221,7 +221,7 @@ def get_projects():
 @app.route('/api/users/me/projects/<int:proj_id>', methods=['GET'])
 @jwt_required()
 def get_project(proj_id):
-    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.owner_id,p.commit_n,p.glob_pats,u.full_name '
+    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.owner_id,p.commit_n,p.filetypes,u.full_name '
                            'FROM membership m '
                            'JOIN projects p ON m.user_id=? AND m.project_id=? AND m.project_id=p.id '
                            'JOIN users u ON p.owner_id=u.id LIMIT 1', (get_jwt_identity(), proj_id)).fetchone()
@@ -237,7 +237,7 @@ def update_project(proj_id):
             request.json,
             {
                 'name': str,
-                'glob_pats': str
+                'filetypes': str
             }
         )
     except KeyError:
@@ -378,7 +378,7 @@ def get_commits(proj_id):
 @jwt_required()
 def get_commit_full_info(commit_id):
     user_id = get_jwt_identity()
-    commit = db_conn.execute('SELECT c.id,c.hash,c.message,c.created_at,p.repository,p.glob_pats FROM commits c '
+    commit = db_conn.execute('SELECT c.id,c.hash,c.message,c.created_at,p.repository,p.filetypes FROM commits c '
                              'JOIN projects p ON c.id=? AND c.project_id = p.id '
                              'AND EXISTS(SELECT * FROM membership m WHERE m.user_id=? AND m.project_id=p.id) LIMIT 1',
                              (commit_id, user_id)).fetchone()
