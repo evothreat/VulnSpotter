@@ -178,17 +178,17 @@ def create_commit_records(conn, proj_id, commits):
 
 def redistribute_commits(proj_id, filetypes):
     with open_db_transaction() as conn:
-        repo_dir, old_types = conn.execute('SELECT repository,filetypes FROM projects WHERE id=?', proj_id).fetchone()
+        repo_dir, old_types = conn.execute('SELECT repository,filetypes FROM projects WHERE id=?', (proj_id,)).fetchone()
         old_types = old_types.split(',')  # changing variable type...
 
         new_types = tuple(p for p in filetypes if p not in old_types)
-        deleted_types = tuple(p for p in old_types if p not in filetypes)
+        del_types = tuple(p for p in old_types if p not in filetypes)
 
-        if not (new_types and deleted_types):
+        if not (new_types and del_types):
             return False
 
         if new_types:
-            repo = git.Repo(repo_dir)
+            repo = git.Repo(pathjoin(config.REPOS_DIR, repo_dir))
             ext_patterns = tuple('*' + t for t in filetypes)
 
             old_unmatched = map(
@@ -213,22 +213,25 @@ def redistribute_commits(proj_id, filetypes):
                     new_unmatched.append(chash)
 
             conn.execute(
-                f"DELETE FROM unmatched_commits WHERE commit_hash IN ({('?,' * len(new_unmatched)).rstrip(',')})"
+                f"DELETE FROM unmatched_commits WHERE commit_hash IN ({('?,' * len(new_unmatched)).rstrip(',')})",
+                new_unmatched
             )
             create_commit_records(conn, proj_id, commits)
 
-        if deleted_types:
-            # NOTE: remove all where only deleted patterns occur
-            del_pats_ph = ' OR '.join('LIKE ?' for _ in deleted_types)
-            args = (proj_id, *deleted_types)
+        if del_types:
+            del_types_args = tuple(f'%{t}%' for t in del_types)
+            del_types_ph = ' AND '.join('LIKE ?' for _ in del_types)
+
+            args = (proj_id, len(del_types) * 2 - 1, *del_types_args)
 
             # copy to another table
             conn.execute('INSERT INTO unmatched_commits(project_id,commit_hash) '
                          'SELECT c.project_id,c.hash FROM commits c WHERE c.project_id=? '
-                         f'AND c.filetypes {del_pats_ph}', args)
+                         f'AND LENGTH(c.filetypes)=? AND c.filetypes {del_types_ph}', args)
 
             # remove from current table
-            conn.execute(f'DELETE FROM commits WHERE project_id=? AND filetypes {del_pats_ph}', args)
+            conn.execute('DELETE FROM commits WHERE project_id=? '
+                         f'AND LENGTH(filetypes)=? AND filetypes {del_types_ph}', args)
 
         conn.execute('UPDATE projects SET filetypes=? WHERE id=?', (','.join(filetypes), proj_id))
 
