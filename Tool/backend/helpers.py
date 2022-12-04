@@ -233,7 +233,8 @@ def redistribute_commits(proj_id, filetypes):
             conn.execute('DELETE FROM commits WHERE project_id=? '
                          f'AND LENGTH(filetypes)=? AND filetypes {del_types_ph}', args)
 
-        conn.execute('UPDATE projects SET filetypes=? WHERE id=?', (','.join(filetypes), proj_id))
+        conn.execute('UPDATE projects SET commit_n=?,filetypes=? WHERE id=?',
+                     (len(commits), ','.join(filetypes), proj_id))
 
     return True
 
