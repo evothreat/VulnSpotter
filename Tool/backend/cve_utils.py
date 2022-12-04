@@ -13,11 +13,12 @@ DELAY_SECS_REDHAT = 0.5
 
 DELAY_SECS_ON_ERR = 5
 
-alias_pat = re.compile(r'CVE-\d{4}-\d{4,7}(.+:)? +', re.I)
+CVE_PATTERN = re.compile(r'CVE-\d{4}-\d{4,7}')
+ALIAS_PATTERN = re.compile(r'CVE-\d{4}-\d{4,7}(.+:)? +', re.I)
 
 
 def strip_alias(s):
-    m = alias_pat.match(s)
+    m = ALIAS_PATTERN.match(s)
     return s[m.end():] if m else s
 
 
@@ -136,3 +137,7 @@ def get_cve_info(hint, cve_ids):
         info['summary'] = cve_summary.get(k)
 
     return cve_info
+
+
+def extract_cves(text):
+    return set(re.findall(CVE_PATTERN, text))

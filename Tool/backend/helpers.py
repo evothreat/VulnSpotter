@@ -10,14 +10,14 @@ import git
 from git_vuln_finder import find as find_vulns
 
 import config
-from cve_utils import get_cve_info
+from cve_utils import get_cve_info, extract_cves
 from enums import Role
 from git_utils import parse_diff_linenos, parse_diff_filetype
 from profiler import profile
 from utils import normpath, pathjoin, split_on_startswith, pad_list
 
-MAX_DIFF_ROWS = 50
-GET_DIFF_ROWS_STMT = f"SELECT id,content FROM commit_diffs cd WHERE id IN ({(MAX_DIFF_ROWS * '?,').rstrip(',')})"
+GET_DIFFS_N = 50
+GET_DIFFS_STMT = f"SELECT id,content FROM commit_diffs cd WHERE id IN ({(GET_DIFFS_N * '?,').rstrip(',')})"
 
 
 def sql_params_args(data, allowed_map):
@@ -194,21 +194,24 @@ def redistribute_commits(proj_id, patterns):
                                          (proj_id,)).fetchall()
 
             commits = []
-
             for chash in map(lambda t: t[0], old_unmatched):
-                diffs = get_commit_diffs(repo, chash, patterns)
+                diffs = get_commit_diffs(repo, chash, new_pats)
                 if diffs:
+                    c = repo.commit(chash)
                     commits.append({
                         'hash': chash,
+                        'message': c.message,
                         'diffs': diffs,
-                        'filetypes': extract_filetypes(diffs)
+                        'filetypes': extract_filetypes(diffs),
+                        'cves': extract_cves(c.message),
+                        'created_at': c.authored_date
                     })
+            # TODO: delete matched commits from unmatched_commits table
 
         if del_pats:
-            # NOTE: use prepared statement with fixed elements number
-            del_pats_args = tuple(f'%{p}%' for p in old_pats)
-            del_pats_ph = ' OR '.join('LIKE ?' for _ in del_pats_args)
-            args = (proj_id, *del_pats_args)
+            # NOTE: remove all where only deleted patterns occur
+            del_pats_ph = ' OR '.join('LIKE ?' for _ in del_pats)
+            args = (proj_id, *del_pats)
 
             # copy to another table
             conn.execute('INSERT INTO unmatched_commits(project_id,commit_hash) '
@@ -263,11 +266,11 @@ def gen_export_file(proj_id):
         commit_obj = {}
 
         # iterate over diff ids!
-        for i in range(0, len(diff_ids), MAX_DIFF_ROWS):
-            diff_ids_part = diff_ids[i:i + MAX_DIFF_ROWS]  # index doesn't exceed maximum
-            pad_list(diff_ids_part, MAX_DIFF_ROWS)
+        for i in range(0, len(diff_ids), GET_DIFFS_N):
+            diff_ids_part = diff_ids[i:i + GET_DIFFS_N]  # index doesn't exceed maximum
+            pad_list(diff_ids_part, GET_DIFFS_N)
 
-            diffs = conn.execute(GET_DIFF_ROWS_STMT, diff_ids_part).fetchall()
+            diffs = conn.execute(GET_DIFFS_STMT, diff_ids_part).fetchall()
 
             for diff in diffs:
                 diff_info = diffs_info_map[diff['id']]
