@@ -106,7 +106,7 @@ def create_project_from_repo(user_id, repo_url, proj_name, filetypes):
             commits.append({
                     'hash': chash,
                     'message': c['message'],
-                    'diffs': tuple(zlib.compress(d.encode(errors='ignore')) for d in diffs),
+                    'diffs': tuple(zlib.compress(d.encode(errors='replace')) for d in diffs),
                     'filetypes': extract_filetypes(diffs),
                     'cves': set(c.get('cve', [])),
                     'created_at': c['authored_date']
