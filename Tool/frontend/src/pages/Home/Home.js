@@ -8,24 +8,23 @@ import ProjectsService from "../../services/ProjectsService";
 import {Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/material";
 import TextField from "@mui/material/TextField";
 import EnhancedAlert from "../../components/EnhancedAlert";
-import isGlob from "is-glob";
 import MainActionButton from "../../components/MainActionButton";
 import PageHeader from "../../components/PageHeader";
 
 
 function CreateProjectDialog({closeHandler, createHandler}) {
 
-    const [invalidGlob, setInvalidGlob] = useState(false);
+    const [invalidExt, setInvalidExt] = useState(false);
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        const globPats = e.target.globPats.value;
+        const filetypes = e.target.globPats.value;
 
-        if (globPats && globPats.split(',').some((pat) => pat && !isGlob(pat))) {
-            setInvalidGlob(true);
+        if (filetypes && filetypes.split(',').some((t) => t.trim()[0] !== '.')) {
+            setInvalidExt(true);
         } else {
-            createHandler(e.target.repoUrl.value, e.target.projName.value, globPats);
+            createHandler(e.target.repoUrl.value, e.target.projName.value, filetypes);
         }
     };
 
@@ -36,8 +35,8 @@ function CreateProjectDialog({closeHandler, createHandler}) {
                 <DialogContent>
                     <TextField name="repoUrl" margin="dense" label="Repository URL" fullWidth required autoFocus/>
                     <TextField name="projName" margin="dense" label="Project name" fullWidth required/>
-                    <TextField name="globPats" margin="dense" label="Filename patterns (e.g. *.cpp, test_*.go, cat?.py)"
-                               fullWidth error={invalidGlob}
+                    <TextField name="globPats" margin="dense" label="File extensions (e.g. .cpp, .go, .py)"
+                               fullWidth error={invalidExt}
                     />
                 </DialogContent>
                 <DialogActions>
