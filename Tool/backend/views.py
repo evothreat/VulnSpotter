@@ -1,3 +1,6 @@
+import zlib
+
+
 def user(d):
     return {
         'id': d['id'],
@@ -111,7 +114,7 @@ def diff_info(d):
     return {
         'id': d['id'],
         'commit_id': d['commit_id'],
-        'content': d['content'],
+        'content': zlib.decompress(d['content']).decode(errors='replace'),
         'vote': {
             'id': d['vote_id'],
             'user_id': d['user_id'],

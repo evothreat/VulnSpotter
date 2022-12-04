@@ -65,4 +65,4 @@ def split_on_startswith(s, delim):
 
 
 def pad_list(lis, size, elem=None):
-    lis.extend([elem] * size - len(lis))
+    lis.extend([elem] * (size - len(lis)))

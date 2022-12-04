@@ -1,7 +1,7 @@
 import json
 import sqlite3
+import zlib
 from contextlib import contextmanager
-from fnmatch import fnmatch
 from os.path import basename, isdir
 from time import strftime
 from urllib.parse import urlparse
@@ -10,7 +10,7 @@ import git
 from git_vuln_finder import find as find_vulns
 
 import config
-from cve_utils import get_cve_info, extract_cves
+from cve_utils import get_cve_info
 from enums import Role
 from git_utils import parse_diff_linenos, parse_diff_filetype
 from profiler import profile
@@ -60,14 +60,6 @@ def open_db_transaction():
         conn.close()
 
 
-def match_commit(repo, commit_hash, patterns):
-    filepaths = repo.git.diff(commit_hash + '~', commit_hash, name_only=True)
-    for fp in filepaths.split('\n'):
-        if any(fnmatch(fp, pat) for pat in patterns):
-            return True
-    return False
-
-
 def get_commit_parent_hash(repo_dir, commit_hashes):
     if not commit_hashes:
         return []
@@ -82,12 +74,10 @@ def extract_filetypes(diffs):
     )
 
 
-# NOTE: some commits will never match, if all their files renamed or deleted
-def get_commit_diffs(repo, commit_hash, patterns=()):
-    patch = repo.git.diff(commit_hash + '~', commit_hash, *patterns,
-                          stdout_as_string=False, ignore_all_space=True, ignore_blank_lines=True,
-                          diff_filter='MA', no_prefix=True).decode('utf-8', 'replace')
-
+def get_commit_diffs(repo, commit_hash):
+    patch = repo.git.diff(commit_hash + '~', commit_hash,
+                          ignore_all_space=True, ignore_blank_lines=True,
+                          diff_filter='MA', no_prefix=True)
     return split_on_startswith(patch, 'diff')
 
 
@@ -115,41 +105,32 @@ def create_project_from_repo(user_id, repo_url, proj_name, filetypes):
 
     vulns, found_cve_list, _ = find_vulns(repo_dir)
 
-    matched_commits = []
-    unmatched_commit_hashes = []
-
-    ext_patterns = tuple('*' + t for t in filetypes)
-
-    # NOTE: need to optimize this?
+    commits = []
     for c in vulns.values():
         chash = c['commit-id']
-        diffs = get_commit_diffs(repo, chash, ext_patterns)
-        if diffs:
-            matched_commits.append({
-                'hash': chash,
-                'message': c['message'],
-                'diffs': diffs,
-                'filetypes': extract_filetypes(diffs),
-                'cves': set(c.get('cve', [])),
-                'created_at': c['authored_date']
-            })
-        else:
-            unmatched_commit_hashes.append(chash)
+
+        if diffs := get_commit_diffs(repo, chash):
+            commits.append({
+                    'hash': chash,
+                    'message': c['message'],
+                    'diffs': tuple(zlib.compress(d.encode(errors='ignore')) for d in diffs),
+                    'filetypes': extract_filetypes(diffs),
+                    'cves': set(c.get('cve', [])),
+                    'created_at': c['authored_date']
+                }
+            )
 
     # cve-information doesn't depend on commits & so can be inserted independently
     create_cve_records(repo_name, found_cve_list)
 
     with open_db_transaction() as conn:
         proj_id = conn.execute('INSERT INTO projects(owner_id,name,repository,commit_n,filetypes) VALUES (?,?,?,?,?)',
-                               (user_id, proj_name, repo_loc, len(matched_commits), ','.join(filetypes))).lastrowid
+                               (user_id, proj_name, repo_loc, len(commits), ','.join(filetypes))).lastrowid
 
-        conn.execute('INSERT INTO membership(user_id,project_id,role) VALUES (?,?,?)', (user_id, proj_id, Role.OWNER))
+        conn.execute('INSERT INTO membership(user_id,project_id,role) VALUES (?,?,?)',
+                     (user_id, proj_id, Role.OWNER))
 
-        create_commit_records(conn, proj_id, matched_commits)
-
-        if unmatched_commit_hashes:
-            conn.executemany('INSERT INTO unmatched_commits(project_id,commit_hash) VALUES (?,?)',
-                             ((proj_id, chash) for chash in unmatched_commit_hashes))
+        create_commit_records(conn, proj_id, commits)
 
     return proj_id
 
@@ -174,71 +155,6 @@ def create_commit_records(conn, proj_id, commits):
                          commit_cve)
 
         conn.executemany('INSERT INTO commit_diffs(commit_id,content) VALUES (?,?)', commit_diff)
-
-
-def redistribute_commits(proj_id, filetypes):
-    with open_db_transaction() as conn:
-        repo_dir, old_types = conn.execute('SELECT repository,filetypes FROM projects WHERE id=?', (proj_id,)).fetchone()
-        old_types = old_types.split(',')  # changing variable type...
-
-        new_types = tuple(p for p in filetypes if p not in old_types)
-        del_types = tuple(p for p in old_types if p not in filetypes)
-
-        if not (new_types and del_types):
-            return False
-
-        if new_types:
-            repo = git.Repo(pathjoin(config.REPOS_DIR, repo_dir))
-            ext_patterns = tuple('*' + t for t in filetypes)
-
-            old_unmatched = map(
-                lambda t: t[0],
-                conn.execute('SELECT commit_hash FROM unmatched_commits WHERE project_id=?', (proj_id,)).fetchall()
-            )
-            new_unmatched = []
-            commits = []
-            for chash in old_unmatched:
-                diffs = get_commit_diffs(repo, chash, ext_patterns)
-                if diffs:
-                    c = repo.commit(chash)
-                    commits.append({
-                        'hash': chash,
-                        'message': c.message,
-                        'diffs': diffs,
-                        'filetypes': extract_filetypes(diffs),
-                        'cves': extract_cves(c.message),
-                        'created_at': c.authored_date
-                    })
-                else:
-                    new_unmatched.append(chash)
-
-            conn.execute(
-                f"DELETE FROM unmatched_commits WHERE commit_hash IN ({('?,' * len(new_unmatched)).rstrip(',')})",
-                new_unmatched
-            )
-            create_commit_records(conn, proj_id, commits)
-
-        if del_types:
-            del_types_ph = ' AND '.join('LIKE ?' for _ in del_types)
-            args = (
-                proj_id,
-                len(del_types) * 2 - 1,
-                *(f'%{t}%' for t in del_types)
-            )
-
-            # copy to another table
-            conn.execute('INSERT INTO unmatched_commits(project_id,commit_hash) '
-                         'SELECT c.project_id,c.hash FROM commits c WHERE c.project_id=? '
-                         f'AND LENGTH(c.filetypes)=? AND c.filetypes {del_types_ph}', args)
-
-            # remove from current table
-            conn.execute('DELETE FROM commits WHERE project_id=? '
-                         f'AND LENGTH(filetypes)=? AND filetypes {del_types_ph}', args)
-
-        conn.execute('UPDATE projects SET commit_n=?,filetypes=? WHERE id=?',
-                     (len(commits), ','.join(filetypes), proj_id))
-
-    return True
 
 
 def gen_export_filename(proj_name):
@@ -284,7 +200,6 @@ def gen_export_file(proj_id):
 
         commit_obj = {}
 
-        # iterate over diff ids!
         for i in range(0, len(diff_ids), GET_DIFFS_N):
             diff_ids_part = diff_ids[i:i + GET_DIFFS_N]  # index doesn't exceed maximum
             pad_list(diff_ids_part, GET_DIFFS_N)
@@ -304,7 +219,7 @@ def gen_export_file(proj_id):
                     commit_obj['parent_hash'] = parent_hash_map[commit_hash]
                     commit_obj['files'] = []
 
-                diff_obj = parse_diff_linenos(diff['content'])
+                diff_obj = parse_diff_linenos(zlib.decompress(diff['content']).decode(errors='replace'))
                 diff_obj['votes'] = {
                     'positive': diff_info['positive'],
                     'negative': diff_info['negative'],

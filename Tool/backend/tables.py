@@ -48,7 +48,7 @@ COMMIT_DIFFS_SCHEMA = '''
     CREATE TABLE commit_diffs (
         id          INTEGER PRIMARY KEY,
         commit_id   INTEGER,
-        content     TEXT,
+        content     BLOB,
         FOREIGN KEY(commit_id) REFERENCES commits(id) ON DELETE CASCADE
     )
 '''
@@ -120,15 +120,6 @@ COMMIT_CVE_SCHEMA = '''
         FOREIGN KEY(commit_id) REFERENCES commits(id) ON DELETE CASCADE,
         FOREIGN KEY(cve_id) REFERENCES cve_info(id) ON DELETE CASCADE,
         PRIMARY KEY(commit_id, cve_id)
-    )
-'''
-
-UNMATCHED_COMMITS_SCHEMA = '''
-    CREATE TABLE unmatched_commits (
-        id          INTEGER PRIMARY KEY,
-        project_id  INTEGER,
-        commit_hash TEXT,
-        FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
     )
 '''
 

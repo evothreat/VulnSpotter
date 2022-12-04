@@ -49,7 +49,6 @@ def setup_db():
     db_conn.execute(tables.CVE_INFO_SCHEMA)
     db_conn.execute(tables.COMMIT_CVE_SCHEMA)
     db_conn.execute(tables.COMMIT_DIFFS_SCHEMA)
-    db_conn.execute(tables.UNMATCHED_COMMITS_SCHEMA)
 
     # TEST DATA
     # users
