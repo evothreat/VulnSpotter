@@ -13,6 +13,7 @@ import config
 from cve_utils import get_cve_info
 from enums import Role
 from git_utils import parse_diff_linenos, parse_diff_filetype
+from profiler import profile
 from utils import normpath, pathjoin, split_on_startswith, pad_list
 
 MAX_DIFF_ROWS = 50
@@ -99,6 +100,7 @@ def create_cve_records(repo_name, cve_list):
         conn.executemany('INSERT OR IGNORE INTO cve_info(cve_id,summary,description,cvss_score) VALUES (?,?,?,?)', rows)
 
 
+@profile
 def create_project_from_repo(user_id, repo_url, proj_name, patterns):
     parts = urlparse(repo_url)
     repo_loc = normpath(parts.netloc + parts.path.rstrip('.git'))
@@ -113,13 +115,11 @@ def create_project_from_repo(user_id, repo_url, proj_name, patterns):
 
     vulns, found_cve_list, _ = find_vulns(repo_dir)
 
-    commits = vulns.values()
-
     matched_commits = []
     unmatched_commit_hashes = []
 
     # NOTE: need to optimize this?
-    for c in commits:
+    for c in vulns.values():
         chash = c['commit-id']
         diffs = get_commit_diffs(repo, chash, patterns)
         if diffs:
