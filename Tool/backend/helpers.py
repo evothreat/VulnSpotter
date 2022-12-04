@@ -219,10 +219,12 @@ def redistribute_commits(proj_id, filetypes):
             create_commit_records(conn, proj_id, commits)
 
         if del_types:
-            del_types_args = tuple(f'%{t}%' for t in del_types)
             del_types_ph = ' AND '.join('LIKE ?' for _ in del_types)
-
-            args = (proj_id, len(del_types) * 2 - 1, *del_types_args)
+            args = (
+                proj_id,
+                len(del_types) * 2 - 1,
+                *(f'%{t}%' for t in del_types)
+            )
 
             # copy to another table
             conn.execute('INSERT INTO unmatched_commits(project_id,commit_hash) '
