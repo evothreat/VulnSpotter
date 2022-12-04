@@ -15,13 +15,13 @@ class ProjectsService {
         return api.get(`${this.basePath}/${id}`);
     }
 
-    create(repoUrl, projName, globPats) {
+    create(repoUrl, projName, filetypes) {
         const body = {
             'repo_url': repoUrl,
             'proj_name': projName
         }
-        if (globPats) {
-            body['glob_pats'] = globPats;
+        if (filetypes) {
+            body['filetypes'] = filetypes;
         }
         return api.post(this.basePath, body);
     }
