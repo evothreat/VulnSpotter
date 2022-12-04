@@ -27,7 +27,7 @@ PROJECTS_SCHEMA = '''
         name        TEXT,
         repository  TEXT,
         commit_n    INTEGER,
-        filetypes   TEXT,
+        extensions  TEXT,
         FOREIGN KEY(owner_id) REFERENCES users(id) ON DELETE CASCADE
     )
 '''
@@ -38,7 +38,6 @@ COMMITS_SCHEMA = '''
         project_id  INTEGER,
         hash        TEXT,
         message     TEXT,
-        filetypes   TEXT,
         created_at  INTEGER,
         FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
     )
@@ -48,6 +47,7 @@ COMMIT_DIFFS_SCHEMA = '''
     CREATE TABLE commit_diffs (
         id          INTEGER PRIMARY KEY,
         commit_id   INTEGER,
+        file_ext    TEXT,
         content     BLOB,
         FOREIGN KEY(commit_id) REFERENCES commits(id) ON DELETE CASCADE
     )

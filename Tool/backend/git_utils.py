@@ -80,5 +80,5 @@ def parse_diff_header(diff):
     return re.search(RE_DIFF_HEADER, diff).groups()
 
 
-def parse_diff_filetype(diff):
+def parse_diff_file_ext(diff):
     return splitext(parse_diff_header(diff)[0])[1]

@@ -16,7 +16,7 @@ def project(d):
         'name': d['name'],
         'repository': d['repository'],
         'commit_n': d['commit_n'],
-        'filetypes': d['filetypes'],
+        'extensions': d['extensions'],
         'owner': {
             'id': d['owner_id'],
             'full_name': d['full_name'],

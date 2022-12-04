@@ -12,7 +12,7 @@ from git_vuln_finder import find as find_vulns
 import config
 from cve_utils import get_cve_info
 from enums import Role
-from git_utils import parse_diff_linenos, parse_diff_filetype
+from git_utils import parse_diff_linenos, parse_diff_file_ext
 from profiler import profile
 from utils import normpath, pathjoin, split_on_startswith, pad_list
 
@@ -59,14 +59,6 @@ def get_commit_parent_hash(repo_dir, commit_hashes):
     return git.Repo(repo_dir).git.rev_parse(*(chash + '~' for chash in commit_hashes)).split('\n')
 
 
-def extract_filetypes(diffs):
-    return ','.join(
-        sorted(set(
-            t for d in diffs if (t := parse_diff_filetype(d))
-        ))
-    )
-
-
 def get_commit_diffs(repo, commit_hash):
     patch = repo.git.diff(commit_hash + '~', commit_hash,
                           ignore_all_space=True, ignore_blank_lines=True,
@@ -84,7 +76,7 @@ def create_cve_records(repo_name, cve_list):
 
 
 @profile
-def create_project_from_repo(user_id, repo_url, proj_name, filetypes):
+def create_project_from_repo(user_id, repo_url, proj_name, extensions):
     parts = urlparse(repo_url)
     repo_loc = normpath(parts.netloc + parts.path.rstrip('.git'))
     repo_name = basename(repo_loc)
@@ -106,8 +98,9 @@ def create_project_from_repo(user_id, repo_url, proj_name, filetypes):
             commits.append({
                     'hash': chash,
                     'message': c['message'],
-                    'diffs': tuple(zlib.compress(d.encode(errors='replace')) for d in diffs),
-                    'filetypes': extract_filetypes(diffs),
+                    'diffs': tuple(
+                        (parse_diff_file_ext(d), zlib.compress(d.encode(errors='replace'))) for d in diffs
+                    ),
                     'cves': set(c.get('cve', [])),
                     'created_at': c['authored_date']
                 }
@@ -117,8 +110,8 @@ def create_project_from_repo(user_id, repo_url, proj_name, filetypes):
     create_cve_records(repo_name, found_cve_list)
 
     with open_db_transaction() as conn:
-        proj_id = conn.execute('INSERT INTO projects(owner_id,name,repository,commit_n,filetypes) VALUES (?,?,?,?,?)',
-                               (user_id, proj_name, repo_loc, len(commits), ','.join(filetypes))).lastrowid
+        proj_id = conn.execute('INSERT INTO projects(owner_id,name,repository,commit_n,extensions) VALUES (?,?,?,?,?)',
+                               (user_id, proj_name, repo_loc, len(commits), ','.join(extensions))).lastrowid
 
         conn.execute('INSERT INTO membership(user_id,project_id,role) VALUES (?,?,?)',
                      (user_id, proj_id, Role.OWNER))
@@ -130,8 +123,8 @@ def create_project_from_repo(user_id, repo_url, proj_name, filetypes):
 
 def create_commit_records(conn, proj_id, commits):
     cur = conn.executemany(
-        'INSERT INTO commits(project_id,hash,message,filetypes,created_at) VALUES (?,?,?,?,?)',
-        ((proj_id, c['hash'], c['message'], c['filetypes'], c['created_at']) for c in commits)
+        'INSERT INTO commits(project_id,hash,message,extensions,created_at) VALUES (?,?,?,?,?)',
+        ((proj_id, c['hash'], c['message'], c['extensions'], c['created_at']) for c in commits)
     )
     if cur.rowcount > 0:
         # calculating ids of inserted records (tricky)
@@ -141,13 +134,13 @@ def create_commit_records(conn, proj_id, commits):
         commit_diff = []
 
         for commit_id, commit in zip(range(inserted_id, len(commits) + 1), commits):
-            commit_diff.extend((commit_id, diff) for diff in commit['diffs'])
+            commit_diff.extend((commit_id, ext, diff) for ext, diff in commit['diffs'])
             commit_cve.extend((commit_id, cve) for cve in commit['cves'])
 
         conn.executemany('INSERT INTO commit_cve(commit_id,cve_id) SELECT ?,id FROM cve_info WHERE cve_id=?',
                          commit_cve)
 
-        conn.executemany('INSERT INTO commit_diffs(commit_id,content) VALUES (?,?)', commit_diff)
+        conn.executemany('INSERT INTO commit_diffs(commit_id,file_ext,content) VALUES (?,?,?)', commit_diff)
 
 
 def gen_export_filename(proj_name):
