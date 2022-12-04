@@ -36,13 +36,6 @@ def register_boolean_type():
     sqlite3.register_converter('BOOLEAN', lambda v: bool(int(v)))
 
 
-def dict_factory(cursor, row):
-    d = {}
-    for i, col in enumerate(cursor.description):
-        d[col[0]] = row[i]
-    return d
-
-
 @contextmanager
 def open_db_transaction():
     conn = sqlite3.connect(config.DB_PATH, isolation_level=None, detect_types=sqlite3.PARSE_DECLTYPES)
@@ -161,9 +154,10 @@ def gen_export_filename(proj_name):
     return strftime(f'{proj_name}_%Y-%m-%d_%H-%M-%S')
 
 
+@profile
 def gen_export_file(proj_id):
     conn = sqlite3.connect(config.DB_PATH, isolation_level=None, detect_types=sqlite3.PARSE_DECLTYPES)
-    conn.row_factory = dict_factory
+    conn.row_factory = sqlite3.Row
 
     proj_info = conn.execute('SELECT name,repository FROM projects WHERE id=?', (proj_id,)).fetchone()
     repo_dir = pathjoin(config.REPOS_DIR, proj_info['repository'])

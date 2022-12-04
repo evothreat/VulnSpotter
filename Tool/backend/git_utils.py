@@ -17,8 +17,8 @@ def parse_diff_linenos(diff):
     res = {
         'old_filepath': diff_header[0],
         'new_filepath': diff_header[1],
-        'removed_linenos': removed,
-        'added_linenos': added
+        'removed': removed,
+        'added': added
     }
 
     hunk_headers = tuple(re.finditer(RE_HUNK_HEADER, diff))
