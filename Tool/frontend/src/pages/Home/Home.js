@@ -19,12 +19,12 @@ function CreateProjectDialog({closeHandler, createHandler}) {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        const filetypes = e.target.filetypes.value;
+        const extensions = e.target.extensions.value;
 
-        if (filetypes && filetypes.split(',').some((t) => t.trim()[0] !== '.')) {
+        if (extensions && extensions.split(',').some((t) => t.trim()[0] !== '.')) {
             setInvalidExt(true);
         } else {
-            createHandler(e.target.repoUrl.value, e.target.projName.value, filetypes);
+            createHandler(e.target.repoUrl.value, e.target.projName.value, extensions);
         }
     };
 
@@ -35,7 +35,7 @@ function CreateProjectDialog({closeHandler, createHandler}) {
                 <DialogContent>
                     <TextField name="repoUrl" margin="dense" label="Repository URL" fullWidth required autoFocus/>
                     <TextField name="projName" margin="dense" label="Project name" fullWidth required/>
-                    <TextField name="filetypes" margin="dense" label="File extensions (e.g. .cpp, .go, .py)"
+                    <TextField name="extensions" margin="dense" label="File extensions"
                                fullWidth error={invalidExt}
                     />
                 </DialogContent>
@@ -59,9 +59,9 @@ export default function Home() {
     const showInfo = (msg) => setAlertMsg(msg);
     const hideInfo = () => setAlertMsg('');
 
-    const handleCreateInDlg = (repoUrl, projName, filetypes) => {
+    const handleCreateInDlg = (repoUrl, projName, extensions) => {
         hideCreateDlg();
-        ProjectsService.create(repoUrl, projName, filetypes)
+        ProjectsService.create(repoUrl, projName, extensions)
             .then(() => showInfo('Once the project is created, you will be notified'));
     };
 
