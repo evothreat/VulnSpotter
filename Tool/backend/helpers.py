@@ -175,9 +175,6 @@ def create_commit_records(conn, proj_id, commits):
 
 
 def redistribute_commits(proj_id, patterns):
-    old_unmatched = None
-    new_matched = []
-
     with open_db_transaction() as conn:
         repo_dir, old_pats = conn.execute('SELECT repository,glob_pats FROM projects WHERE id=?', proj_id).fetchone()
         old_pats = old_pats.split(',')  # changing variable type...
@@ -186,15 +183,18 @@ def redistribute_commits(proj_id, patterns):
         del_pats = tuple(p for p in old_pats if p not in patterns)
 
         if not (new_pats and del_pats):
-            return
+            return False
 
         if new_pats:
-            repo = git.Repo(repo_dir)
-            old_unmatched = conn.execute('SELECT commit_hash FROM unmatched_commits WHERE project_id=?',
-                                         (proj_id,)).fetchall()
+            old_unmatched = map(
+                lambda t: t[0],
+                conn.execute('SELECT commit_hash FROM unmatched_commits WHERE project_id=?', (proj_id,)).fetchall()
+            )
+            new_unmatched = []
 
+            repo = git.Repo(repo_dir)
             commits = []
-            for chash in map(lambda t: t[0], old_unmatched):
+            for chash in old_unmatched:
                 diffs = get_commit_diffs(repo, chash, new_pats)
                 if diffs:
                     c = repo.commit(chash)
@@ -206,7 +206,13 @@ def redistribute_commits(proj_id, patterns):
                         'cves': extract_cves(c.message),
                         'created_at': c.authored_date
                     })
-            # TODO: delete matched commits from unmatched_commits table
+                else:
+                    new_unmatched.append(chash)
+
+            conn.execute(
+                f"DELETE FROM unmatched_commits WHERE commit_hash IN ({('?,' * len(new_unmatched)).rstrip(',')})"
+            )
+            create_commit_records(conn, proj_id, commits)
 
         if del_pats:
             # NOTE: remove all where only deleted patterns occur
@@ -220,6 +226,10 @@ def redistribute_commits(proj_id, patterns):
 
             # remove from current table
             conn.execute(f'DELETE FROM commits WHERE project_id=? AND filetypes {del_pats_ph}', args)
+
+        conn.execute('UPDATE projects SET glob_pats=? WHERE id=?', (','.join(patterns), proj_id))
+
+    return True
 
 
 def gen_export_filename(proj_name):
