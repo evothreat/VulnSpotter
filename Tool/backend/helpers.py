@@ -123,8 +123,8 @@ def create_project_from_repo(user_id, repo_url, proj_name, extensions):
 
 def create_commit_records(conn, proj_id, commits):
     cur = conn.executemany(
-        'INSERT INTO commits(project_id,hash,message,extensions,created_at) VALUES (?,?,?,?,?)',
-        ((proj_id, c['hash'], c['message'], c['extensions'], c['created_at']) for c in commits)
+        'INSERT INTO commits(project_id,hash,message,created_at) VALUES (?,?,?,?)',
+        ((proj_id, c['hash'], c['message'], c['created_at']) for c in commits)
     )
     if cur.rowcount > 0:
         # calculating ids of inserted records (tricky)
