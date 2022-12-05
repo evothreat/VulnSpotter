@@ -52,11 +52,8 @@ class ProjectsService {
 
     getCommits(id, opts={}) {
         let queryArgs = [];
-        if (opts.unrated) {
-            queryArgs.push('unrated');
-        }
-        if (opts.fields) {  // maybe check length
-            queryArgs.push('fields=' + opts.fields.join(','));
+        if (opts.rated) {
+            queryArgs.push('rated=' + opts.rated);
         }
         return api.get(`${this.basePath}/${id}/commits?${queryArgs.join('&')}`);
     }
