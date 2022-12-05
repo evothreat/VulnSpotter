@@ -347,7 +347,9 @@ def get_commits(proj_id):
     unrated = 'AND NOT EXISTS(SELECT * FROM votes v WHERE v.commit_id=c.id)' if 'unrated' in query else ''
 
     data = db_conn.execute('SELECT c.id,c.hash,c.message,c.created_at '
-                           f'FROM commits c WHERE c.project_id=? {unrated}',
+                           'FROM commits c '
+                           'JOIN (SELECT DISTINCT cd.commit_id FROM commit_diffs cd) d '
+                           'ON c.project_id=? AND d.commit_id=c.id',
                            (proj_id,)).fetchall()
 
     return [views.commit(d) for d in data]
@@ -369,10 +371,10 @@ def get_commit_full_info(commit_id):
                                (commit_id,)).fetchall()
 
     diffs_info = db_conn.execute(
-        'SELECT cd.id,cd.commit_id,cd.content,v.id AS vote_id, v.user_id,v.choice FROM commit_diffs cd '
-        'LEFT JOIN votes v ON v.diff_id=cd.id AND v.user_id=?'
-        'WHERE cd.commit_id=?',
-        (user_id, commit_id)).fetchall()
+        'SELECT cd.id,cd.commit_id,dc.content,v.id AS vote_id, v.user_id,v.choice FROM commit_diffs cd '
+        'JOIN diff_content dc ON cd.commit_id=? AND cd.id=dc.diff_id '
+        'LEFT JOIN votes v ON v.diff_id=cd.id AND v.user_id=?',
+        (commit_id, user_id)).fetchall()
 
     return {
         'commit': views.commit(commit),
