@@ -8,7 +8,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 import config
 import helpers
-import tables
 import views
 from enums import *
 from safe_sql import SafeSql
@@ -37,18 +36,8 @@ db_conn.row_factory = sqlite3.Row
 
 
 def setup_db():
-    # tables
-    db_conn.execute(tables.USERS_SCHEMA)
-    db_conn.execute(tables.PROJECTS_SCHEMA)
-    db_conn.execute(tables.COMMITS_SCHEMA)
-    db_conn.execute(tables.MEMBERSHIP_SCHEMA)
-    db_conn.execute(tables.PROJECT_UPDATES_SCHEMA)
-    db_conn.execute(tables.NOTIFICATIONS_SCHEMA)
-    db_conn.execute(tables.INVITATIONS_SCHEMA)
-    db_conn.execute(tables.VOTES_SCHEMA)
-    db_conn.execute(tables.CVE_INFO_SCHEMA)
-    db_conn.execute(tables.COMMIT_CVE_SCHEMA)
-    db_conn.execute(tables.COMMIT_DIFFS_SCHEMA)
+    with open(config.SQL_SCHEMA_PATH) as f:
+        db_conn.executescript(f.read())
 
     # TEST DATA
     # users
