@@ -126,14 +126,14 @@ def create_commit_records(conn, proj_id, commits):
         'INSERT INTO commits(project_id,hash,message,created_at) VALUES (?,?,?,?)',
         ((proj_id, c['hash'], c['message'], c['created_at']) for c in commits)
     )
-    if cur.rowcount > 0:
+    if inserted_n := cur.rowcount:
         # calculating ids of inserted records (tricky)
-        inserted_id = conn.execute('SELECT MAX(id) FROM commits').fetchone()[0] - cur.rowcount + 1
+        inserted_id = conn.execute('SELECT MAX(id) FROM commits').fetchone()[0] - inserted_n + 1
 
         commit_cve = []
         commit_diff = []
 
-        for commit_id, commit in zip(range(inserted_id, len(commits) + 1), commits):
+        for commit_id, commit in zip(range(inserted_id, inserted_id + inserted_n + 1), commits):
             commit_diff.extend((commit_id, ext, diff) for ext, diff in commit['diffs'])
             commit_cve.extend((commit_id, cve) for cve in commit['cves'])
 
