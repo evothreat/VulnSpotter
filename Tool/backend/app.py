@@ -343,23 +343,14 @@ def get_commits(proj_id):
 
     query = request.args
 
-    cols = 'id,hash,message,created_at'
-
-    if 'fields' in query:
-        fields = query['fields'].split(',')
-        allowed = ('id', 'hash', 'message', 'created_at')
-        cols = ','.join((f for f in fields if f in allowed))
-        if not cols:
-            return '', 400
-
     # NOTE: compare number of votes with number of diffs??
     unrated = 'AND NOT EXISTS(SELECT * FROM votes v WHERE v.commit_id=c.id)' if 'unrated' in query else ''
 
-    data = db_conn.execute(f'SELECT {cols} FROM commits c WHERE c.project_id=? {unrated}', (proj_id,)).fetchall()
+    data = db_conn.execute('SELECT c.id,c.hash,c.message,c.created_at '
+                           f'FROM commits c WHERE c.project_id=? {unrated}',
+                           (proj_id,)).fetchall()
 
-    # bad approach, because database keys are reflected to the user
-    keys = data[0].keys() if data else []
-    return [{k: d[k] for k in keys} for d in data]
+    return [views.commit(d) for d in data]
 
 
 @app.route('/api/users/me/commits/<int:commit_id>/full_info', methods=['GET'])
