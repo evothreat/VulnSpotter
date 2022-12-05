@@ -341,16 +341,16 @@ def get_commits(proj_id):
     if not is_member(get_jwt_identity(), proj_id):
         return '', 404
 
-    query = request.args
-
-    # NOTE: compare number of votes with number of diffs??
-    unrated = 'AND NOT EXISTS(SELECT * FROM votes v WHERE v.commit_id=c.id)' if 'unrated' in query else ''
-
-    data = db_conn.execute('SELECT c.id,c.hash,c.message,c.created_at '
-                           'FROM commits c '
-                           'JOIN (SELECT DISTINCT cd.commit_id FROM commit_diffs cd) d '
-                           'ON c.project_id=? AND d.commit_id=c.id',
-                           (proj_id,)).fetchall()
+    if (rated := request.args.get('rated', -1, int)) != -1:
+        data = db_conn.execute('SELECT c.id,c.hash,c.message,c.created_at '
+                               'FROM commits c JOIN '
+                               '(SELECT DISTINCT cd.commit_id FROM commit_diffs cd LEFT JOIN votes v '
+                               'ON cd.id=v.diff_id WHERE v.diff_id IS {} NULL) d '
+                               'ON c.project_id=? AND d.commit_id=c.id'.format('NOT' if rated == 1 else ''),
+                               (proj_id,)).fetchall()
+    else:
+        data = db_conn.execute('SELECT c.id,c.hash,c.message,c.created_at FROM commits c WHERE c.project_id=?',
+                               (proj_id,)).fetchall()
 
     return [views.commit(d) for d in data]
 
@@ -636,7 +636,7 @@ def delete_member(proj_id, member_id):
 
 
 @app.route('/api/users/me/projects/<int:proj_id>/export', methods=['GET'])
-#@jwt_required()
+# @jwt_required()
 def get_export_data(proj_id):
     export_fpath = helpers.gen_export_file(proj_id)
     return export_fpath, 200
