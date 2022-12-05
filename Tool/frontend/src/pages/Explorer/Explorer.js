@@ -25,7 +25,7 @@ function MessageWindow({message, setWinRef}) {
         <Box sx={{flex: '1 1 0', display: 'flex', flexDirection: 'column'}}>
             <WindowTitle title="Message"/>
             <Box ref={setWinRef} tabIndex="0" sx={{flex: '1 1 0', overflowY: 'auto'}}>
-                <Typography sx={{padding: '10px 15px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '14px'}}>
+                <Typography sx={{padding: '10px 15px', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', fontSize: '14px'}}>
                     {normalizeText(message)}
                 </Typography>
             </Box>
