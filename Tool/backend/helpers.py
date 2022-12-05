@@ -53,6 +53,12 @@ def open_db_transaction():
         conn.close()
 
 
+# NOTE: works only with tuples
+def last_insert_rowid(conn):
+    # NOTE: last_insert_rowid() is not thread-safe
+    return conn.execute('SELECT last_insert_rowid()').fetchone()[0] or None
+
+
 def get_commit_parent_hash(repo_dir, commit_hashes):
     if not commit_hashes:
         return []
@@ -128,8 +134,7 @@ def create_commit_records(conn, proj_id, commits):
         ((proj_id, c['hash'], c['message'], c['created_at']) for c in commits)
     )
     if cur.rowcount > 0:
-        # calculating ids of inserted records (tricky)
-        last_id = conn.execute('SELECT MAX(id) FROM commits').fetchone()[0]
+        last_id = last_insert_rowid(conn)
 
         commit_cve = []
         commit_diff = []
@@ -147,7 +152,7 @@ def create_commit_records(conn, proj_id, commits):
 
         cur = conn.executemany('INSERT INTO commit_diffs(commit_id,file_ext) VALUES (?,?)', commit_diff)
         if cur.rowcount > 0:
-            last_id = conn.execute('SELECT MAX(id) FROM commit_diffs').fetchone()[0]
+            last_id = last_insert_rowid(conn)
             diff_content = (
                 (diff_id, content) for diff_id, content in zip(range(last_id - cur.rowcount + 1, last_id + 1), contents)
             )
