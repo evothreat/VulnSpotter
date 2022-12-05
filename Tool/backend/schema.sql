@@ -40,11 +40,18 @@ CREATE TABLE commits
 
 CREATE TABLE commit_diffs
 (
-    id        INTEGER PRIMARY KEY,
-    commit_id INTEGER,
-    file_ext  TEXT,
-    content   BLOB,
+    id         INTEGER PRIMARY KEY,
+    commit_id  INTEGER,
+    file_ext   TEXT,
     FOREIGN KEY (commit_id) REFERENCES commits (id) ON DELETE CASCADE
+);
+
+CREATE TABLE diff_content
+(
+    id      INTEGER PRIMARY KEY,
+    diff_id INTEGER,
+    content BLOB,
+    FOREIGN KEY (diff_id) REFERENCES commit_diffs (id) ON DELETE CASCADE
 );
 
 CREATE TABLE project_updates

@@ -95,7 +95,8 @@ def create_project_from_repo(user_id, repo_url, proj_name, extensions):
         chash = c['commit-id']
 
         if diffs := get_commit_diffs(repo, chash):
-            commits.append({
+            commits.append(
+                {
                     'hash': chash,
                     'message': c['message'],
                     'diffs': tuple(
@@ -132,15 +133,25 @@ def create_commit_records(conn, proj_id, commits):
 
         commit_cve = []
         commit_diff = []
+        contents = []
 
         for commit_id, commit in zip(range(last_id - cur.rowcount + 1, last_id + 1), commits):
-            commit_diff.extend((commit_id, ext, diff) for ext, diff in commit['diffs'])
+            for ext, content in commit['diffs']:
+                commit_diff.append((commit_id, ext))
+                contents.append(content)
+
             commit_cve.extend((commit_id, cve) for cve in commit['cves'])
 
         conn.executemany('INSERT INTO commit_cve(commit_id,cve_id) SELECT ?,id FROM cve_info WHERE cve_id=?',
                          commit_cve)
 
-        conn.executemany('INSERT INTO commit_diffs(commit_id,file_ext,content) VALUES (?,?,?)', commit_diff)
+        cur = conn.executemany('INSERT INTO commit_diffs(commit_id,file_ext) VALUES (?,?)', commit_diff)
+        if cur.rowcount > 0:
+            last_id = conn.execute('SELECT MAX(id) FROM commit_diffs').fetchone()[0]
+            diff_content = (
+                (diff_id, content) for diff_id, content in zip(range(last_id - cur.rowcount + 1, last_id + 1), contents)
+            )
+            conn.executemany('INSERT INTO diff_content(diff_id,content) VALUES (?,?)', diff_content)
 
 
 def gen_export_filename(proj_name):
