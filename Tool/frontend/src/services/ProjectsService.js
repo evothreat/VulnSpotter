@@ -21,7 +21,7 @@ class ProjectsService {
             'proj_name': projName
         }
         if (extensions) {
-            body['extensions'] = extensions;
+            body['extensions'] = extensions.join(',');
         }
         return api.post(this.basePath, body);
     }

@@ -185,6 +185,7 @@ function InviteUsersDialog({members, inviteHandler, closeHandler}) {
                         ListboxProps={{sx: {maxHeight: '210px'}}}
                         multiple
                         disableCloseOnSelect
+                        fullWidth
                         noOptionsText="No users"
                         options={allUsers}
                         getOptionLabel={getFullName}

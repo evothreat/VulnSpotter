@@ -1,32 +1,40 @@
-import {useState} from "react";
+import {useRef, useState} from "react";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import AddIcon from '@mui/icons-material/Add';
 import Button from "@mui/material/Button";
 import ProjectsTable from "./ProjectsTable";
 import ProjectsService from "../../services/ProjectsService";
-import {Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/material";
+import {Autocomplete, Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/material";
 import TextField from "@mui/material/TextField";
 import EnhancedAlert from "../../components/EnhancedAlert";
 import MainActionButton from "../../components/MainActionButton";
 import PageHeader from "../../components/PageHeader";
+import * as React from "react";
+
+
+const FILE_EXTENSIONS = [
+    'c',
+    'cpp',
+    'java',
+    'php',
+    'py',
+    'ruby',
+    'js',
+    's',
+    'asm'
+];
 
 
 function CreateProjectDialog({closeHandler, createHandler}) {
-
-    const [invalidExt, setInvalidExt] = useState(false);
+    const selectedExt = useRef(null)
 
     const handleSubmit = (e) => {
         e.preventDefault();
-
-        const extensions = e.target.extensions.value;
-
-        if (extensions && extensions.split(',').some((t) => t.trim()[0] !== '.')) {
-            setInvalidExt(true);
-        } else {
-            createHandler(e.target.repoUrl.value, e.target.projName.value, extensions);
-        }
+        createHandler(e.target.repoUrl.value, e.target.projName.value, selectedExt.current);
     };
+
+    const handleExtChange = (e, val) => selectedExt.current = val;
 
     return (
         <Dialog open={true} onClose={closeHandler} maxWidth="xs" fullWidth>
@@ -35,8 +43,22 @@ function CreateProjectDialog({closeHandler, createHandler}) {
                 <DialogContent>
                     <TextField name="repoUrl" margin="dense" label="Repository URL" fullWidth required autoFocus/>
                     <TextField name="projName" margin="dense" label="Project name" fullWidth required/>
-                    <TextField name="extensions" margin="dense" label="File extensions"
-                               fullWidth error={invalidExt}
+                    <Autocomplete
+                        ListboxProps={{sx: {maxHeight: '210px'}}}
+                        freeSolo
+                        fullWidth
+                        multiple
+                        disableCloseOnSelect
+                        options={FILE_EXTENSIONS}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                margin="dense"
+                                variant="outlined"
+                                label="File extensions"
+                            />
+                        )}
+                        onChange={handleExtChange}
                     />
                 </DialogContent>
                 <DialogActions>
