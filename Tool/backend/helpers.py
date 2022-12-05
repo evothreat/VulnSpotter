@@ -16,8 +16,8 @@ from git_utils import parse_diff_linenos, parse_diff_file_ext
 from profiler import profile
 from utils import normpath, pathjoin, split_on_startswith, pad_list
 
-GET_DIFFS_N = 50
-GET_DIFFS_STMT = f"SELECT id,content FROM commit_diffs cd WHERE id IN ({(GET_DIFFS_N * '?,').rstrip(',')})"
+MAX_ELEM_N = 50
+GET_DIFF_CONTENT_STMT = f"SELECT diff_id,content FROM diff_content cd WHERE diff_id IN ({(MAX_ELEM_N * '?,').rstrip(',')})"
 
 
 def sql_params_args(data, allowed_map):
@@ -198,14 +198,14 @@ def gen_export_file(proj_id):
 
         commit_obj = {}
 
-        for i in range(0, len(diff_ids), GET_DIFFS_N):
-            diff_ids_part = diff_ids[i:i + GET_DIFFS_N]  # index doesn't exceed maximum
-            pad_list(diff_ids_part, GET_DIFFS_N)
+        for i in range(0, len(diff_ids), MAX_ELEM_N):
+            diff_ids_part = diff_ids[i:i + MAX_ELEM_N]  # index doesn't exceed maximum
+            pad_list(diff_ids_part, MAX_ELEM_N)
 
-            diffs = conn.execute(GET_DIFFS_STMT, diff_ids_part).fetchall()
+            diff_content = conn.execute(GET_DIFF_CONTENT_STMT, diff_ids_part).fetchall()
 
-            for diff in diffs:
-                diff_info = diffs_info_map[diff['id']]
+            for dc in diff_content:
+                diff_info = diffs_info_map[dc['diff_id']]
                 commit_hash = diff_info['commit_hash']
 
                 if commit_obj.get('commit_hash') != commit_hash:
@@ -217,7 +217,7 @@ def gen_export_file(proj_id):
                     commit_obj['parent_hash'] = parent_hash_map[commit_hash]
                     commit_obj['files'] = []
 
-                diff_obj = parse_diff_linenos(zlib.decompress(diff['content']).decode(errors='replace'))
+                diff_obj = parse_diff_linenos(zlib.decompress(dc['content']).decode(errors='replace'))
                 diff_obj['votes'] = {
                     'positive': diff_info['positive'],
                     'negative': diff_info['negative'],
