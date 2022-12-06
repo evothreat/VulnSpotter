@@ -147,7 +147,7 @@ export default function ProjectsTable() {
             });
     }, []);
 
-    const handleGroupChg = (e, val) => {
+    const handleGroupChange = (e, val) => {
         // If the user presses the same button twice (i.e. deselects option), do nothing (replace later with radio buttons).
         if (val) {
             setGroup(val);
@@ -204,7 +204,7 @@ export default function ProjectsTable() {
                 justifyContent: 'space-between',
                 mb: '12px'
             }}>
-                <ToggleButtonGroup color="primary" value={group} exclusive size="small" onChange={handleGroupChg}>
+                <ToggleButtonGroup color="primary" value={group} exclusive size="small" onChange={handleGroupChange}>
                     <ToggleButton value="all">All</ToggleButton>
                     <ToggleButton value="personal">Personal</ToggleButton>
                 </ToggleButtonGroup>

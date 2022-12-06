@@ -50,13 +50,13 @@ const sidebarItemStyle = {
 };
 
 
-export default function Sidebar({project, viewKey, viewChgHandler}) {
+export default function Sidebar({project, viewKey, viewChangeHandler}) {
 
     const [open, setOpen] = useState(false);
 
     const toggleOpen = () => setOpen((prevState) => !prevState);
 
-    const handleChange = (e) => viewChgHandler(e.currentTarget.dataset.viewKey);
+    const handleChange = (e) => viewChangeHandler(e.currentTarget.dataset.viewKey);
 
     return (
         <Drawer

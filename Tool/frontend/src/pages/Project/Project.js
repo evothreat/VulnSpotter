@@ -33,7 +33,7 @@ export default function Project() {
 
     return project && (
         <Box sx={{width: '990px', mr: 'auto', ml: 'auto'}}>
-            <Sidebar project={project} viewKey={viewKey} viewChgHandler={handleViewChange}/>
+            <Sidebar project={project} viewKey={viewKey} viewChangeHandler={handleViewChange}/>
             {getView(viewKey)}
         </Box>
     );

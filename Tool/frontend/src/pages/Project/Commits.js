@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Fragment, useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {Fragment, useCallback, useEffect, useRef, useState} from "react";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import {Autocomplete, Collapse, ToggleButton, ToggleButtonGroup} from "@mui/material";
@@ -236,21 +236,41 @@ export default function Commits() {
     const {projId} = useParams();
     const navigate = useNavigate();
 
+    const [group, setGroup] = useState('unrated');
     const [commitFilter, setCommitFilter] = useState(null);
     const [selectedIds, setSelectedIds] = useState(new Set());
 
     useEffect(() => {
-        ProjectsService.getCommits(projId, {rated: 0})  // let the user select whether unrated or not
+        const groupCp = group;    // need this to avoid race conditions
+        const opts = groupCp === 'all' ? null : {rated: (groupCp === 'rated' ? 1 : 0)};
+
+        ProjectsService.getCommits(projId, opts)
             .then((data) => {
+                if (groupCp !== group) {
+                    return;
+                }
                 data.forEach((c) => {
                     c.message = c.message.trim();
                     c.cve = Utils.findCVEs(c.message);
                 });
                 data.sort(cmpByCreationTime);
 
-                setCommitFilter(new CommitFilter(data));
+                const filter = new CommitFilter(data);
+                // if any filters applied before
+                if (commitFilter) {
+                    // apply them to the retrieved commits
+                    filter.changeLogicalOp(commitFilter.logicalOp);
+                    filter.updateKeywords(commitFilter.keywords);
+                }
+                setCommitFilter(filter);
             });
-    }, [projId]);
+    }, [projId, group]);
+
+    const handleGroupChange = (e, val) => {
+        if (val) {
+            setGroup(val);
+        }
+    };
 
     const gotoExplorer = () => {
         navigate('./explorer', {
@@ -306,19 +326,6 @@ export default function Commits() {
         }
     }, []);
 
-    const autocomplete = useMemo(() =>
-        <Autocomplete
-            multiple
-            freeSolo
-            options={VULN_KEYWORDS}
-            disableCloseOnSelect
-            renderInput={(params) => (
-                <TextField {...params} variant="standard" label="Filter by keywords"/>
-            )}
-            onChange={handleKwsChange}
-            sx={{flex: '1'}}
-        />, [handleKwsChange])
-
     return (
         <Fragment>
             <PageHeader sx={{mb: '20px'}}>
@@ -332,7 +339,7 @@ export default function Commits() {
             </PageHeader>
             <Box sx={{display: 'flex', gap: '10px', flexDirection: 'column', mb: '5px'}}>
 
-                <ToggleButtonGroup color="primary" value="unrated" exclusive size="small" sx={{height: '35px'}}>
+                <ToggleButtonGroup color="primary" value={group} onChange={handleGroupChange} exclusive size="small" sx={{height: '35px'}}>
                     <ToggleButton disableRipple value="unrated">Unrated</ToggleButton>
                     <ToggleButton disableRipple value="rated">Rated</ToggleButton>
                     <ToggleButton disableRipple value="all">All</ToggleButton>
@@ -340,7 +347,18 @@ export default function Commits() {
 
                 <Box sx={{display: 'flex', justifyContent: 'space-between', gap: '10px'}}>
                     {
-                        autocomplete
+                        <Autocomplete
+                            value={commitFilter?.keywords || []}
+                            multiple
+                            freeSolo
+                            options={VULN_KEYWORDS}
+                            disableCloseOnSelect
+                            renderInput={(params) => (
+                                <TextField {...params} variant="standard" label="Filter by keywords"/>
+                            )}
+                            onChange={handleKwsChange}
+                            sx={{flex: '1'}}
+                        />
                     }
                     {
                         commitFilter && (

@@ -50,10 +50,12 @@ class ProjectsService {
         return api.post(`${this.basePath}/${id}/invitations`, {'invitee_id': inviteeId});
     }
 
-    getCommits(id, opts={}) {
+    getCommits(id, opts) {
         let queryArgs = [];
-        if (opts.rated) {
-            queryArgs.push('rated=' + opts.rated);
+        if (opts) {
+            if (opts.rated) {
+                queryArgs.push('rated=' + opts.rated);
+            }
         }
         return api.get(`${this.basePath}/${id}/commits?${queryArgs.join('&')}`);
     }
