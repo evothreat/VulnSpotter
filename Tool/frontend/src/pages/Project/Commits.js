@@ -64,7 +64,7 @@ const headCells = [
 
 const MAX_ITEMS = 20;
 
-const TABLE_HEIGHT = '425px';
+const TABLE_HEIGHT = '420px';
 const BOTTOM_OFFSET = '-40px';
 
 const cmpByCreationTime = Utils.createComparator('created_at', 'desc');
@@ -194,26 +194,28 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
     };
 
     // add items-list hash to key
-    return state.items
+    const items = state.items;
+    return items
         ? (
-            <TableContainer ref={containerRef} sx={{height: TABLE_HEIGHT}}>
+            <Box>
+            <TableContainer ref={containerRef} sx={{height: TABLE_HEIGHT, borderBottom: 'thin solid lightgray'}}>
                 <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
                     <EnhancedTableHead headCells={headCells} order={state.order}
                                        orderBy={state.orderBy}
                                        sortReqHandler={sortItems}
                                        selectAllCheckbox selectAllHandler={handleSelectAll}
-                                       selectAllChecked={state.items.length > 0 && state.items.length === selectedIds.size}/>
+                                       selectAllChecked={items.length > 0 && items.length === selectedIds.size}/>
                     <TableBody>
                         {
-                            state.items.length > 0
+                            items.length > 0
                                 ? <Fragment>
                                     {
-                                        state.items.slice(0, state.endIx).map((it) =>
+                                        items.slice(0, state.endIx).map((it) =>
                                             <PureCommitRow item={it} key={it.id} checked={selectedIds.has(it.id)}
                                                            checkHandler={checkHandler}/>
                                         )
                                     }
-                                    <TableRow key="1669486729">
+                                    <TableRow key="012345">
                                         <TableCell colSpan="100%" sx={{border: 'none'}}>
                                             <Waypoint bottomOffset={BOTTOM_OFFSET} onEnter={showNextItems}/>
                                         </TableCell>
@@ -228,6 +230,8 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
                     </TableBody>
                 </Table>
             </TableContainer>
+                <Typography variant="body2" sx={{mt: '8px'}}>{items.length} results</Typography>
+            </Box>
         )
         : <Typography variant="body2">Loading commits...</Typography>;
 }
@@ -242,7 +246,7 @@ export default function Commits() {
 
     useEffect(() => {
         const groupCp = group;    // need this to avoid race conditions
-        const opts = groupCp === 'all' ? null : {rated: (groupCp === 'rated' ? 1 : 0)};
+        const opts = groupCp === 'all' ? null : {rated: (groupCp === 'rated')};
 
         ProjectsService.getCommits(projId, opts)
             .then((data) => {
@@ -328,7 +332,7 @@ export default function Commits() {
 
     return (
         <Fragment>
-            <PageHeader sx={{mb: '20px'}}>
+            <PageHeader sx={{mt: '35px', mb: '20px'}}>
                 <Typography variant="h6">
                     Commits
                 </Typography>
@@ -339,7 +343,7 @@ export default function Commits() {
             </PageHeader>
             <Box sx={{display: 'flex', gap: '10px', flexDirection: 'column', mb: '5px'}}>
 
-                <ToggleButtonGroup color="primary" value={group} onChange={handleGroupChange} exclusive size="small" sx={{height: '33px'}}>
+                <ToggleButtonGroup color="primary" value={group} onChange={handleGroupChange} exclusive size="small" sx={{height: '34px'}}>
                     <ToggleButton disableRipple value="unrated">Unrated</ToggleButton>
                     <ToggleButton disableRipple value="rated">Rated</ToggleButton>
                     <ToggleButton disableRipple value="all">All</ToggleButton>
@@ -364,7 +368,7 @@ export default function Commits() {
                         commitFilter && (
                             <ToggleButtonGroup color="primary" value={commitFilter.logicalOp} exclusive size="small"
                                                onChange={handleLogicalOpChange}
-                                               sx={{height: '33px'}}>
+                                               sx={{height: '34px'}}>
                                 <ToggleButton disableRipple value="or">OR</ToggleButton>
                                 <ToggleButton disableRipple value="and">AND</ToggleButton>
                             </ToggleButtonGroup>

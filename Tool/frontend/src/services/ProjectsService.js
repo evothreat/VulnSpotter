@@ -53,8 +53,8 @@ class ProjectsService {
     getCommits(id, opts) {
         let queryArgs = [];
         if (opts) {
-            if (opts.rated) {
-                queryArgs.push('rated=' + opts.rated);
+            if (opts.rated != null) {
+                queryArgs.push('rated=' + (opts.rated | 0));
             }
         }
         return api.get(`${this.basePath}/${id}/commits?${queryArgs.join('&')}`);
