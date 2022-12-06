@@ -12,6 +12,7 @@ import PolicyIcon from '@mui/icons-material/Policy';
 import Notifications from "./Notifications";
 import Invitations from "./Invitations";
 import RouterLink from "../components/RouterLink";
+import {HEADER_HEIGHT} from "./constants";
 
 // TODO: introduce path constants
 // TODO: add correct settings with icons
@@ -55,8 +56,8 @@ function UserMenu() {
 
 export default function Header() {
     return (
-        <AppBar position="relative" sx={{zIndex: (theme) => theme.zIndex.drawer + 1}}>
-            <Toolbar style={{minHeight: '56px', justifyContent: 'space-between'}}>
+        <AppBar position="fixed" sx={{zIndex: (theme) => theme.zIndex.drawer + 1}}>
+            <Toolbar style={{minHeight: HEADER_HEIGHT, justifyContent: 'space-between'}}>
                 <Box sx={{display: 'flex'}}>
                     <PolicyIcon sx={{height: '32px', width: '32px', mr: '8px'}}/>
                     <RouterLink variant="h6" noWrap to="/home" color="inherit"
