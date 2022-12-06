@@ -364,7 +364,7 @@ def get_commits(proj_id):
 def get_commit_full_info(commit_id):
     user_id = get_jwt_identity()
     commit = db_conn.execute('SELECT c.id,c.hash,c.message,c.created_at,p.repository,p.extensions FROM commits c '
-                             'JOIN projects p ON c.id=? AND c.project_id = p.id '
+                             'JOIN projects p ON c.id=? AND c.project_id=p.id '
                              'AND EXISTS(SELECT * FROM membership m WHERE m.user_id=? AND m.project_id=p.id) LIMIT 1',
                              (commit_id, user_id)).fetchone()
     if not commit:
@@ -403,7 +403,7 @@ def get_commit_file_lines(commit_id):
         return '', 422
 
     data = db_conn.execute('SELECT c.hash,p.repository FROM commits c '
-                           'JOIN projects p ON c.id=? AND c.project_id = p.id '
+                           'JOIN projects p ON c.id=? AND p.id=c.project_id '
                            'AND EXISTS(SELECT * FROM membership m WHERE m.user_id=? AND m.project_id=p.id) LIMIT 1',
                            (commit_id, get_jwt_identity())).fetchone()
     if not data:

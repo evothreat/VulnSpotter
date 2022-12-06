@@ -179,7 +179,7 @@ def gen_export_file(proj_id):
                               'SUM(CASE WHEN v.choice=1 THEN 1 ELSE 0 END ) positive,'
                               'SUM(CASE WHEN v.choice=-1 THEN 1 ELSE 0 END ) negative FROM commits c '
                               'JOIN commit_diffs cd ON c.project_id=? AND cd.commit_id=c.id '
-                              'JOIN votes v ON cd.id = v.diff_id '
+                              'JOIN votes v ON v.diff_id=cd.id '
                               'GROUP BY v.diff_id ORDER BY v.diff_id',  # maybe sort on application-side?
                               (proj_id,)).fetchall()
 
