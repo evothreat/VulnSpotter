@@ -11,7 +11,7 @@ import helpers
 import views
 from enums import *
 from safe_sql import SafeSql
-from utils import pathjoin, unix_time
+from utils import pathjoin, unix_time, pad_list
 
 app = Flask(__name__)
 jwt = JWTManager(app)
@@ -33,6 +33,9 @@ db_conn.execute('PRAGMA foreign_keys=ON')
 # db_conn.execute('PRAGMA journal_mode=WAL')
 
 db_conn.row_factory = sqlite3.Row
+
+IN_CLAUSE_ELEM_N = 25
+IN_CLAUSE_PLACEH = ('?,' * IN_CLAUSE_ELEM_N).rstrip(',')
 
 
 def setup_db():
@@ -234,11 +237,10 @@ def update_project(proj_id):
     if not params:
         return '', 422
 
-    args.append(proj_id)
-    args.append(get_jwt_identity())
-
     with db_conn:
-        updated = db_conn.execute(f'UPDATE projects SET {params} WHERE id=? AND owner_id=?', args).rowcount
+        updated = db_conn.execute(
+            f'UPDATE projects SET {params} WHERE id=? AND owner_id=?', (*args, proj_id, get_jwt_identity())
+        ).rowcount
 
     if updated == 0:
         return '', 422
@@ -274,42 +276,31 @@ def get_notifications():
     return [views.notification(d) for d in data]
 
 
-@app.route('/api/users/me/notifications/<int:notif_id>', methods=['PATCH'])
+@app.route('/api/users/me/notifications', methods=['PATCH'])
 @jwt_required()
-def update_notification(notif_id):
+def update_notifications():
     try:
+        ids = [int(v) for v in request.args['ids'].split(',')]
+
         params, args = helpers.sql_params_args(
             request.json,
             {
                 'is_seen': bool
             }
         )
-    except KeyError:
+    except (KeyError, ValueError):
         return '', 400
 
     if not params:
         return '', 422
 
-    args.append(notif_id)
-    args.append(get_jwt_identity())
+    pad_list(ids, IN_CLAUSE_ELEM_N)
 
     with db_conn:
-        updated = db_conn.execute(f'UPDATE notifications SET {params} WHERE id=? AND user_id=?', args).rowcount
-
-    if updated == 0:
-        return '', 404
-
-    return '', 204
-
-
-@app.route('/api/users/me/notifications/<int:notif_id>', methods=['DELETE'])
-@jwt_required()
-def delete_notification(notif_id):
-    with db_conn:
-        deleted = db_conn.execute('DELETE FROM notifications WHERE id=? AND user_id=?',
-                                  (notif_id, get_jwt_identity())).rowcount
-    if deleted == 0:
-        return '', 404
+        db_conn.execute(
+            f"UPDATE notifications SET {params} WHERE user_id=? AND id IN ({IN_CLAUSE_PLACEH})",
+            (*args, get_jwt_identity(), *ids)
+        )
 
     return '', 204
 
@@ -317,20 +308,19 @@ def delete_notification(notif_id):
 @app.route('/api/users/me/notifications', methods=['DELETE'])
 @jwt_required()
 def delete_notifications():
-    args = [get_jwt_identity()]
-    param = ''
-    if request.args:
-        query = request.args
-        param = 'AND created_at BETWEEN ? AND ?'
-        try:
-            args.append(query.get('min_age', 0, type=int))
-            args.append(query.get('max_age', type=int))
-        except ValueError:
-            return '', 400
+    try:
+        ids = [int(v) for v in request.args['ids'].split(',')]
+
+    except (KeyError, ValueError):
+        return '', 400
+
+    pad_list(ids, IN_CLAUSE_ELEM_N)
 
     with db_conn:
-        db_conn.execute(f'DELETE FROM notifications WHERE user_id=? {param}', args)
-        # check if successfully?
+        db_conn.execute(
+            f"DELETE FROM notifications WHERE user_id=? AND id IN ({IN_CLAUSE_PLACEH})",
+            (get_jwt_identity(), *ids)
+        )
 
     return '', 204
 
@@ -502,11 +492,10 @@ def update_vote(vote_id):
     if not params:
         return '', 400
 
-    args.append(vote_id)
-    args.append(get_jwt_identity())
-
     with db_conn:
-        updated = db_conn.execute(f'UPDATE votes SET {params} WHERE id=? AND user_id=?', args).rowcount
+        updated = db_conn.execute(
+            f'UPDATE votes SET {params} WHERE id=? AND user_id=?', (*args, vote_id, get_jwt_identity())
+        ).rowcount
 
     if updated == 0:
         return '', 404
