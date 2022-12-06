@@ -16,7 +16,7 @@ from git_utils import parse_diff_linenos, parse_diff_file_ext
 from profiler import profile
 from utils import normpath, pathjoin, split_on_startswith, pad_list
 
-MAX_ELEM_N = 50
+MAX_ELEM_N = 250
 GET_DIFF_CONTENT_STMT = f"SELECT diff_id,content FROM diff_content cd WHERE diff_id IN ({(MAX_ELEM_N * '?,').rstrip(',')})"
 
 
