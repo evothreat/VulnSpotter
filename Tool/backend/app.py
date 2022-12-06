@@ -183,9 +183,9 @@ def create_project():
 
     repo_url = body.get('repo_url')
     proj_name = body.get('proj_name')
-    extensions = [t.strip() for t in body.get('extensions', '').split(',') if t]
+    extensions = body.get('extensions', [])
 
-    if not (repo_url and proj_name):
+    if not (repo_url and proj_name and isinstance(extensions, list)):
         return '', 400
 
     Thread(target=handle_create_project, args=(get_jwt_identity(), repo_url, proj_name, extensions)).start()
