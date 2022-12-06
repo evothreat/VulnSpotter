@@ -102,12 +102,13 @@ export default function Notifications() {
 
     const markAllAsSeen = () => {
         const ids = notifs.filter((n) => !n.is_seen).map((n) => n.id);
+
         if (ids.length > 0) {
-            Promise.all(ids.map((id) => NotificationsService.markAsSeen(id)))
+            NotificationsService.updateMany(ids, {is_seen: true})
                 .then(() => {
                     setNotifs((curNotifs) => {
                         curNotifs.forEach((n) => {
-                            if (ids.some((id) => id === n.id)) {
+                            if (ids.includes(n.id)) {
                                 n.is_seen = true;
                             }
                         })
@@ -118,10 +119,13 @@ export default function Notifications() {
     };
 
     const deleteAll = () => {
-        if (notifs.length > 0) {
-            const maxAge = notifs[0].created_at;
-            NotificationsService.deleteAllUntil(maxAge)
-                .then(() => setNotifs((curNotifs) => curNotifs.filter((n) => n.created_at > maxAge)));
+        const ids = notifs.map((n) => n.id);
+
+        if (ids.length > 0) {
+            NotificationsService.deleteMany(ids)
+                .then(() => {
+                    setNotifs((curNotifs) => curNotifs.filter((n) => !ids.includes(n.id)));
+                });
         }
     };
 
@@ -152,7 +156,8 @@ export default function Notifications() {
                       subheader={<NotificationsHeader deleteHandler={deleteAll}/>}>
                     {
                         notifs.length > 0
-                            ? notifs.map((n, i) => <NotificationItem key={n.id} notif={n} divider={notifs.length > i + 1}/>)
+                            ? notifs.map((n, i) => <NotificationItem key={n.id} notif={n}
+                                                                     divider={notifs.length > i + 1}/>)
                             : <EmptyListMsg text="No notifications"/>
                     }
                 </List>

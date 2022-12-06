@@ -14,16 +14,12 @@ class NotificationsService {
         return api.get(`${this.basePath}?unseen`);
     }
 
-    markAsSeen(id) {
-        return api.patch(`${this.basePath}/${id}`, {'is_seen': true});  // add time check
+    updateMany(ids, data) {
+        return api.patch(`${this.basePath}?ids=${ids.join(',')}`, data);
     }
 
-    delete(id) {
-        return api.delete(`${this.basePath}/${id}`);
-    }
-
-    deleteAllUntil(maxAge) {
-        return api.delete(`${this.basePath}?max_age=${maxAge}`);
+    deleteMany(ids) {
+        return api.delete(`${this.basePath}?ids=${ids.join(',')}`);
     }
 }
 
