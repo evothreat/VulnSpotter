@@ -202,9 +202,11 @@ export default function ProjectsTable() {
             <Box sx={{
                 display: 'flex',
                 justifyContent: 'space-between',
+                alignItems: 'flex-end',
                 mb: '12px'
             }}>
-                <ToggleButtonGroup color="primary" value={group} exclusive size="small" onChange={handleGroupChange}>
+                <ToggleButtonGroup color="primary" value={group} exclusive size="small" onChange={handleGroupChange}
+                                   sx={{height: '35px'}}>
                     <ToggleButton value="all">All</ToggleButton>
                     <ToggleButton value="personal">Personal</ToggleButton>
                 </ToggleButtonGroup>

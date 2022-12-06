@@ -339,13 +339,13 @@ export default function Commits() {
             </PageHeader>
             <Box sx={{display: 'flex', gap: '10px', flexDirection: 'column', mb: '5px'}}>
 
-                <ToggleButtonGroup color="primary" value={group} onChange={handleGroupChange} exclusive size="small" sx={{height: '35px'}}>
+                <ToggleButtonGroup color="primary" value={group} onChange={handleGroupChange} exclusive size="small" sx={{height: '33px'}}>
                     <ToggleButton disableRipple value="unrated">Unrated</ToggleButton>
                     <ToggleButton disableRipple value="rated">Rated</ToggleButton>
                     <ToggleButton disableRipple value="all">All</ToggleButton>
                 </ToggleButtonGroup>
 
-                <Box sx={{display: 'flex', justifyContent: 'space-between', gap: '10px'}}>
+                <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '10px'}}>
                     {
                         <Autocomplete
                             value={commitFilter?.keywords || []}
@@ -364,7 +364,7 @@ export default function Commits() {
                         commitFilter && (
                             <ToggleButtonGroup color="primary" value={commitFilter.logicalOp} exclusive size="small"
                                                onChange={handleLogicalOpChange}
-                                               sx={{alignSelf: 'flex-end', height: '35px'}}>
+                                               sx={{height: '33px'}}>
                                 <ToggleButton disableRipple value="or">OR</ToggleButton>
                                 <ToggleButton disableRipple value="and">AND</ToggleButton>
                             </ToggleButtonGroup>
