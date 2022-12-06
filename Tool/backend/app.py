@@ -376,7 +376,7 @@ def get_commit_full_info(commit_id):
 
     diffs_info = db_conn.execute(
         'SELECT cd.id,cd.commit_id,dc.content,v.id AS vote_id, v.user_id,v.choice FROM commit_diffs cd '
-        'JOIN diff_content dc ON cd.commit_id=? AND cd.id=dc.diff_id '
+        'JOIN diff_content dc ON cd.suitable=1 AND cd.commit_id=? AND cd.id=dc.diff_id '
         'LEFT JOIN votes v ON v.diff_id=cd.id AND v.user_id=?',
         (commit_id, user_id)).fetchall()
 
