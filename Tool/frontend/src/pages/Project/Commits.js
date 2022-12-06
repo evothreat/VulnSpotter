@@ -214,7 +214,7 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
                                         )
                                     }
                                     <TableRow key="1669486729">
-                                        <TableCell colSpan="100%">
+                                        <TableCell colSpan="100%" sx={{border: 'none'}}>
                                             <Waypoint bottomOffset={BOTTOM_OFFSET} onEnter={showNextItems}/>
                                         </TableCell>
                                     </TableRow>
