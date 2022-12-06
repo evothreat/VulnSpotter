@@ -230,7 +230,7 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
                     </TableBody>
                 </Table>
             </TableContainer>
-                <Typography variant="body2" sx={{mt: '8px'}}>{items.length} results</Typography>
+                <Typography variant="body2" sx={{mt: '8px', color: '#606060'}}>{items.length} results</Typography>
             </Box>
         )
         : <Typography variant="body2">Loading commits...</Typography>;
