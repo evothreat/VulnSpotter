@@ -67,6 +67,16 @@ const MAX_ITEMS = 20;
 const TABLE_HEIGHT = '420px';
 const BOTTOM_OFFSET = '-40px';
 
+const autocompleteInputStyle = {
+    '.MuiAutocomplete-inputRoot[class*="MuiInput-root"] .MuiAutocomplete-input': {
+        padding: '8px 8px 8px 0',
+
+    },
+    '.MuiInputBase-root': {
+        marginTop: '12px'
+    }
+};
+
 const cmpByCreationTime = Utils.createComparator('created_at', 'desc');
 
 function CommitRow({item, checkHandler, checked}) {
@@ -85,7 +95,8 @@ function CommitRow({item, checkHandler, checked}) {
                 <TableCell>
                     {
                         <Box sx={{display: 'flex', alignItems: 'flex-end'}}>
-                            <RouterLink to={'./explorer'} state={{commitIds: [item.id]}} underline="hover" color="inherit">
+                            <RouterLink to={'./explorer'} state={{commitIds: [item.id]}} underline="hover"
+                                        color="inherit">
                                 {
                                     item.message.substring(0, 60).replace('\n', ' ⤶ ')
                                 }
@@ -198,38 +209,38 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
     return items
         ? (
             <Box>
-            <TableContainer ref={containerRef} sx={{height: TABLE_HEIGHT, borderBottom: 'thin solid lightgray'}}>
-                <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
-                    <EnhancedTableHead headCells={headCells} order={state.order}
-                                       orderBy={state.orderBy}
-                                       sortReqHandler={sortItems}
-                                       selectAllCheckbox selectAllHandler={handleSelectAll}
-                                       selectAllChecked={items.length > 0 && items.length === selectedIds.size}/>
-                    <TableBody>
-                        {
-                            items.length > 0
-                                ? <Fragment>
-                                    {
-                                        items.slice(0, state.endIx).map((it) =>
-                                            <PureCommitRow item={it} key={it.id} checked={selectedIds.has(it.id)}
-                                                           checkHandler={checkHandler}/>
-                                        )
-                                    }
-                                    <TableRow key="012345">
-                                        <TableCell colSpan="100%" sx={{border: 'none'}}>
-                                            <Waypoint bottomOffset={BOTTOM_OFFSET} onEnter={showNextItems}/>
+                <TableContainer ref={containerRef} sx={{height: TABLE_HEIGHT, borderBottom: 'thin solid lightgray'}}>
+                    <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
+                        <EnhancedTableHead headCells={headCells} order={state.order}
+                                           orderBy={state.orderBy}
+                                           sortReqHandler={sortItems}
+                                           selectAllCheckbox selectAllHandler={handleSelectAll}
+                                           selectAllChecked={items.length > 0 && items.length === selectedIds.size}/>
+                        <TableBody>
+                            {
+                                items.length > 0
+                                    ? <Fragment>
+                                        {
+                                            items.slice(0, state.endIx).map((it) =>
+                                                <PureCommitRow item={it} key={it.id} checked={selectedIds.has(it.id)}
+                                                               checkHandler={checkHandler}/>
+                                            )
+                                        }
+                                        <TableRow key="012345">
+                                            <TableCell colSpan="100%" sx={{border: 'none'}}>
+                                                <Waypoint bottomOffset={BOTTOM_OFFSET} onEnter={showNextItems}/>
+                                            </TableCell>
+                                        </TableRow>
+                                    </Fragment>
+                                    : <TableRow>
+                                        <TableCell colSpan="100%" sx={{border: 0, color: '#606060'}}>
+                                            There are no items to display
                                         </TableCell>
                                     </TableRow>
-                                </Fragment>
-                                : <TableRow>
-                                    <TableCell colSpan="100%" sx={{border: 0, color: '#606060'}}>
-                                        There are no items to display
-                                    </TableCell>
-                                </TableRow>
-                        }
-                    </TableBody>
-                </Table>
-            </TableContainer>
+                            }
+                        </TableBody>
+                    </Table>
+                </TableContainer>
                 <Typography variant="body2" sx={{mt: '8px', color: '#606060'}}>{items.length} results</Typography>
             </Box>
         )
@@ -343,7 +354,8 @@ export default function Commits() {
             </PageHeader>
             <Box sx={{display: 'flex', gap: '10px', flexDirection: 'column', mb: '5px'}}>
 
-                <ToggleButtonGroup color="primary" value={group} onChange={handleGroupChange} exclusive size="small" sx={{height: '34px'}}>
+                <ToggleButtonGroup color="primary" value={group} onChange={handleGroupChange} exclusive size="small"
+                                   sx={{height: '34px'}}>
                     <ToggleButton disableRipple value="unrated">Unrated</ToggleButton>
                     <ToggleButton disableRipple value="rated">Rated</ToggleButton>
                     <ToggleButton disableRipple value="all">All</ToggleButton>
@@ -361,7 +373,7 @@ export default function Commits() {
                                 <TextField {...params} variant="standard" label="Filter by keywords"/>
                             )}
                             onChange={handleKwsChange}
-                            sx={{flex: '1'}}
+                            sx={{flex: '1', ...autocompleteInputStyle}}
                         />
                     }
                     {
