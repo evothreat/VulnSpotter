@@ -40,11 +40,14 @@ CREATE TABLE commits
 
 CREATE TABLE commit_diffs
 (
-    id         INTEGER PRIMARY KEY,
-    commit_id  INTEGER,
-    file_ext   TEXT,
+    id        INTEGER PRIMARY KEY,
+    commit_id INTEGER,
+    file_ext  TEXT,
+    suitable  BOOLEAN,
     FOREIGN KEY (commit_id) REFERENCES commits (id) ON DELETE CASCADE
 );
+
+CREATE INDEX ix_suitable_diffs ON commit_diffs (suitable) WHERE suitable = 1;
 
 CREATE TABLE diff_content
 (

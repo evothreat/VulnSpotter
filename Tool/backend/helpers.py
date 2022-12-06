@@ -106,7 +106,10 @@ def create_project_from_repo(user_id, repo_url, proj_name, extensions):
                     'hash': chash,
                     'message': c['message'],
                     'diffs': tuple(
-                        (parse_diff_file_ext(d), zlib.compress(d.encode(errors='replace'))) for d in diffs
+                        (ext, zlib.compress(d.encode(errors='replace')), not extensions or ext in extensions)
+                        for d in diffs
+                        # or True, because ext can be empty string
+                        if (ext := parse_diff_file_ext(d).lstrip('.')) or True
                     ),
                     'cves': set(c.get('cve', [])),
                     'created_at': c['authored_date']
@@ -141,8 +144,8 @@ def create_commit_records(conn, proj_id, commits):
         contents = []
 
         for commit_id, commit in zip(range(last_id - cur.rowcount + 1, last_id + 1), commits):
-            for ext, content in commit['diffs']:
-                commit_diff.append((commit_id, ext))
+            for ext, content, suit in commit['diffs']:
+                commit_diff.append((commit_id, ext, suit))
                 contents.append(content)
 
             commit_cve.extend((commit_id, cve) for cve in commit['cves'])
@@ -150,7 +153,7 @@ def create_commit_records(conn, proj_id, commits):
         conn.executemany('INSERT INTO commit_cve(commit_id,cve_id) SELECT ?,id FROM cve_info WHERE cve_id=?',
                          commit_cve)
 
-        cur = conn.executemany('INSERT INTO commit_diffs(commit_id,file_ext) VALUES (?,?)', commit_diff)
+        cur = conn.executemany('INSERT INTO commit_diffs(commit_id,file_ext,suitable) VALUES (?,?,?)', commit_diff)
         if cur.rowcount > 0:
             last_id = last_insert_rowid(conn)
             diff_content = (

@@ -344,12 +344,15 @@ def get_commits(proj_id):
     if (rated := request.args.get('rated', -1, int)) != -1:
         data = db_conn.execute('SELECT c.id,c.hash,c.message,c.created_at '
                                'FROM commits c JOIN '
-                               '(SELECT DISTINCT cd.commit_id FROM commit_diffs cd LEFT JOIN votes v '
-                               'ON cd.id=v.diff_id WHERE v.diff_id IS {} NULL) d '
+                               '(SELECT cd.commit_id FROM commit_diffs cd LEFT JOIN votes v '
+                               'ON cd.id=v.diff_id WHERE cd.suitable=1 AND v.diff_id IS {} NULL '
+                               'GROUP BY cd.commit_id) d '
                                'ON c.project_id=? AND d.commit_id=c.id'.format('NOT' if rated == 1 else ''),
                                (proj_id,)).fetchall()
     else:
-        data = db_conn.execute('SELECT c.id,c.hash,c.message,c.created_at FROM commits c WHERE c.project_id=?',
+        data = db_conn.execute('SELECT c.id,c.hash,c.message,c.created_at FROM commits c '
+                               'JOIN commit_diffs cd ON cd.suitable=1 AND c.project_id=? AND cd.commit_id=c.id '
+                               'GROUP BY c.id',
                                (proj_id,)).fetchall()
 
     return [views.commit(d) for d in data]
