@@ -75,7 +75,7 @@ function ProjectTableList({items, setItemToDelete, setItemToRename}) {
                             <TableCell>
                                 <RouterLink underline="hover" to={`/home/projects/${it.id}`}>{it.name}</RouterLink>
                             </TableCell>
-                            <TableCell>{it.owner_name}</TableCell>
+                            <TableCell>{it.personal ? 'Me' : it.owner_name}</TableCell>
                             <TableCell>{it.repository.substring(it.repository.indexOf('/')+1)}</TableCell>
                             <TableCell>{it.commit_n}</TableCell>
                             <TableCell align="right">
@@ -135,13 +135,14 @@ export default function ProjectsTable() {
     const [itemToDelete, setItemToDelete] = useState(null);
     const [itemToRename, setItemToRename] = useState(null);
 
-    const userId = TokenService.getUserId();
-
     useEffect(() => {
         ProjectsService.getAll()
             .then((data) => {
+                const userId = TokenService.getUserId();
+
                 data.forEach((p) => {
                     p.owner_name = p.owner.full_name;
+                    p.personal = userId === p.owner.id;
                 });
                 setItems(data);
             });
@@ -167,7 +168,7 @@ export default function ProjectsTable() {
 
     const getItems = () => {
         return items.filter((it) => (group === 'all' ||
-                                    (group === 'personal' && it.owner.id === userId)) &&
+                                    (group === 'personal' && it.personal)) &&
                                     it.name.toLowerCase().includes(searchKw.toLowerCase()))
                     .sort(Utils.createComparator(sorter.orderBy, sorter.order));
     };
