@@ -189,7 +189,7 @@ def create_project():
     extensions = body.get('extensions', [])
 
     if not (repo_url and proj_name and isinstance(extensions, list)):
-        return '', 400
+        return '', 422
 
     Thread(target=handle_create_project, args=(get_jwt_identity(), repo_url, proj_name, extensions)).start()
 
@@ -231,9 +231,7 @@ def update_project(proj_id):
                 'extensions': str
             }
         )
-    except KeyError:
-        return '', 400
-    except ValueError:
+    except (KeyError, ValueError):
         return '', 422
 
     if not params:
@@ -290,9 +288,7 @@ def update_notifications():
                 'is_seen': bool
             }
         )
-    except KeyError:
-        return '', 400
-    except ValueError:
+    except (KeyError, ValueError):
         return '', 422
 
     if not params:
@@ -316,7 +312,7 @@ def delete_notifications():
         ids = [int(v) for v in request.args['ids'].split(',')]
 
     except (KeyError, ValueError):
-        return '', 400
+        return '', 422
 
     pad_list(ids, IN_CLAUSE_ELEM_N)
 
@@ -390,10 +386,7 @@ def get_commit_file_lines(commit_id):
     count = request.args.get('count', 20, int)
     direction = request.args.get('dir', 0, int)
 
-    if not (filepath and cur_lineno and count and direction):
-        return '', 400
-
-    if prev_lineno and prev_lineno >= cur_lineno:
+    if not (filepath and cur_lineno and count and direction) or prev_lineno and prev_lineno >= cur_lineno:
         return '', 422
 
     data = db_conn.execute('SELECT c.hash,p.repository FROM commits c '
@@ -457,7 +450,7 @@ def create_vote():
     diff_id = request.json.get('diff_id')
     choice = request.json.get('choice')
     if not (diff_id and choice):
-        return '', 400
+        return '', 422
 
     with db_conn:
         # WARNING: we do not check if the user has right to rate the diff!
@@ -490,9 +483,7 @@ def update_vote(vote_id):
                 'choice': int
             }
         )
-    except KeyError:
-        return '', 400
-    except ValueError:
+    except (KeyError, ValueError):
         return '', 422
 
     if not params:
@@ -517,7 +508,7 @@ def create_invitation(proj_id):
     role = request.json.get('role', Role.CONTRIBUTOR.value)  # role field if more roles implemented
 
     if not invitee_id:
-        return '', 400
+        return '', 422
 
     # insert only if the current user is owner of the project
     with db_conn:
