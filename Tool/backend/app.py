@@ -233,6 +233,8 @@ def update_project(proj_id):
         )
     except KeyError:
         return '', 400
+    except ValueError:
+        return '', 422
 
     if not params:
         return '', 422
@@ -288,8 +290,10 @@ def update_notifications():
                 'is_seen': bool
             }
         )
-    except (KeyError, ValueError):
+    except KeyError:
         return '', 400
+    except ValueError:
+        return '', 422
 
     if not params:
         return '', 422
@@ -488,9 +492,11 @@ def update_vote(vote_id):
         )
     except KeyError:
         return '', 400
+    except ValueError:
+        return '', 422
 
     if not params:
-        return '', 400
+        return '', 422
 
     with db_conn:
         updated = db_conn.execute(

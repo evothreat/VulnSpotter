@@ -27,6 +27,8 @@ def sql_params_args(data, allowed_map):
         if isinstance(v, (allowed_map[k])):
             params += k + '=?,'
             args.append(v)
+        else:
+            raise ValueError
 
     return params.rstrip(','), args
 
