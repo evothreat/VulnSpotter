@@ -2,12 +2,16 @@ import json
 import sqlite3
 import zlib
 from contextlib import contextmanager
+from functools import wraps
 from os.path import basename, isdir
 from time import strftime
 from urllib.parse import urlparse
 
 import git
+from flask import request
 from git_vuln_finder import find as find_vulns
+from jsonschema.exceptions import ValidationError
+from jsonschema.validators import validate
 
 import config
 from cve_utils import get_cve_info
@@ -16,21 +20,29 @@ from git_utils import parse_diff_linenos, parse_diff_file_ext
 from profiler import profile
 from utils import normpath, pathjoin, split_on_startswith, pad_list
 
-MAX_ELEM_N = 250
-GET_DIFF_CONTENT_STMT = f"SELECT diff_id,content FROM diff_content cd WHERE diff_id IN ({(MAX_ELEM_N * '?,').rstrip(',')})"
+GET_CONTENT_BINDVAR_N = 250
+GET_CONTENT_STMT = \
+    f"SELECT diff_id,content FROM diff_content cd WHERE diff_id IN ({(GET_CONTENT_BINDVAR_N * '?,').rstrip(',')})"
 
 
-def sql_params_args(data, allowed_map):
-    params = ''
-    args = []
-    for k, v in data.items():
-        if isinstance(v, (allowed_map[k])):
-            params += k + '=?,'
-            args.append(v)
-        else:
-            raise ValueError
+def validate_request_json(schema):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                validate(request.json, schema)
+            except ValidationError:
+                return '', 422
+            else:
+                return func(*args, **kwargs)
 
-    return params.rstrip(','), args
+        return wrapper
+
+    return decorator
+
+
+def assign_bindvars(keys):
+    return '=?,'.join(keys) + '=?'
 
 
 def register_boolean_type():
@@ -208,11 +220,11 @@ def gen_export_file(proj_id):
 
         commit_obj = {}
 
-        for i in range(0, len(diff_ids), MAX_ELEM_N):
-            diff_ids_part = diff_ids[i:i + MAX_ELEM_N]  # index doesn't exceed maximum
-            pad_list(diff_ids_part, MAX_ELEM_N)
+        for i in range(0, len(diff_ids), GET_CONTENT_BINDVAR_N):
+            diff_ids_part = diff_ids[i:i + GET_CONTENT_BINDVAR_N]  # index doesn't exceed maximum
+            pad_list(diff_ids_part, GET_CONTENT_BINDVAR_N)
 
-            diff_content = conn.execute(GET_DIFF_CONTENT_STMT, diff_ids_part).fetchall()
+            diff_content = conn.execute(GET_CONTENT_STMT, diff_ids_part).fetchall()
 
             for dc in diff_content:
                 diff_info = diffs_info_map[dc['diff_id']]

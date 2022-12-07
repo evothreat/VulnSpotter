@@ -7,9 +7,11 @@ from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
 
 import config
-import helpers
+import json_schema
 import views
 from enums import *
+from helpers import validate_request_json, register_boolean_type, gen_export_file, assign_bindvars, \
+    create_project_from_repo
 from safe_sql import SafeSql
 from utils import pathjoin, unix_time, pad_list
 
@@ -20,7 +22,7 @@ app.config['JWT_SECRET_KEY'] = config.JWT_SECRET_KEY
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = config.JWT_ACCESS_TOKEN_EXPIRES
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = config.JWT_REFRESH_TOKEN_EXPIRES
 
-helpers.register_boolean_type()
+register_boolean_type()
 db_conn = sqlite3.connect(config.DB_PATH,
                           check_same_thread=False, isolation_level=None,
                           detect_types=sqlite3.PARSE_DECLTYPES, factory=SafeSql)
@@ -34,8 +36,8 @@ db_conn.execute('PRAGMA foreign_keys=ON')
 
 db_conn.row_factory = sqlite3.Row
 
-IN_CLAUSE_ELEM_N = 25
-IN_CLAUSE_PLACEH = ('?,' * IN_CLAUSE_ELEM_N).rstrip(',')
+IN_CLAUSE_BINDVAR_N = 25
+IN_CLAUSE_BINDVARS = ('?,' * IN_CLAUSE_BINDVAR_N).rstrip(',')
 
 
 def setup_db():
@@ -117,17 +119,14 @@ def is_member(user_id, proj_id):
 
 
 @app.route('/api/login', methods=['POST'])
+@validate_request_json(json_schema.LOGIN)
 def login():
     body = request.json
-    username = body.get('username')
-    password = body.get('password')
 
-    if not (username and password):
-        return '', 401
+    creds = db_conn.execute('SELECT id,password FROM users WHERE username=? LIMIT 1',
+                            (body['username'],)).fetchone()
 
-    creds = db_conn.execute('SELECT id,password FROM users WHERE username=? LIMIT 1', (username,)).fetchone()
-
-    if not (creds and check_password_hash(creds['password'], password)):
+    if not (creds and check_password_hash(creds['password'], body['password'])):
         return '', 401
 
     return {
@@ -171,7 +170,7 @@ def get_users():
 
 def handle_create_project(user_id, *args):
     try:
-        proj_id = helpers.create_project_from_repo(user_id, *args)
+        proj_id = create_project_from_repo(user_id, *args)
     except Exception:
         traceback.print_exc()
         proj_id = None
@@ -181,16 +180,14 @@ def handle_create_project(user_id, *args):
 
 @app.route('/api/users/me/projects', methods=['POST'])
 @jwt_required()
+@validate_request_json(json_schema.CREATE_PROJECT)
 def create_project():
     body = request.json
-    repo_url = body.get('repo_url')
-    proj_name = body.get('proj_name')
-    extensions = body.get('extensions', [])
 
-    if not (repo_url and proj_name and isinstance(extensions, list)):
-        return '', 422
-
-    Thread(target=handle_create_project, args=(get_jwt_identity(), repo_url, proj_name, extensions)).start()
+    Thread(
+        target=handle_create_project,
+        args=(get_jwt_identity(), body['repo_url'], body['proj_name'], body.get('extensions', ()))
+    ).start()
 
     return '', 202
 
@@ -221,24 +218,14 @@ def get_project(proj_id):
 
 @app.route('/api/users/me/projects/<int:proj_id>', methods=['PATCH'])
 @jwt_required()
+@validate_request_json(json_schema.UPDATE_PROJECT)
 def update_project(proj_id):
-    try:
-        params, args = helpers.sql_params_args(
-            request.json,
-            {
-                'name': str,
-                'extensions': str
-            }
-        )
-    except (KeyError, ValueError):
-        return '', 422
-
-    if not params:
-        return '', 422
+    body = request.json
 
     with db_conn:
         updated = db_conn.execute(
-            f'UPDATE projects SET {params} WHERE id=? AND owner_id=?', (*args, proj_id, get_jwt_identity())
+            f"UPDATE projects SET {assign_bindvars(body)} WHERE id=? AND owner_id=?",
+            (*body.values(), proj_id, get_jwt_identity())
         ).rowcount
 
     if updated == 0:
@@ -281,24 +268,16 @@ def update_notifications():
     try:
         ids = [int(v) for v in request.args['ids'].split(',')]
 
-        params, args = helpers.sql_params_args(
-            request.json,
-            {
-                'is_seen': bool
-            }
-        )
     except (KeyError, ValueError):
         return '', 422
 
-    if not params:
-        return '', 422
+    pad_list(ids, IN_CLAUSE_BINDVAR_N)
 
-    pad_list(ids, IN_CLAUSE_ELEM_N)
-
+    body = request.json
     with db_conn:
         db_conn.execute(
-            f"UPDATE notifications SET {params} WHERE user_id=? AND id IN ({IN_CLAUSE_PLACEH})",
-            (*args, get_jwt_identity(), *ids)
+            f"UPDATE notifications SET {assign_bindvars(body)} WHERE user_id=? AND id IN ({IN_CLAUSE_BINDVARS})",
+            (*body.values(), get_jwt_identity(), *ids)
         )
 
     return '', 204
@@ -313,11 +292,11 @@ def delete_notifications():
     except (KeyError, ValueError):
         return '', 422
 
-    pad_list(ids, IN_CLAUSE_ELEM_N)
+    pad_list(ids, IN_CLAUSE_BINDVAR_N)
 
     with db_conn:
         db_conn.execute(
-            f"DELETE FROM notifications WHERE user_id=? AND id IN ({IN_CLAUSE_PLACEH})",
+            f"DELETE FROM notifications WHERE user_id=? AND id IN ({IN_CLAUSE_BINDVARS})",
             (get_jwt_identity(), *ids)
         )
 
@@ -379,11 +358,13 @@ def get_commit_full_info(commit_id):
 @app.route('/api/users/me/commits/<int:commit_id>/files', methods=['GET'])
 @jwt_required()
 def get_commit_file_lines(commit_id):
-    filepath = request.args.get('path')
-    prev_lineno = request.args.get('prev_lineno', 0, int)  # 0 to avoid exception
-    cur_lineno = request.args.get('cur_lineno', 0, int)
-    count = request.args.get('count', 20, int)
-    direction = request.args.get('dir', 0, int)
+    query = request.args
+
+    filepath = query.get('path')
+    prev_lineno = query.get('prev_lineno', 0, int)  # 0 to avoid exception
+    cur_lineno = query.get('cur_lineno', 0, int)
+    count = query.get('count', 20, int)
+    direction = query.get('dir', 0, int)
 
     if not (filepath and cur_lineno and count and direction) or prev_lineno and prev_lineno >= cur_lineno:
         return '', 422
@@ -443,20 +424,15 @@ def get_cve_list(commit_id):
 
 @app.route('/api/users/me/votes', methods=['POST'])
 @jwt_required()
+@validate_request_json(json_schema.CREATE_VOTE)
 def create_vote():
-    user_id = get_jwt_identity()
-
     body = request.json
-    diff_id = body.get('diff_id')
-    choice = body.get('choice')
-
-    if not (diff_id and choice):
-        return '', 422
-
     with db_conn:
         # WARNING: we do not check if the user has right to rate the diff!
-        record_id = db_conn.execute('INSERT INTO votes(user_id,diff_id,choice) VALUES (?,?,?) ',
-                                    (user_id, diff_id, choice)).lastrowid
+        record_id = db_conn.execute(
+            'INSERT INTO votes(user_id,diff_id,choice) VALUES (?,?,?) ',
+            (get_jwt_identity(), body['diff_id'], body['choice'])
+        ).lastrowid
 
     if record_id is None:
         return '', 422
@@ -477,22 +453,11 @@ def get_vote(vote_id):
 @app.route('/api/users/me/votes/<int:vote_id>', methods=['PATCH'])
 @jwt_required()
 def update_vote(vote_id):
-    try:
-        params, args = helpers.sql_params_args(
-            request.json,
-            {
-                'choice': int
-            }
-        )
-    except (KeyError, ValueError):
-        return '', 422
-
-    if not params:
-        return '', 422
-
+    body = request.json
     with db_conn:
         updated = db_conn.execute(
-            f'UPDATE votes SET {params} WHERE id=? AND user_id=?', (*args, vote_id, get_jwt_identity())
+            f'UPDATE votes SET {assign_bindvars(body)} WHERE id=? AND user_id=?',
+            (*body.values(), vote_id, get_jwt_identity())
         ).rowcount
 
     if updated == 0:
@@ -503,21 +468,17 @@ def update_vote(vote_id):
 
 @app.route('/api/users/me/projects/<int:proj_id>/invitations', methods=['POST'])
 @jwt_required()
+@validate_request_json(json_schema.CREATE_INVITATION)
 def create_invitation(proj_id):
-    owner_id = get_jwt_identity()
-
     body = request.json
-    invitee_id = body.get('invitee_id')
-    role = body.get('role', Role.CONTRIBUTOR.value)  # role field if more roles implemented
-
-    if not invitee_id:
-        return '', 422
-
     # insert only if the current user is owner of the project
     with db_conn:
-        record_id = db_conn.execute('INSERT OR IGNORE INTO invitations(invitee_id,project_id,role) '
-                                    'SELECT ?,?,? WHERE EXISTS(SELECT * FROM projects p WHERE p.id=? AND p.owner_id=?)',
-                                    (invitee_id, proj_id, role, proj_id, owner_id)).lastrowid
+        record_id = db_conn.execute(
+            'INSERT OR IGNORE INTO invitations(invitee_id,project_id,role) '
+            'SELECT ?,?,? WHERE EXISTS(SELECT * FROM projects p WHERE p.id=? AND p.owner_id=?)',
+            (body['invitee_id'], proj_id, Role.CONTRIBUTOR, proj_id, get_jwt_identity())
+        ).lastrowid
+
     if record_id is None:
         return '', 422
 
@@ -532,6 +493,7 @@ def get_sent_invitations(proj_id):
                            'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?) '
                            'AND u.id=i.invitee_id',
                            (proj_id, get_jwt_identity())).fetchall()
+
     return [views.sent_invitation(d) for d in data]
 
 
@@ -631,7 +593,7 @@ def delete_member(proj_id, member_id):
 @app.route('/api/users/me/projects/<int:proj_id>/export', methods=['GET'])
 # @jwt_required()
 def get_export_data(proj_id):
-    export_fpath = helpers.gen_export_file(proj_id)
+    export_fpath = gen_export_file(proj_id)
     return export_fpath, 200
 
 
