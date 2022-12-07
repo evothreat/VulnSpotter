@@ -21,7 +21,7 @@ import FindInPageIcon from "@mui/icons-material/FindInPage";
 import cssStyle from "./Commits.module.css"
 import RouterLink from "../../components/RouterLink";
 import TextField from "@mui/material/TextField";
-import CommitFilter from "../../services/CommitFilter";
+import FastFilter from "../../services/FastFilter";
 import SimpleCheckbox from "../../components/SimpleCheckbox";
 import MainActionButton from "../../components/MainActionButton";
 import PageHeader from "../../components/PageHeader";
@@ -270,7 +270,9 @@ export default function Commits() {
                 });
                 data.sort(cmpByCreationTime);
 
-                const filter = new CommitFilter(data);
+                const filter = new FastFilter(data);
+                filter.getCmpValue = (c) => c.message;
+
                 // if any filters applied before
                 if (commitFilter) {
                     // apply them to the retrieved commits

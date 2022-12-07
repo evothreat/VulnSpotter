@@ -1,6 +1,5 @@
 import {arrayDiff} from "../utils";
 
-
 function matchOr(kws) {
     const kwsRegex = new RegExp(kws.join('|'), 'i');
     return (str) => kwsRegex.test(str);
@@ -16,13 +15,14 @@ function matchAnd(kws) {
     };
 }
 
-class CommitFilter {
+class FastFilter {
 
-    constructor(result, rest = [], keywords = [], logicalOp = 'or') {
+    constructor(result, rest = [], keywords = [], logicalOp = 'or', getCmpValue = (obj) => obj) {
         this.result = result;
         this.rest = rest;
         this.keywords = keywords;
         this.logicalOp = logicalOp;
+        this.getCmpValue = getCmpValue;
     }
 
     updateKeywords(kws) {
@@ -77,13 +77,13 @@ class CommitFilter {
     // NOTE: the following methods are private & should not be called from outside
     searchInRest(matchFunc) {
         for (let i = this.rest.length - 1; i >= 0; i--) {
-            const c = this.rest[i];
-            if (matchFunc(c.message)) {
+            const obj = this.rest[i];
+            if (matchFunc(this.getCmpValue(obj))) {
                 if (i === this.rest.length - 1) {
                     this.result.push(this.rest.pop());
                 } else {
                     this.rest[i] = this.rest.pop();
-                    this.result.push(c);
+                    this.result.push(obj);
                 }
             }
         }
@@ -91,13 +91,13 @@ class CommitFilter {
 
     searchInResult(matchFunc) {
         for (let i = this.result.length - 1; i >= 0; i--) {
-            const c = this.result[i];
-            if (!matchFunc(c.message)) {
+            const obj = this.result[i];
+            if (!matchFunc(this.getCmpValue(obj))) {
                 if (i === this.result.length - 1) {
                     this.rest.push(this.result.pop());
                 } else {
                     this.result[i] = this.result.pop();  // NOTE: do we need to preserve positions?
-                    this.rest.push(c);
+                    this.rest.push(obj);
                 }
             }
         }
@@ -111,8 +111,12 @@ class CommitFilter {
     }
 
     clone() {
-        return new CommitFilter(this.result.slice(), this.rest.slice(), this.keywords.slice(), this.logicalOp);
+        return new FastFilter(
+            this.result.slice(), this.rest.slice(), 
+            this.keywords.slice(), this.logicalOp,
+            this.getCmpValue
+        );
     }
 }
 
-export default CommitFilter;
+export default FastFilter;
