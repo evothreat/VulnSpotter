@@ -183,7 +183,6 @@ def handle_create_project(user_id, *args):
 @jwt_required()
 def create_project():
     body = request.json
-
     repo_url = body.get('repo_url')
     proj_name = body.get('proj_name')
     extensions = body.get('extensions', [])
@@ -447,8 +446,10 @@ def get_cve_list(commit_id):
 def create_vote():
     user_id = get_jwt_identity()
 
-    diff_id = request.json.get('diff_id')
-    choice = request.json.get('choice')
+    body = request.json
+    diff_id = body.get('diff_id')
+    choice = body.get('choice')
+
     if not (diff_id and choice):
         return '', 422
 
@@ -504,8 +505,10 @@ def update_vote(vote_id):
 @jwt_required()
 def create_invitation(proj_id):
     owner_id = get_jwt_identity()
-    invitee_id = request.json.get('invitee_id')
-    role = request.json.get('role', Role.CONTRIBUTOR.value)  # role field if more roles implemented
+
+    body = request.json
+    invitee_id = body.get('invitee_id')
+    role = body.get('role', Role.CONTRIBUTOR.value)  # role field if more roles implemented
 
     if not invitee_id:
         return '', 422
