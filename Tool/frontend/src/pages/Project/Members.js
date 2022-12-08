@@ -104,7 +104,7 @@ function MembersList({items, setItemToDelete}) {
 function MembersTable({items, setItems}) {
     const [sorter, setSorter] = useState({
         order: 'asc',
-        orderBy: 'full_name'
+        orderBy: 'id'
     });
     const [itemToDelete, setItemToDelete] = useState(null);
     const {projId} = useParams();
