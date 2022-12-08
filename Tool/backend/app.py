@@ -121,12 +121,12 @@ def is_member(user_id, proj_id):
 @app.route('/api/login', methods=['POST'])
 @validate_request_json(json_schema.LOGIN)
 def login():
-    body = request.json
+    data = request.json
 
     creds = db_conn.execute('SELECT id,password FROM users WHERE username=? LIMIT 1',
-                            (body['username'],)).fetchone()
+                            (data['username'],)).fetchone()
 
-    if not (creds and check_password_hash(creds['password'], body['password'])):
+    if not (creds and check_password_hash(creds['password'], data['password'])):
         return '', 401
 
     return {
@@ -150,6 +150,24 @@ def get_current_user():
     data = db_conn.execute('SELECT id,username,full_name,email FROM users WHERE id=? LIMIT 1',
                            (get_jwt_identity(),)).fetchone()
     return views.user(data)
+
+
+@app.route('/api/users/me', methods=['PATCH'])
+@jwt_required()
+@validate_request_json(json_schema.UPDATE_CURR_USER)
+def update_current_user():
+    data = request.json.copy()
+
+    if password := data.get('password'):
+        data['password'] = generate_password_hash(password)
+
+    with db_conn:
+        db_conn.execute(
+            f"UPDATE users SET {assign_bindvars(data)} WHERE id=?",
+            (*data.values(), get_jwt_identity())
+        )
+
+    return '', 204
 
 
 @app.route('/api/users/<int:user_id>', methods=['GET'])
@@ -182,11 +200,11 @@ def handle_create_project(user_id, *args):
 @jwt_required()
 @validate_request_json(json_schema.CREATE_PROJECT)
 def create_project():
-    body = request.json
+    data = request.json
 
     Thread(
         target=handle_create_project,
-        args=(get_jwt_identity(), body['repo_url'], body['proj_name'], body.get('extensions', ()))
+        args=(get_jwt_identity(), data['repo_url'], data['proj_name'], data.get('extensions', ()))
     ).start()
 
     return '', 202
@@ -221,9 +239,9 @@ def get_project(proj_id):
 @validate_request_json(json_schema.UPDATE_PROJECT)
 def update_project(proj_id):
     user_id = get_jwt_identity()
-    body = request.json
+    data = request.json.copy()      # make copy, because we don't want to modify original object
 
-    extensions = body.get('extensions')
+    extensions = data.get('extensions')
     if extensions is not None:
         with db_conn:
             updated = db_conn.execute('UPDATE projects SET extensions=? WHERE id=? AND owner_id=?',
@@ -249,13 +267,13 @@ def update_project(proj_id):
                     'WHERE id=t0.diff_id',
                     (proj_id,)
                 )
-        body.pop('extensions')  # is it safe to modify json-object?
+        data.pop('extensions')
 
-    if body:
+    if data:
         with db_conn:
             updated = db_conn.execute(
-                f"UPDATE projects SET {assign_bindvars(body)} WHERE id=? AND owner_id=?",
-                (*body.values(), proj_id, get_jwt_identity())
+                f"UPDATE projects SET {assign_bindvars(data)} WHERE id=? AND owner_id=?",
+                (*data.values(), proj_id, get_jwt_identity())
             ).rowcount
 
         if updated == 0:
@@ -302,12 +320,12 @@ def update_notifications():
     except (KeyError, ValueError):
         return '', 422
 
-    body = request.json
+    data = request.json
     with db_conn:
         pad_list(ids, IN_CLAUSE_BINDVAR_N)
         db_conn.execute(
-            f"UPDATE notifications SET {assign_bindvars(body)} WHERE user_id=? AND id IN ({IN_CLAUSE_BINDVARS})",
-            (*body.values(), get_jwt_identity(), *ids)
+            f"UPDATE notifications SET {assign_bindvars(data)} WHERE user_id=? AND id IN ({IN_CLAUSE_BINDVARS})",
+            (*data.values(), get_jwt_identity(), *ids)
         )
 
     return '', 204
@@ -457,12 +475,12 @@ def get_cve_list(commit_id):
 @jwt_required()
 @validate_request_json(json_schema.CREATE_VOTE)
 def create_vote():
-    body = request.json
+    data = request.json
     with db_conn:
         # WARNING: we do not check if the user has right to rate the diff!
         record_id = db_conn.execute(
             'INSERT INTO votes(user_id,diff_id,choice) VALUES (?,?,?) ',
-            (get_jwt_identity(), body['diff_id'], body['choice'])
+            (get_jwt_identity(), data['diff_id'], data['choice'])
         ).lastrowid
 
     if record_id is None:
@@ -484,11 +502,11 @@ def get_vote(vote_id):
 @app.route('/api/users/me/votes/<int:vote_id>', methods=['PATCH'])
 @jwt_required()
 def update_vote(vote_id):
-    body = request.json
+    data = request.json
     with db_conn:
         updated = db_conn.execute(
-            f'UPDATE votes SET {assign_bindvars(body)} WHERE id=? AND user_id=?',
-            (*body.values(), vote_id, get_jwt_identity())
+            f'UPDATE votes SET {assign_bindvars(data)} WHERE id=? AND user_id=?',
+            (*data.values(), vote_id, get_jwt_identity())
         ).rowcount
 
     if updated == 0:
@@ -501,13 +519,13 @@ def update_vote(vote_id):
 @jwt_required()
 @validate_request_json(json_schema.CREATE_INVITATION)
 def create_invitation(proj_id):
-    body = request.json
+    data = request.json
     # insert only if the current user is owner of the project
     with db_conn:
         record_id = db_conn.execute(
             'INSERT OR IGNORE INTO invitations(invitee_id,project_id,role) '
             'SELECT ?,?,? WHERE EXISTS(SELECT * FROM projects p WHERE p.id=? AND p.owner_id=?)',
-            (body['invitee_id'], proj_id, Role.CONTRIBUTOR, proj_id, get_jwt_identity())
+            (data['invitee_id'], proj_id, Role.CONTRIBUTOR, proj_id, get_jwt_identity())
         ).lastrowid
 
     if record_id is None:

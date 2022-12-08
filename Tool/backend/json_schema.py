@@ -1,3 +1,5 @@
+# NOTE: add minLength to string properties excluding spaces
+
 LOGIN = {
     'type': 'object',
     'properties': {
@@ -79,6 +81,24 @@ CREATE_INVITATION = {
         'invitee_id': {
             'type': 'integer'
         },
+    },
+    'minProperties': 1
+}
+
+UPDATE_CURR_USER = {
+    'type': 'object',
+    'properties': {
+        'full_name': {
+            'type': 'string'
+        },
+        'email': {
+            'type': 'string',
+            'format': 'email'
+        },
+        'password': {
+            'type': 'string',
+            'minLength': 4
+        }
     },
     'minProperties': 1
 }
