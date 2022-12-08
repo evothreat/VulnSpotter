@@ -220,18 +220,48 @@ def get_project(proj_id):
 @jwt_required()
 @validate_request_json(json_schema.UPDATE_PROJECT)
 def update_project(proj_id):
+    user_id = get_jwt_identity()
     body = request.json
 
-    with db_conn:
-        updated = db_conn.execute(
-            f"UPDATE projects SET {assign_bindvars(body)} WHERE id=? AND owner_id=?",
-            (*body.values(), proj_id, get_jwt_identity())
-        ).rowcount
+    extensions = body.get('extensions')
+    if extensions is not None:
+        with db_conn:
+            updated = db_conn.execute('UPDATE projects SET extensions=? WHERE id=? AND owner_id=?',
+                                      (','.join(extensions), proj_id, user_id)).rowcount
+            if updated == 0:
+                return '', 404
 
-    if updated == 0:
-        return '', 422
+            if len(extensions) > 0:
+                pad_list(extensions, IN_CLAUSE_BINDVAR_N)
+                db_conn.execute(
+                    'UPDATE commit_diffs SET suitable=suitable!=1 '
+                    'FROM (SELECT cd.id AS diff_id FROM commit_diffs cd '
+                    'JOIN commits c ON c.project_id=? AND cd.commit_id=c.id '
+                    'AND (CASE WHEN cd.file_ext IN ({}) THEN 1 ELSE 0 END)!=cd.suitable) t0 '
+                    'WHERE id=t0.diff_id'.format(IN_CLAUSE_BINDVARS),
+                    (proj_id, *extensions)
+                )
+            else:
+                db_conn.execute(
+                    'UPDATE commit_diffs SET suitable=1 '
+                    'FROM (SELECT cd.id AS diff_id FROM commit_diffs cd '
+                    'JOIN commits c ON c.project_id=? AND cd.commit_id=c.id) t0 '
+                    'WHERE id=t0.diff_id',
+                    (proj_id,)
+                )
+        body.pop('extensions')  # is it safe to modify json-object?
 
-    # TODO: notify all members about name change!
+    if body:
+        with db_conn:
+            updated = db_conn.execute(
+                f"UPDATE projects SET {assign_bindvars(body)} WHERE id=? AND owner_id=?",
+                (*body.values(), proj_id, get_jwt_identity())
+            ).rowcount
+
+        if updated == 0:
+            return '', 422
+
+        # TODO: notify all members about name change!
     return '', 204
 
 
