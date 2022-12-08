@@ -204,7 +204,7 @@ def create_project():
 
     Thread(
         target=handle_create_project,
-        args=(get_jwt_identity(), data['repo_url'], data['proj_name'], data.get('extensions', ()))
+        args=(get_jwt_identity(), data['repository'], data['project_name'], data.get('extensions', ()))
     ).start()
 
     return '', 202

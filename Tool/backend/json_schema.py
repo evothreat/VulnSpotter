@@ -17,10 +17,10 @@ AUTHENTICATE = {
 CREATE_PROJECT = {
     'type': 'object',
     'properties': {
-        'repo_url': {
+        'repository': {
             'type': 'string'
         },
-        'proj_name': {
+        'project_name': {
             'type': 'string'
         },
         'extensions': {
