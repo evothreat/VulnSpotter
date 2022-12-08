@@ -345,7 +345,7 @@ export default function Commits() {
 
     return (
         <Fragment>
-            <PageHeader sx={{mt: '35px', mb: '20px'}}>
+            <PageHeader sx={{mt: '35px'}}>
                 <Typography variant="h6">
                     Commits
                 </Typography>

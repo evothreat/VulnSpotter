@@ -5,7 +5,7 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'flex-end',
     mt: '45px',
-    mb: '30px'
+    mb: '20px'
 };
 
 export default function PageHeader({sx, ...props}) {
