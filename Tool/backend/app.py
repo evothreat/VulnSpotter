@@ -277,7 +277,7 @@ def update_project(proj_id):
             ).rowcount
 
         if updated == 0:
-            return '', 422
+            return '', 404
 
         # TODO: notify all members about name change!
     return '', 204
@@ -484,7 +484,7 @@ def create_vote():
         ).lastrowid
 
     if record_id is None:
-        return '', 422
+        return '', 404
 
     return {'resource_id': record_id}, 201
 
@@ -529,7 +529,7 @@ def create_invitation(proj_id):
         ).lastrowid
 
     if record_id is None:
-        return '', 422
+        return '', 404
 
     return {'resource_id': record_id}, 201
 
