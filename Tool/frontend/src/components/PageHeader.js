@@ -4,7 +4,7 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
-    mt: '50px',
+    mt: '45px',
     mb: '30px'
 };
 
