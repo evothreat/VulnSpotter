@@ -1,5 +1,27 @@
 # NOTE: add minLength to string properties excluding spaces
 
+REGISTER = {
+    'type': 'object',
+    'properties': {
+        'full_name': {
+            'type': 'string'
+        },
+        'email': {
+            'type': 'string',
+            'format': 'email'
+        },
+        'username': {
+            'type': 'string'
+        },
+        'password': {
+            'type': 'string',
+            'minLength': 4
+        }
+    },
+    'minProperties': 4,
+    'additionalProperties': False
+}
+
 AUTHENTICATE = {
     'type': 'object',
     'properties': {

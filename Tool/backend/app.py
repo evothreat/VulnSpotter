@@ -122,6 +122,24 @@ def is_member(user_id, proj_id):
                                 (proj_id, user_id)).fetchone())
 
 
+@app.route('/api/register', methods=['POST'])
+@validate_request_json(json_schema.REGISTER)
+def register():
+    data = request.json
+
+    try:
+        # NOTE: we also need to send verification email...
+        record_id = db_conn.execute(
+            'INSERT INTO users(full_name,email,username,password) VALUES (?,?,?,?)',
+            (data['full_name'], data['email'], data['username'], generate_password_hash(data['password']))
+        ).lastrowid
+
+    except sqlite3.IntegrityError:
+        return '', 409
+
+    return {'resource_id': record_id}, 201
+
+
 @app.route('/api/auth', methods=['POST'])
 @validate_request_json(json_schema.AUTHENTICATE)
 def authenticate():
@@ -667,7 +685,7 @@ def create_export():
     exports_map[export_id] = export_fpath
 
     cleaner = Timer(config.EXPORT_LIFETIME, delete_export, (export_id,))
-    cleaner.daemon = True   # to run even if current thread exits
+    cleaner.daemon = True  # to run even if current thread exits
     cleaner.start()
 
     return '', 201, {'Location': url_for('get_export', export_id=export_id, _external=True)}
