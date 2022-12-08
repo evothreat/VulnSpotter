@@ -203,7 +203,7 @@ export default function Explorer() {
                 choice = -1;
                 break;
             default:
-                choice = 2;
+                choice = 0;
         }
         const commitId = curCommit.id;
         const diffId = curDiffInfo.id;
