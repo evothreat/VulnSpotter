@@ -20,6 +20,13 @@ class InvitationsService {
         return api.delete(`${this.basePathSent}/${id}`);
     }
 
+    send(projId, inviteeId) {
+        return api.post(this.basePathSent, {
+            'project_id': projId,
+            'invitee_id': inviteeId
+        });
+    }
+
     accept(id) {
         return api.patch(`${this.basePath}/${id}`);
     }

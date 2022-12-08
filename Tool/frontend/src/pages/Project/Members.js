@@ -102,12 +102,14 @@ function MembersList({items, setItemToDelete}) {
 }
 
 function MembersTable({items, setItems}) {
+    const params = useParams();
+    const projId = parseInt(params.projId);
+
     const [sorter, setSorter] = useState({
         order: 'asc',
         orderBy: 'id'
     });
     const [itemToDelete, setItemToDelete] = useState(null);
-    const {projId} = useParams();
 
     const sortItems = (key) => {
         const isAsc = sorter.orderBy === key && sorter.order === 'asc';
@@ -211,10 +213,12 @@ function InviteUsersDialog({members, inviteHandler, closeHandler}) {
 }
 
 export default function Members() {
+    const params = useParams();
+    const projId = parseInt(params.projId);
+
     const [projMembers, setProjMembers] = useState(null);
     const [openInviteDlg, setOpenInviteDlg] = useState(false);
     const [alertMsg, setAlertMsg] = useState('');
-    const {projId} = useParams();
 
     useEffect(() => {
         Promise.all([ProjectsService.getMembers(projId), ProjectsService.getInvitations(projId)])
@@ -244,9 +248,8 @@ export default function Members() {
 
     const handleInvite = (selUsers) => {
         hideInviteDlg();
-        Promise.all(
-            selUsers.map((u) => ProjectsService.createInvitation(projId, u.id))
-        )
+
+        Promise.all(selUsers.map((u) => InvitationsService.send(projId, u.id)))
             .then((data) => {
                 showSuccessMsg('Invitations were successfully sent to users.');
                 const invitees = selUsers.map((u, i) => {

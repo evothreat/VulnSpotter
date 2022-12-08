@@ -20,8 +20,9 @@ function getView(key, props) {
 }
 
 export default function Project() {
+    const params = useParams();
+    const projId = parseInt(params.projId);
 
-    const {projId} = useParams();
     const [project, setProject] = useState(null);       // move to sidebar?
     const [viewKey, setViewKey] = useState('commits');
 

@@ -248,7 +248,9 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
 }
 
 export default function Commits() {
-    const {projId} = useParams();
+    const params = useParams();
+    const projId = parseInt(params.projId);
+
     const navigate = useNavigate();
 
     const [group, setGroup] = useState('unrated');

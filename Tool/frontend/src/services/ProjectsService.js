@@ -46,10 +46,6 @@ class ProjectsService {
         return api.get(`${this.basePath}/${id}/invitations`);
     }
 
-    createInvitation(id, inviteeId) {
-        return api.post(`${this.basePath}/${id}/invitations`, {'invitee_id': inviteeId});
-    }
-
     getCommits(id, opts) {
         let queryArgs = [];
         if (opts) {
