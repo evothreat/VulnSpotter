@@ -110,3 +110,14 @@ UPDATE_CURR_USER = {
     'minProperties': 1,
     'additionalProperties': False
 }
+
+CREATE_EXPORT = {
+    'type': 'object',
+    'properties': {
+        'project_id': {
+            'type': 'integer'
+        }
+    },
+    'minProperties': 1,
+    'additionalProperties': False
+}

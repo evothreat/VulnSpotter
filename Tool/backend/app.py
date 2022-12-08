@@ -1,8 +1,10 @@
+import os
 import traceback
-from threading import Thread
+from threading import Thread, Timer
+from uuid import uuid4
 
 import git
-from flask import Flask, request
+from flask import Flask, request, send_file, url_for
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, create_refresh_token
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -14,6 +16,9 @@ from helpers import validate_request_json, register_boolean_type, gen_export_fil
     create_project_from_repo
 from safe_sql import SafeSql
 from utils import pathjoin, unix_time, pad_list
+
+IN_CLAUSE_BINDVAR_N = 25
+IN_CLAUSE_BINDVARS = ('?,' * IN_CLAUSE_BINDVAR_N).rstrip(',')
 
 app = Flask(__name__)
 jwt = JWTManager(app)
@@ -36,8 +41,7 @@ db_conn.execute('PRAGMA foreign_keys=ON')
 
 db_conn.row_factory = sqlite3.Row
 
-IN_CLAUSE_BINDVAR_N = 25
-IN_CLAUSE_BINDVARS = ('?,' * IN_CLAUSE_BINDVAR_N).rstrip(',')
+exports_map = {}
 
 
 def setup_db():
@@ -239,7 +243,7 @@ def get_project(proj_id):
 @validate_request_json(json_schema.UPDATE_PROJECT)
 def update_project(proj_id):
     user_id = get_jwt_identity()
-    data = request.json.copy()      # make copy, because we don't want to modify original object
+    data = request.json.copy()  # make copy, because we don't want to modify original object
 
     extensions = data.get('extensions')
     if extensions is not None:
@@ -642,11 +646,38 @@ def delete_member(proj_id, member_id):
     return '', 204
 
 
-@app.route('/api/users/me/projects/<int:proj_id>/export', methods=['GET'])
-# @jwt_required()
-def get_export_data(proj_id):
+def delete_export(export_id):
+    os.remove(exports_map[export_id])
+    del exports_map[export_id]
+
+
+@app.route('/api/exports', methods=['POST'])
+@jwt_required()
+@validate_request_json(json_schema.CREATE_EXPORT)
+def create_export():
+    proj_id = request.json['project_id']
+    if not is_member(get_jwt_identity(), proj_id):
+        return '', 404
+
     export_fpath = gen_export_file(proj_id)
-    return export_fpath, 200
+
+    export_id = str(uuid4())
+    exports_map[export_id] = export_fpath
+
+    cleaner = Timer(config.EXPORT_LIFETIME, delete_export, (export_id,))
+    cleaner.daemon = True   # to run even if current thread exits
+    cleaner.start()
+
+    return '', 201, {'Location': url_for('get_export', export_id=export_id, _external=True)}
+
+
+@app.route('/api/exports/<export_id>')
+def get_export(export_id):
+    export_fpath = exports_map.get(export_id)
+    if not export_fpath:
+        return '', 404
+
+    return send_file(export_fpath, as_attachment=True)
 
 
 if __name__ == '__main__':
