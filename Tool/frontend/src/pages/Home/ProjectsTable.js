@@ -76,18 +76,25 @@ function ProjectTableList({items, setItemToDelete, setItemToRename}) {
                                 <RouterLink underline="hover" to={`/home/projects/${it.id}`}>{it.name}</RouterLink>
                             </TableCell>
                             <TableCell>{it.personal ? 'Me' : it.owner_name}</TableCell>
-                            <TableCell>{it.repository.substring(it.repository.indexOf('/')+1)}</TableCell>
+                            <TableCell>{it.repository.substring(it.repository.indexOf('/') + 1)}</TableCell>
                             <TableCell>{it.commit_n}</TableCell>
                             <TableCell align="right">
-                                <Box sx={{display: 'flex', justifyContent: 'right'}}>
-                                    <ActionButton data-item-id={it.id} onClick={handleRenClick}>
-                                        <DriveFileRenameOutlineIcon fontSize="inherit"/>
-                                    </ActionButton>
+                                {
+                                    it.personal
+                                        ? (
+                                            <Box sx={{display: 'flex', justifyContent: 'right'}}>
+                                                <ActionButton data-item-id={it.id} onClick={handleRenClick}>
+                                                    <DriveFileRenameOutlineIcon fontSize="inherit"/>
+                                                </ActionButton>
 
-                                    <ActionButton data-item-id={it.id} onClick={handleDelClick}>
-                                        <DeleteForeverIcon fontSize="inherit"/>
-                                    </ActionButton>
-                                </Box>
+                                                <ActionButton data-item-id={it.id} onClick={handleDelClick}>
+                                                    <DeleteForeverIcon fontSize="inherit"/>
+                                                </ActionButton>
+                                            </Box>
+                                        )
+                                        : null
+                                }
+
                             </TableCell>
                         </TableRow>)
                     : <TableRow>
