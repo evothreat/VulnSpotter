@@ -335,18 +335,20 @@ def delete_notifications():
 @app.route('/api/users/me/projects/<int:proj_id>/commits', methods=['GET'])
 @jwt_required()
 def get_commits(proj_id):
-    if not is_member(get_jwt_identity(), proj_id):
+    user_id = get_jwt_identity()
+    if not is_member(user_id, proj_id):
         return '', 404
 
     if (rated := request.args.get('rated', -1, int)) != -1:
+        # NOTE: maybe create index on v.user_id and v.diff_id
         data = db_conn.execute('SELECT t0.id,t0.hash,t0.message,t0.created_at FROM '
                                '(SELECT c.id,c.hash,c.message,c.created_at,cd.id AS diff_id FROM commits c '
                                'JOIN commit_diffs cd ON cd.suitable=1 AND c.project_id=? AND cd.commit_id=c.id '
                                'GROUP BY c.id) t0 '
-                               'LEFT JOIN votes v ON v.diff_id=t0.diff_id '
+                               'LEFT JOIN votes v ON v.user_id=? AND v.diff_id=t0.diff_id '
                                'WHERE v.diff_id IS {} NULL '
                                'GROUP BY t0.id'.format('NOT' if rated == 1 else ''),
-                               (proj_id,)).fetchall()
+                               (proj_id, user_id)).fetchall()
     else:
         data = db_conn.execute('SELECT c.id,c.hash,c.message,c.created_at FROM commits c '
                                'JOIN commit_diffs cd ON cd.suitable=1 AND c.project_id=? AND cd.commit_id=c.id '
@@ -374,7 +376,7 @@ def get_commit_full_info(commit_id):
     diffs_info = db_conn.execute(
         'SELECT cd.id,cd.commit_id,dc.content,v.id AS vote_id, v.user_id,v.choice FROM commit_diffs cd '
         'JOIN diff_content dc ON cd.suitable=1 AND cd.commit_id=? AND cd.id=dc.diff_id '
-        'LEFT JOIN votes v ON v.diff_id=cd.id AND v.user_id=?',
+        'LEFT JOIN votes v ON v.user_id=? AND v.diff_id=cd.id',
         (commit_id, user_id)).fetchall()
 
     return {
