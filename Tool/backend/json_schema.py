@@ -10,7 +10,8 @@ AUTHENTICATE = {
             'type': 'string'
         }
     },
-    'minProperties': 2
+    'minProperties': 2,
+    'additionalProperties': False
 }
 
 CREATE_PROJECT = {
@@ -26,7 +27,8 @@ CREATE_PROJECT = {
             'type': 'array'
         }
     },
-    'required': ['repo_url', 'proj_name']
+    'required': ['repo_url', 'proj_name'],
+    'additionalProperties': False
 }
 
 UPDATE_PROJECT = {
@@ -39,7 +41,8 @@ UPDATE_PROJECT = {
             'type': 'array'
         }
     },
-    'minProperties': 1
+    'minProperties': 1,
+    'additionalProperties': False
 }
 
 UPDATE_NOTIFS = {
@@ -49,7 +52,8 @@ UPDATE_NOTIFS = {
             'type': 'boolean'
         }
     },
-    'minProperties': 1
+    'minProperties': 1,
+    'additionalProperties': False
 }
 
 CREATE_VOTE = {
@@ -62,7 +66,8 @@ CREATE_VOTE = {
             'type': 'integer'
         },
     },
-    'minProperties': 2
+    'minProperties': 2,
+    'additionalProperties': False
 }
 
 UPDATE_VOTE = {
@@ -72,7 +77,8 @@ UPDATE_VOTE = {
             'type': 'integer'
         },
     },
-    'minProperties': 1
+    'minProperties': 1,
+    'additionalProperties': False
 }
 
 CREATE_INVITATION = {
@@ -82,7 +88,8 @@ CREATE_INVITATION = {
             'type': 'integer'
         },
     },
-    'minProperties': 1
+    'minProperties': 1,
+    'additionalProperties': False
 }
 
 UPDATE_CURR_USER = {
@@ -100,5 +107,6 @@ UPDATE_CURR_USER = {
             'minLength': 4
         }
     },
-    'minProperties': 1
+    'minProperties': 1,
+    'additionalProperties': False
 }
