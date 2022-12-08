@@ -224,7 +224,7 @@ export default function ProjectsTable() {
             {
                 items == null
                     ? <Typography variant="body2">Loading projects...</Typography>
-                    : <TableContainer sx={{height: '470px'}}>
+                    : <TableContainer sx={{height: '465px', borderBottom: 'thin solid lightgray'}}>
                         <Table size="small" stickyHeader sx={{tableLayout: 'fixed'}}>
                             <EnhancedTableHead
                                 headCells={headCells}

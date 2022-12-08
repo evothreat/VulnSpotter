@@ -135,7 +135,7 @@ function MembersTable({items, setItems}) {
 
     return (
         <Fragment>
-            <TableContainer sx={{height: '460px'}}>
+            <TableContainer sx={{height: '520px', borderBottom: 'thin solid lightgray'}}>
                 <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
                     <EnhancedTableHead headCells={headCells}
                                        order={sorter.order}
