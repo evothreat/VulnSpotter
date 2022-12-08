@@ -189,7 +189,7 @@ def gen_export_file(proj_id):
     repo_dir = pathjoin(config.REPOS_DIR, proj_info['repository'])
 
     diffs_info = conn.execute('SELECT c.hash AS commit_hash,v.diff_id,'
-                              'SUM(CASE WHEN v.choice=2 THEN 1 ELSE 0 END) neutral,'
+                              'SUM(CASE WHEN v.choice=0 THEN 1 ELSE 0 END) neutral,'
                               'SUM(CASE WHEN v.choice=1 THEN 1 ELSE 0 END ) positive,'
                               'SUM(CASE WHEN v.choice=-1 THEN 1 ELSE 0 END ) negative FROM commits c '
                               'JOIN commit_diffs cd ON c.project_id=? AND cd.commit_id=c.id '
