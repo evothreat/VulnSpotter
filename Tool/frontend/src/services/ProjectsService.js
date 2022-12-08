@@ -17,8 +17,8 @@ class ProjectsService {
 
     create(repoUrl, projName, extensions) {
         const body = {
-            'repo_url': repoUrl,
-            'proj_name': projName
+            'repository': repoUrl,
+            'project_name': projName
         }
         if (extensions) {
             body['extensions'] = extensions;
