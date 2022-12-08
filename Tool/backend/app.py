@@ -281,13 +281,14 @@ def delete_project(proj_id):
 @app.route('/api/users/me/notifications', methods=['GET'])
 @jwt_required()
 def get_notifications():
-    param = 'AND n.is_seen=0' if 'unseen' in request.args else ''
     data = db_conn.execute(
         'SELECT n.id,n.is_seen,n.created_at,pu.actor_id,pu.activity,pu.project_id,pu.updated_at,'
         'u.full_name AS user_name,p.name AS project_name FROM notifications n '
         'JOIN project_updates pu ON n.user_id=? {} AND pu.id=n.update_id '
         'JOIN users u on pu.actor_id=u.id '
-        'LEFT JOIN projects p ON pu.project_id=p.id'.format(param), (get_jwt_identity(),)).fetchall()
+        'LEFT JOIN projects p ON pu.project_id=p.id'.format('AND n.is_seen=0' if 'unseen' in request.args else ''),
+        (get_jwt_identity(),)
+    ).fetchall()
 
     return [views.notification(d) for d in data]
 
@@ -301,10 +302,9 @@ def update_notifications():
     except (KeyError, ValueError):
         return '', 422
 
-    pad_list(ids, IN_CLAUSE_BINDVAR_N)
-
     body = request.json
     with db_conn:
+        pad_list(ids, IN_CLAUSE_BINDVAR_N)
         db_conn.execute(
             f"UPDATE notifications SET {assign_bindvars(body)} WHERE user_id=? AND id IN ({IN_CLAUSE_BINDVARS})",
             (*body.values(), get_jwt_identity(), *ids)
@@ -322,9 +322,8 @@ def delete_notifications():
     except (KeyError, ValueError):
         return '', 422
 
-    pad_list(ids, IN_CLAUSE_BINDVAR_N)
-
     with db_conn:
+        pad_list(ids, IN_CLAUSE_BINDVAR_N)
         db_conn.execute(
             f"DELETE FROM notifications WHERE user_id=? AND id IN ({IN_CLAUSE_BINDVARS})",
             (get_jwt_identity(), *ids)
@@ -565,9 +564,12 @@ def get_invitations():
 @jwt_required()
 def accept_invitation(invitation_id):
     with db_conn:
-        record_id = db_conn.execute('INSERT INTO membership(user_id,project_id,role) '
-                                    'SELECT invitee_id,project_id,role FROM invitations WHERE id=? AND invitee_id=? LIMIT 1',
-                                    (invitation_id, get_jwt_identity())).lastrowid
+        record_id = db_conn.execute(
+            'INSERT INTO membership(user_id,project_id,role) '
+            'SELECT invitee_id,project_id,role FROM invitations WHERE id=? AND invitee_id=? LIMIT 1',
+            (invitation_id, get_jwt_identity())
+        ).lastrowid
+
         if record_id is None:
             return '', 404
 
