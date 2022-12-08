@@ -118,9 +118,9 @@ def is_member(user_id, proj_id):
                                 (proj_id, user_id)).fetchone())
 
 
-@app.route('/api/login', methods=['POST'])
-@validate_request_json(json_schema.LOGIN)
-def login():
+@app.route('/api/auth', methods=['POST'])
+@validate_request_json(json_schema.AUTHENTICATE)
+def authenticate():
     data = request.json
 
     creds = db_conn.execute('SELECT id,password FROM users WHERE username=? LIMIT 1',

@@ -1,6 +1,6 @@
 # NOTE: add minLength to string properties excluding spaces
 
-LOGIN = {
+AUTHENTICATE = {
     'type': 'object',
     'properties': {
         'username': {
