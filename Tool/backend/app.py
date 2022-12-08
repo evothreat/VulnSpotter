@@ -703,9 +703,3 @@ def get_export(export_id):
 if __name__ == '__main__':
     # setup_db()
     app.run()
-
-# TODO: implement registration endpoint
-# TODO: verify parameter semantics
-
-# PROBLEMS
-# 1. input-value semantics aren't checked

@@ -1,4 +1,5 @@
 # NOTE: add minLength to string properties excluding spaces
+# NOTE: add semantic-checks for range a.o. values
 
 REGISTER = {
     'type': 'object',
