@@ -98,7 +98,7 @@ def get_cve_summary(cve_ids, max_tries=3, start_index=0):
 def get_cve_details_redhat(cve_ids):
     cve_url = CVE_API_REDHAT.rstrip('.json')
     res = {}
-    for cid in cve_ids:
+    for _, cid in zip(range(MAX_PARSED_ALONE), cve_ids):
         resp = reqs.get(f'{cve_url}/{cid}.json')
         if resp.status_code != 200:
             continue  # ignore errors
@@ -125,7 +125,7 @@ def get_cve_details_redhat(cve_ids):
 def get_cve_info(hint, cve_ids):
     cve_info = get_cve_details(hint.replace('-', ' ').replace('_', ' '), cve_ids)
 
-    if MAX_PARSED_ALONE >= len(cve_ids) - len(cve_info):
+    if len(cve_ids) > len(cve_info):
         cve_info.update(get_cve_details_redhat(cve_ids - cve_info.keys()))
 
     if not cve_info:
