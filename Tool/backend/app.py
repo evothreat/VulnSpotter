@@ -519,25 +519,6 @@ def update_vote(vote_id):
     return '', 204
 
 
-@app.route('/api/users/me/projects/<int:proj_id>/invitations', methods=['POST'])
-@jwt_required()
-@validate_request_json(json_schema.CREATE_INVITATION)
-def create_invitation(proj_id):
-    data = request.json
-    # insert only if the current user is owner of the project
-    with db_conn:
-        record_id = db_conn.execute(
-            'INSERT OR IGNORE INTO invitations(invitee_id,project_id,role) '
-            'SELECT ?,?,? WHERE EXISTS(SELECT * FROM projects p WHERE p.id=? AND p.owner_id=?)',
-            (data['invitee_id'], proj_id, Role.CONTRIBUTOR, proj_id, get_jwt_identity())
-        ).lastrowid
-
-    if record_id is None:
-        return '', 404
-
-    return {'resource_id': record_id}, 201
-
-
 @app.route('/api/users/me/projects/<int:proj_id>/invitations', methods=['GET'])
 @jwt_required()
 def get_sent_invitations(proj_id):
@@ -548,6 +529,27 @@ def get_sent_invitations(proj_id):
                            (proj_id, get_jwt_identity())).fetchall()
 
     return [views.sent_invitation(d) for d in data]
+
+
+@app.route('/api/users/me/sent-invitations', methods=['POST'])
+@jwt_required()
+@validate_request_json(json_schema.SEND_INVITATION)
+def send_invitation():
+    data = request.json
+    proj_id = data['project_id']
+
+    with db_conn:
+        # insert only if the current user is owner of the project
+        record_id = db_conn.execute(
+            'INSERT OR IGNORE INTO invitations(invitee_id,project_id,role) '
+            'SELECT ?,?,? WHERE EXISTS(SELECT * FROM projects p WHERE p.id=? AND p.owner_id=?)',
+            (data['invitee_id'], proj_id, Role.CONTRIBUTOR, proj_id, get_jwt_identity())
+        ).lastrowid
+
+    if record_id is None:
+        return '', 404
+
+    return {'resource_id': record_id}, 201
 
 
 @app.route('/api/users/me/sent-invitations/<int:invitation_id>', methods=['GET'])

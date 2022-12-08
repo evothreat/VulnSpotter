@@ -81,14 +81,17 @@ UPDATE_VOTE = {
     'additionalProperties': False
 }
 
-CREATE_INVITATION = {
+SEND_INVITATION = {
     'type': 'object',
     'properties': {
+        'project_id': {
+            'type': 'integer'
+        },
         'invitee_id': {
             'type': 'integer'
         },
     },
-    'minProperties': 1,
+    'minProperties': 2,
     'additionalProperties': False
 }
 
