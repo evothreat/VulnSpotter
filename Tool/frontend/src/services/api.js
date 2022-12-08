@@ -18,7 +18,7 @@ const onResponse = (resp) => {
 // on error invalidate authentication data & redirect!
 const onResponseError = async (err) => {
     const origReq = err.config;
-    if (origReq.url !== '/login' && err.response?.status === 401 && !origReq._retry) {
+    if (origReq.url !== '/auth' && err.response?.status === 401 && !origReq._retry) {
         origReq._retry = true;
         try {
             const resp = await axios.post('/api/refresh', {}, {

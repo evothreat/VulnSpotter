@@ -4,7 +4,7 @@ import api from "./api";
 class AuthService {
 
     login(username, password) {
-        return api.post('/login', {
+        return api.post('/auth', {
             'username': username,
             'password': password
         }).then((data) => {
