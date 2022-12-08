@@ -298,8 +298,8 @@ def update_project(proj_id):
                 (*data.values(), proj_id, get_jwt_identity())
             ).rowcount
 
-        if updated == 0:
-            return '', 404
+            if updated == 0:
+                return '', 404
 
         # TODO: notify all members about name change!
     return '', 204
@@ -505,8 +505,8 @@ def create_vote():
             (get_jwt_identity(), data['diff_id'], data['choice'])
         ).lastrowid
 
-    if record_id is None:
-        return '', 404
+        if record_id is None:
+            return '', 404
 
     return {'resource_id': record_id}, 201
 
@@ -531,8 +531,8 @@ def update_vote(vote_id):
             (*data.values(), vote_id, get_jwt_identity())
         ).rowcount
 
-    if updated == 0:
-        return '', 404
+        if updated == 0:
+            return '', 404
 
     return '', 204
 
@@ -564,8 +564,8 @@ def send_invitation():
             (data['invitee_id'], proj_id, Role.CONTRIBUTOR, proj_id, get_jwt_identity())
         ).lastrowid
 
-    if record_id is None:
-        return '', 404
+        if record_id is None:
+            return '', 404
 
     return {'resource_id': record_id}, 201
 
@@ -589,8 +589,8 @@ def delete_sent_invitation(invitation_id):
         deleted = db_conn.execute('DELETE FROM invitations WHERE id=? '
                                   'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?)',
                                   (invitation_id, get_jwt_identity())).rowcount
-    if deleted == 0:
-        return '', 404
+        if deleted == 0:
+            return '', 404
 
     return '', 204
 
@@ -629,8 +629,8 @@ def delete_invitation(invitation_id):
     with db_conn:
         deleted = db_conn.execute('DELETE FROM invitations WHERE id=? AND invitee_id=?',
                                   (invitation_id, get_jwt_identity())).rowcount
-    if deleted == 0:
-        return '', 404
+        if deleted == 0:
+            return '', 404
 
     return '', 204
 
@@ -659,8 +659,8 @@ def delete_member(proj_id, member_id):
         deleted = db_conn.execute('DELETE FROM membership WHERE project_id=? AND user_id=? '
                                   'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?)',
                                   (proj_id, member_id, owner_id)).rowcount
-    if deleted == 0:
-        return '', 404
+        if deleted == 0:
+            return '', 404
     # TODO: notify deleted user
 
     return '', 204
