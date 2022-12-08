@@ -11,7 +11,7 @@ export default function DiffViewerHeader({stats, oldFileName, newFileName, diffS
         <div className={cssStyle.diffHeader}>
             <div className={cssStyle.diffInfo}>
                 {
-                    diffState
+                    diffState != null
                         ? (
                             diffState === 1
                                 ? <CheckCircleOutlineIcon className={cssStyle.accepted}/>
