@@ -74,7 +74,11 @@ export default function Explorer() {
                     return;
                 }
                 // patch
+                let totalVotes = 0;
                 const diffsInfoIt = new ArrayIterator(diffs_info.map((di) => {
+                    if (di.vote) {
+                        totalVotes++;
+                    }
                     return {
                         ...di,
                         content: parsePatch(di.content)[0]
@@ -84,9 +88,16 @@ export default function Explorer() {
                 if (backwards.current) {
                     backwards.current = false;
                     diffsInfoIt.seek(-1);
-                } else {
+
+                }
+                // we need this later e.g. if we refresh page to restore current position
+                else if (totalVotes !== diffs_info.length) {
+                    diffsInfoIt.seek(totalVotes);
+                }
+                else {
                     diffsInfoIt.seek(0);
                 }
+
                 // cveList
                 for (const cve of cve_list) {
                     cve.severity = getCvss3Severity(cve.cvss_score);
