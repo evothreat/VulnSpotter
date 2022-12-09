@@ -37,10 +37,10 @@ export default function Explorer() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const [commitIds, setCommitIds] = useState(null);
+    const [commitIdsIt, setCommitIdsIt] = useState(null);
     const [commitInfo, setCommitInfo] = useState({
         commit: null,
-        diffsInfo: null,
+        diffsInfoIt: null,
         cveList: null,
     });
     const backwards = useRef(false);
@@ -54,27 +54,27 @@ export default function Explorer() {
     ];
 
     const curCommit = commitInfo.commit;
-    const curDiffInfo = commitInfo.diffsInfo?.curr();
+    const curDiffInfo = commitInfo.diffsInfoIt?.curr();
 
     useEffect(() => {
-        setCommitIds(new ArrayIterator(location.state?.commitIds || []));
+        setCommitIdsIt(new ArrayIterator(location.state?.commitIds || []));
     }, [location.state]);
 
     useEffect(() => {
-        if (!commitIds) {
+        if (!commitIdsIt) {
             return;
         }
-        const commitId = commitIds.curr();
+        const commitId = commitIdsIt.curr();
         if (!commitId) {
             return;
         }
         CommitsService.getFullInfo(commitId)
             .then(({commit, cve_list, diffs_info}) => {
-                if (commitId !== commitIds.curr()) {
+                if (commitId !== commitIdsIt.curr()) {
                     return;
                 }
                 // patch
-                const diffsInfo = new ArrayIterator(diffs_info.map((di) => {
+                const diffsInfoIt = new ArrayIterator(diffs_info.map((di) => {
                     return {
                         ...di,
                         content: parsePatch(di.content)[0]
@@ -83,9 +83,9 @@ export default function Explorer() {
                 // determine diff to begin with
                 if (backwards.current) {
                     backwards.current = false;
-                    diffsInfo.seek(-1);
+                    diffsInfoIt.seek(-1);
                 } else {
-                    diffsInfo.seek(0);
+                    diffsInfoIt.seek(0);
                 }
                 // cveList
                 for (const cve of cve_list) {
@@ -93,17 +93,17 @@ export default function Explorer() {
                 }
                 setCommitInfo({
                     commit: commit,
-                    diffsInfo: diffsInfo,
+                    diffsInfoIt: diffsInfoIt,
                     cveList: cve_list,
                 });
             });
         return () => {
             voteUpdates.current = {};   // not necessary, but useful to save memory
         };
-    }, [commitIds]);
+    }, [commitIdsIt]);
 
     const refreshData = () => {
-        const diffInfo = commitInfo.diffsInfo.curr();
+        const diffInfo = commitInfo.diffsInfoIt.curr();
         // check if vote for current diff was created or updated
         const vote = voteUpdates.current[diffInfo.id];
         if (vote) {
@@ -119,11 +119,11 @@ export default function Explorer() {
     const gotoPrevDiff = (e) => {
         e?.preventDefault();
 
-        if (commitInfo.diffsInfo.prev()) {
+        if (commitInfo.diffsInfoIt.prev()) {
             refreshData();
-        } else if (commitIds.prev()) {
+        } else if (commitIdsIt.prev()) {
             backwards.current = true;
-            setCommitIds(commitIds.clone());
+            setCommitIdsIt(commitIdsIt.clone());
         } else {
             console.log('no more commits available')
         }
@@ -132,11 +132,11 @@ export default function Explorer() {
     const gotoNextDiff = (e) => {
         e?.preventDefault();
 
-        if (commitInfo.diffsInfo.next()) {
+        if (commitInfo.diffsInfoIt.next()) {
             refreshData();
-        } else if (commitIds.next()) {
-            console.log('ID:', commitIds.curr());
-            setCommitIds(commitIds.clone());
+        } else if (commitIdsIt.next()) {
+            console.log('ID:', commitIdsIt.curr());
+            setCommitIdsIt(commitIdsIt.clone());
         } else {
             console.log('no more commits available');
         }
@@ -189,7 +189,7 @@ export default function Explorer() {
         }
     };
 
-    const reachedEnd = () => !commitIds.hasNext() && !commitInfo.diffsInfo.hasNext();
+    const reachedEnd = () => !commitIdsIt.hasNext() && !commitInfo.diffsInfoIt.hasNext();
 
     const rateDiff = (e, key) => {
         e.preventDefault();
@@ -217,7 +217,7 @@ export default function Explorer() {
                         id: data.resource_id,
                         choice: choice
                     };
-                    if (commitId === commitIds.curr() && reachedEnd()) {
+                    if (commitId === commitIdsIt.curr() && reachedEnd()) {
                         refreshData();
                     }
                 });
@@ -226,7 +226,7 @@ export default function Explorer() {
                 .then(() => {
                     vote.choice = choice;
                     voteUpdates.current[diffId] = vote;
-                    if (commitId === commitIds.curr() && reachedEnd()) {
+                    if (commitId === commitIdsIt.curr() && reachedEnd()) {
                         refreshData();
                     }
                 });
