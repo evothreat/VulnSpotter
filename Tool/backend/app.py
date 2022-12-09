@@ -380,15 +380,14 @@ def get_commits(proj_id):
     if not is_member(user_id, proj_id):
         return '', 404
 
-    if (rated := request.args.get('rated', -1, int)) != -1:
+    rated_arg = request.args.get('rated', None, int)
+    if rated_arg is not None:
         # NOTE: maybe create index on v.user_id and v.diff_id
-        data = db_conn.execute('SELECT t0.id,t0.hash,t0.message,t0.created_at FROM '
-                               '(SELECT c.id,c.hash,c.message,c.created_at,cd.id AS diff_id FROM commits c '
+        data = db_conn.execute('SELECT c.id,c.hash,c.message,c.created_at FROM commits c '
                                'JOIN commit_diffs cd ON cd.suitable=1 AND c.project_id=? AND cd.commit_id=c.id '
-                               'GROUP BY c.id) t0 '
-                               'LEFT JOIN votes v ON v.user_id=? AND v.diff_id=t0.diff_id '
+                               'LEFT JOIN votes v ON v.user_id=? AND v.diff_id=cd.id '
                                'WHERE v.diff_id IS {} NULL '
-                               'GROUP BY t0.id'.format('NOT' if rated == 1 else ''),
+                               'GROUP BY c.id'.format('NOT' if rated_arg == 1 else ''),
                                (proj_id, user_id)).fetchall()
     else:
         data = db_conn.execute('SELECT c.id,c.hash,c.message,c.created_at FROM commits c '
