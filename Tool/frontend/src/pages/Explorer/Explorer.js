@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box";
 import DiffViewer from "./DiffViewer/DiffViewer";
 import React, {useEffect, useRef, useState} from "react";
-import {useLocation, useNavigate} from "react-router-dom";
+import {useLocation, useNavigate, useSearchParams} from "react-router-dom";
 import CommitsService from "../../services/CommitsService";
 import {createLineDiff, DiffType, parsePatch} from "../../diffUtils";
 import Typography from "@mui/material/Typography";
@@ -35,7 +35,8 @@ function MessageWindow({message, setWinRef}) {
 
 export default function Explorer() {
     const navigate = useNavigate();
-    const location = useLocation();
+    const {state: locState} = useLocation();
+    const [queryArgs,] = useSearchParams();
 
     const [commitIdsIt, setCommitIdsIt] = useState(null);
     const [commitInfo, setCommitInfo] = useState({
@@ -57,8 +58,16 @@ export default function Explorer() {
     const curDiffInfo = commitInfo.diffsInfoIt?.curr();
 
     useEffect(() => {
-        setCommitIdsIt(new ArrayIterator(location.state?.commitIds || []));
-    }, [location.state]);
+        const commitId = parseInt(queryArgs.get('commitId'));
+
+        setCommitIdsIt(
+            new ArrayIterator(
+                commitId
+                    ? [commitId]
+                    : locState?.commitIds || []
+            )
+        );
+    }, [queryArgs, locState]);
 
     useEffect(() => {
         if (!commitIdsIt) {

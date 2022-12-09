@@ -94,8 +94,7 @@ function CommitRow({item, checkHandler, checked}) {
                 <TableCell>
                     {
                         <Box sx={{display: 'flex', alignItems: 'flex-end'}}>
-                            <RouterLink to={'./explorer'} state={{commitIds: [item.id]}} underline="hover"
-                                        color="inherit">
+                            <RouterLink to={`./explorer?commitId=${item.id}`} underline="hover" color="inherit">
                                 {
                                     item.message.substring(0, 60).replace('\n', ' ⤶ ')
                                 }
@@ -309,10 +308,6 @@ export default function Commits() {
             }));
         }
     }, [commitFilter]);
-
-    useEffect(() => {
-        localStorage.setItem('selectedIds', JSON.stringify([...selectedIds]));
-    }, [selectedIds]);
 
     const handleGroupChange = (e, val) => {
         if (val) {
