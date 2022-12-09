@@ -9,7 +9,7 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 import * as Utils from "../../utils";
-import {arrayEquals} from "../../utils";
+import {arrayEquals, createComparator} from "../../utils";
 import TableBody from "@mui/material/TableBody";
 import {Waypoint} from "react-waypoint";
 import TableContainer from "@mui/material/TableContainer";
@@ -77,7 +77,6 @@ const autocompleteInputStyle = {
     }
 };
 
-const cmpByCreationTime = Utils.createComparator('created_at', 'desc');
 
 function CommitRow({item, checkHandler, checked}) {
     const [detailsOpen, setDetailsOpen] = useState(false);
@@ -157,6 +156,15 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
     const containerRef = useRef(null);
 
     const [state, setState] = useState({});
+
+    useEffect(() => {
+        if (state.order && state.orderBy) {
+            localStorage.setItem('sortOpts', JSON.stringify({
+                'key': state.orderBy,
+                'order': state.order
+            }));
+        }
+    }, [state.order, state.orderBy]);
 
     if (state.items !== commits) {
         if (containerRef.current) {
@@ -253,15 +261,16 @@ export default function Commits() {
 
     const navigate = useNavigate();
 
-    const [group, setGroup] = useState('unrated');
+    const [group, setGroup] = useState(localStorage.getItem('group') || 'unrated');
     const [commitFilter, setCommitFilter] = useState(null);
     const [selectedIds, setSelectedIds] = useState(new Set());
 
     useEffect(() => {
         const groupCp = group;    // need this to avoid race conditions
-        const opts = groupCp === 'all' ? null : {rated: (groupCp === 'rated')};
 
-        ProjectsService.getCommits(projId, opts)
+        const reqOpts = groupCp === 'all' ? null : {rated: (groupCp === 'rated')};
+
+        ProjectsService.getCommits(projId, reqOpts)
             .then((data) => {
                 if (groupCp !== group) {
                     return;
@@ -270,20 +279,40 @@ export default function Commits() {
                     c.message = c.message.trim();
                     c.cve = Utils.findCVEs(c.message);
                 });
-                data.sort(cmpByCreationTime);
 
                 const filter = new FastFilter(data);
                 filter.getCmpValue = (c) => c.message;
 
-                // if any filters applied before
-                if (commitFilter) {
-                    // apply them to the retrieved commits
-                    filter.changeLogicalOp(commitFilter.logicalOp);
-                    filter.updateKeywords(commitFilter.keywords);
+                // restore previous sort/filter options
+                const filterOpts = JSON.parse(localStorage.getItem('filterOpts'));
+                if (filterOpts) {
+                    filter.changeLogicalOp(filterOpts.logicalOp);
+                    filter.updateKeywords(filterOpts.keywords);
                 }
+
+                const sortOpts = JSON.parse(localStorage.getItem('sortOpts'));
+                if (sortOpts) {
+                    filter.result.sort(createComparator(sortOpts.key, sortOpts.order));
+                }
+
                 setCommitFilter(filter);
+
+                localStorage.setItem('group', groupCp);
             });
     }, [projId, group]);
+
+    useEffect(() => {
+        if (commitFilter != null) {
+            localStorage.setItem('filterOpts', JSON.stringify({
+                'keywords': commitFilter.keywords,
+                'logicalOp': commitFilter.logicalOp
+            }));
+        }
+    }, [commitFilter]);
+
+    useEffect(() => {
+        localStorage.setItem('selectedIds', JSON.stringify([...selectedIds]));
+    }, [selectedIds]);
 
     const handleGroupChange = (e, val) => {
         if (val) {
@@ -292,6 +321,7 @@ export default function Commits() {
     };
 
     const gotoExplorer = () => {
+        // NOTE: first check whether any selected
         navigate('./explorer', {
             state: {
                 commitIds: Array.from(selectedIds)
