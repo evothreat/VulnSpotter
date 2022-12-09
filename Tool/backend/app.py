@@ -129,15 +129,16 @@ def register():
 
     try:
         # NOTE: we also need to send verification email...
-        record_id = db_conn.execute(
-            'INSERT INTO users(full_name,email,username,password) VALUES (?,?,?,?)',
-            (data['full_name'], data['email'], data['username'], generate_password_hash(data['password']))
-        ).lastrowid
+        with db_conn:
+            record_id = db_conn.execute(
+                'INSERT INTO users(full_name,email,username,password) VALUES (?,?,?,?)',
+                (data['full_name'], data['email'], data['username'], generate_password_hash(data['password']))
+            ).lastrowid
+
+            return {'resource_id': record_id}, 201
 
     except sqlite3.IntegrityError:
         return '', 409
-
-    return {'resource_id': record_id}, 201
 
 
 @app.route('/api/auth', methods=['POST'])
