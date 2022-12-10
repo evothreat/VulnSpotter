@@ -158,7 +158,7 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
 
     useEffect(() => {
         if (state.order && state.orderBy) {
-            localStorage.setItem('sortOpts', JSON.stringify({
+            sessionStorage.setItem('sortOpts', JSON.stringify({
                 'key': state.orderBy,
                 'order': state.order
             }));
@@ -260,7 +260,7 @@ export default function Commits() {
 
     const navigate = useNavigate();
 
-    const [group, setGroup] = useState(localStorage.getItem('group') || 'unrated');
+    const [group, setGroup] = useState(sessionStorage.getItem('group') || 'unrated');
     const [commitFilter, setCommitFilter] = useState(null);
     const [selectedIds, setSelectedIds] = useState(new Set());
 
@@ -283,26 +283,26 @@ export default function Commits() {
                 filter.getCmpValue = (c) => c.message;
 
                 // restore previous sort/filter options
-                const filterOpts = JSON.parse(localStorage.getItem('filterOpts'));
+                const filterOpts = JSON.parse(sessionStorage.getItem('filterOpts'));
                 if (filterOpts) {
                     filter.changeLogicalOp(filterOpts.logicalOp);
                     filter.updateKeywords(filterOpts.keywords);
                 }
 
-                const sortOpts = JSON.parse(localStorage.getItem('sortOpts'));
+                const sortOpts = JSON.parse(sessionStorage.getItem('sortOpts'));
                 if (sortOpts) {
                     filter.result.sort(createComparator(sortOpts.key, sortOpts.order));
                 }
 
                 setCommitFilter(filter);
 
-                localStorage.setItem('group', groupCp);
+                sessionStorage.setItem('group', groupCp);
             });
     }, [projId, group]);
 
     useEffect(() => {
         if (commitFilter != null) {
-            localStorage.setItem('filterOpts', JSON.stringify({
+            sessionStorage.setItem('filterOpts', JSON.stringify({
                 'keywords': commitFilter.keywords,
                 'logicalOp': commitFilter.logicalOp
             }));
