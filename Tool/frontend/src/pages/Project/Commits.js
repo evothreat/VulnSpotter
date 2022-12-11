@@ -24,6 +24,7 @@ import FastFilter from "../../services/FastFilter";
 import SimpleCheckbox from "../../components/SimpleCheckbox";
 import MainActionButton from "../../components/MainActionButton";
 import PageHeader from "../../components/PageHeader";
+import {createComparator} from "../../utils";
 
 
 const cveDetailUrl = 'https://nvd.nist.gov/vuln/detail/';
@@ -151,25 +152,23 @@ const PureCommitRow = React.memo(CommitRow, (prev, curr) =>
 );
 
 function CommitsTable({commits, selectedIds, checkHandler}) {
+
+    const [optionsState, setOptionsState] = useState({
+        endIx: MAX_ITEMS,
+        order: null,
+        orderBy: null
+    });
+
     const containerRef = useRef(null);
-
-    const [state, setState] = useState({});
-
-    useEffect(() => {
-        if (state.order && state.orderBy) {
-            sessionStorage.setItem('sortOpts', JSON.stringify({
-                'key': state.orderBy,
-                'order': state.order
-            }));
-        }
-    }, [state.order, state.orderBy]);
-
-    if (state.items !== commits) {
+    const commitsRef = useRef(commits);
+    
+    if (commitsRef.current !== commits) {
         if (containerRef.current) {
             containerRef.current.scrollTop = 0;
         }
-        setState({
-            items: commits,
+        commitsRef.current = commits;
+
+        setOptionsState({
             endIx: MAX_ITEMS,
             order: null,
             orderBy: null
@@ -178,56 +177,62 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
 
     const sortItems = (key) => {
         containerRef.current.scrollTop = 0;
-
-        setState((curState) => {
-            const order = curState.orderBy === key && curState.order === 'asc' ? 'desc' : 'asc';
+        setOptionsState((curState) => {
             return {
                 orderBy: key,
-                order: order,
+                order: curState.orderBy === key && curState.order === 'asc' ? 'desc' : 'asc',
                 endIx: MAX_ITEMS,
-                items: curState.items.sort(Utils.createComparator(key, order))  // bad, because we are modifying original array
             };
         });
     };
 
     const showNextItems = () => {
-        setState((curState) => {
-            if (curState.endIx === curState.items.length) {
+        setOptionsState((curState) => {
+            if (curState.endIx === commits.length) {
                 return curState;
             }
             return {
                 ...curState,
-                endIx: Math.min(curState.items.length, curState.endIx + MAX_ITEMS)
+                endIx: Math.min(commits.length, curState.endIx + MAX_ITEMS)
             };
         });
     };
 
     const handleSelectAll = (checked) => {
         if (checked) {
-            checkHandler(state.items.map((it) => it.id), checked);
+            checkHandler(commits.map((it) => it.id), checked);
         } else {
             checkHandler([], checked);
         }
     };
 
-    // add items-list hash to key
-    const items = state.items;
-    return items
+    const orderedItems = useMemo(() => {
+        if (!commits) {
+            return null;
+        }
+        let items = commits;
+        if (optionsState.orderBy && optionsState.order) {
+            items.sort(createComparator(optionsState.orderBy, optionsState.order));
+        }
+        return items.slice(0, optionsState.endIx);
+    }, [commits, optionsState]);
+
+    return orderedItems
         ? (
             <Box>
                 <TableContainer ref={containerRef} sx={{height: TABLE_HEIGHT, borderBottom: 'thin solid lightgray'}}>
                     <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
-                        <EnhancedTableHead headCells={headCells} order={state.order}
-                                           orderBy={state.orderBy}
+                        <EnhancedTableHead headCells={headCells} order={optionsState.order}
+                                           orderBy={optionsState.orderBy}
                                            sortReqHandler={sortItems}
                                            selectAllCheckbox selectAllHandler={handleSelectAll}
-                                           selectAllChecked={items.length > 0 && items.length === selectedIds.size}/>
+                                           selectAllChecked={commits.length > 0 && commits.length === selectedIds.size}/>
                         <TableBody>
                             {
-                                items.length > 0
+                                orderedItems.length > 0
                                     ? <Fragment>
                                         {
-                                            items.slice(0, state.endIx).map((it) =>
+                                            orderedItems.map((it) =>
                                                 <PureCommitRow item={it} key={it.id} checked={selectedIds.has(it.id)}
                                                                checkHandler={checkHandler}/>
                                             )
@@ -247,7 +252,7 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
                         </TableBody>
                     </Table>
                 </TableContainer>
-                <Typography variant="body2" sx={{mt: '8px', color: '#606060'}}>{items.length} results</Typography>
+                <Typography variant="body2" sx={{mt: '8px', color: '#606060'}}>{commits.length} results</Typography>
             </Box>
         )
         : <Typography variant="body2">Loading commits...</Typography>;
