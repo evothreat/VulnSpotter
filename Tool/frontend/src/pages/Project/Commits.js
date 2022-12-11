@@ -150,13 +150,9 @@ const PureCommitRow = React.memo(CommitRow, (prev, curr) =>
     prev.checkHandler === curr.checkHandler
 );
 
-function CommitsTable({commits, selectedIds, checkHandler}) {
+function CommitsTable({commits, selectedIds, checkHandler, sortReqHandler, order, orderBy}) {
 
-    const [optionsState, setOptionsState] = useState({
-        endIx: MAX_ITEMS,
-        order: null,
-        orderBy: null
-    });
+    const [endIx, setEndIx] = useState(MAX_ITEMS);
 
     const containerRef = useRef(null);
     const commitsRef = useRef(commits);
@@ -167,33 +163,15 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
         }
         commitsRef.current = commits;
 
-        setOptionsState({
-            endIx: MAX_ITEMS,
-            order: null,
-            orderBy: null
-        });
+        setEndIx(MAX_ITEMS);
     }
 
-    const sortItems = (key) => {
-        containerRef.current.scrollTop = 0;
-        setOptionsState((curState) => {
-            return {
-                orderBy: key,
-                order: curState.orderBy === key && curState.order === 'asc' ? 'desc' : 'asc',
-                endIx: MAX_ITEMS,
-            };
-        });
-    };
-
     const showNextItems = () => {
-        setOptionsState((curState) => {
-            if (curState.endIx === commits.length) {
-                return curState;
+        setEndIx((curIx) => {
+            if (curIx === commits.length) {
+                return curIx;
             }
-            return {
-                ...curState,
-                endIx: Math.min(commits.length, curState.endIx + MAX_ITEMS)
-            };
+            return Math.min(commits.length, curIx + MAX_ITEMS);
         });
     };
 
@@ -205,25 +183,15 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
         }
     };
 
-    const orderedItems = useMemo(() => {
-        if (!commits) {
-            return null;
-        }
-        let items = commits;
-        if (optionsState.orderBy && optionsState.order) {
-            items.sort(createComparator(optionsState.orderBy, optionsState.order));
-        }
-        return items.slice(0, optionsState.endIx);
-    }, [commits, optionsState]);
-
+    const orderedItems = commits?.slice(0, endIx);
     return orderedItems
         ? (
             <Box>
                 <TableContainer ref={containerRef} sx={{height: TABLE_HEIGHT, borderBottom: 'thin solid lightgray'}}>
                     <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
-                        <EnhancedTableHead headCells={headCells} order={optionsState.order}
-                                           orderBy={optionsState.orderBy}
-                                           sortReqHandler={sortItems}
+                        <EnhancedTableHead headCells={headCells} order={order}
+                                           orderBy={orderBy}
+                                           sortReqHandler={sortReqHandler}
                                            selectAllCheckbox selectAllHandler={handleSelectAll}
                                            selectAllChecked={commits.length > 0 && commits.length === selectedIds.size}/>
                         <TableBody>
@@ -258,13 +226,17 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
 }
 
 function restoreFilterOpts(projId) {
-    const filterOpts = JSON.parse(sessionStorage.getItem(`filterOpts_${projId}`));
-    return filterOpts
-        ? filterOpts
+    const searchOpts = JSON.parse(sessionStorage.getItem(`searchOpts_${projId}`));
+    return searchOpts
+        ? searchOpts
         : {
             group: 'unrated',
             keywords: [],
-            logicalOp: 'or'
+            logicalOp: 'or',
+            searchOpts: {
+                order: 'asc',
+                orderBy: 'created_at'
+            }
         };
 }
 
@@ -275,10 +247,11 @@ export default function Commits() {
 
     const [commits, setCommits] = useState(null);
 
-    const filterOpts = useMemo(() => restoreFilterOpts(projId), [projId]);
-    const [group, setGroup] = useState(filterOpts.group);
-    const [keywords, setKeywords] = useState(filterOpts.keywords);
-    const [logicalOp, setLogicalOp] = useState(filterOpts.logicalOp);
+    const searchOpts = useMemo(() => restoreFilterOpts(projId), [projId]);
+    const [group, setGroup] = useState(searchOpts.group);
+    const [keywords, setKeywords] = useState(searchOpts.keywords);
+    const [logicalOp, setLogicalOp] = useState(searchOpts.logicalOp);
+    const [sorter, setSorter] = useState(searchOpts.sorter);
 
     const filterRef = useRef(null);
 
@@ -306,13 +279,14 @@ export default function Commits() {
     }, [projId, group]);
 
     useEffect(() => {
-        sessionStorage.setItem(`filterOpts_${projId}`, JSON.stringify({
+        sessionStorage.setItem(`searchOpts_${projId}`, JSON.stringify({
                 group: group,
                 keywords: keywords,
-                logicalOp: logicalOp
+                logicalOp: logicalOp,
+                sorter: sorter
             })
         );
-    }, [projId, group, keywords, logicalOp]);
+    }, [projId, group, keywords, logicalOp, sorter]);
 
     const handleGroupChange = (e, val) => {
         if (val) {
@@ -335,6 +309,15 @@ export default function Commits() {
         if (val) {
             setLogicalOp(val);
         }
+    };
+
+    const handleSortRequest = (key) => {
+        setSorter((curSorter) => {
+            return {
+                orderBy: key,
+                order: curSorter.orderBy === key && curSorter.order === 'asc' ? 'desc' : 'asc'
+            };
+        });
     };
 
     const handleCheck = useCallback((commitId, checked) => {
@@ -369,9 +352,9 @@ export default function Commits() {
         const filter = filterRef.current;
         filter.changeLogicalOp(logicalOp);
         filter.updateKeywords(keywords);
-        return filter.result.slice();
+        return filter.result.slice().sort(createComparator(sorter.orderBy, sorter.order));
 
-    }, [commits, logicalOp, keywords]);
+    }, [commits, logicalOp, keywords, sorter]);
 
     return (
         <Fragment>
@@ -416,7 +399,8 @@ export default function Commits() {
             </Box>
             {
                 filteredCommits &&
-                <CommitsTable commits={filteredCommits} selectedIds={selectedIds} checkHandler={handleCheck}/>
+                <CommitsTable commits={filteredCommits} selectedIds={selectedIds} checkHandler={handleCheck}
+                              sortReqHandler={handleSortRequest} order={sorter.order} orderBy={sorter.orderBy}/>
             }
         </Fragment>
     );
