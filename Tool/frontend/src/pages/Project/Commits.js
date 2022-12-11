@@ -101,7 +101,7 @@ function CommitRow({item, checkHandler, checked}) {
                             {
                                 item.message.length > 60
                                     ? (
-                                        <IconButton onClick={toggleDetails}
+                                        <IconButton onClick={toggleDetails} disableTouchRipple
                                                     sx={{padding: 0, borderRadius: 0, height: '14px'}}>
                                             <MoreHorizIcon/>
                                         </IconButton>
@@ -253,15 +253,28 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
         : <Typography variant="body2">Loading commits...</Typography>;
 }
 
+function restoreFilterOpts(projId) {
+    const filterOpts = JSON.parse(sessionStorage.getItem(`filterOpts_${projId}`));
+    return filterOpts
+        ? filterOpts
+        : {
+            group: 'unrated',
+            keywords: [],
+            logicalOp: 'or'
+        };
+}
+
 export default function Commits() {
     const navigate = useNavigate();
     const params = useParams();
     const projId = parseInt(params.projId);
 
     const [commits, setCommits] = useState(null);
-    const [group, setGroup] = useState('unrated');
-    const [keywords, setKeywords] = useState([]);
-    const [logicalOp, setLogicalOp] = useState('or');
+
+    const filterOpts = useMemo(() => restoreFilterOpts(projId), [projId]);
+    const [group, setGroup] = useState(filterOpts.group);
+    const [keywords, setKeywords] = useState(filterOpts.keywords);
+    const [logicalOp, setLogicalOp] = useState(filterOpts.logicalOp);
 
     const filterRef = useRef(null);
 
@@ -287,6 +300,15 @@ export default function Commits() {
                 setCommits(data);
             });
     }, [projId, group]);
+
+    useEffect(() => {
+        sessionStorage.setItem(`filterOpts_${projId}`, JSON.stringify({
+                group: group,
+                keywords: keywords,
+                logicalOp: logicalOp
+            })
+        );
+    }, [projId, group, keywords, logicalOp]);
 
     const handleGroupChange = (e, val) => {
         if (val) {
@@ -380,7 +402,8 @@ export default function Commits() {
                         onChange={handleKwsChange}
                         sx={{flex: '1', ...autocompleteInputStyle}}
                     />
-                    <ToggleButtonGroup color="primary" value={logicalOp} exclusive size="small" onChange={handleLogicalOpChange}
+                    <ToggleButtonGroup color="primary" value={logicalOp} exclusive size="small"
+                                       onChange={handleLogicalOpChange}
                                        sx={{height: '34px'}}>
                         <ToggleButton disableRipple value="or">OR</ToggleButton>
                         <ToggleButton disableRipple value="and">AND</ToggleButton>
@@ -388,7 +411,8 @@ export default function Commits() {
                 </Box>
             </Box>
             {
-                filteredCommits && <CommitsTable commits={filteredCommits} selectedIds={selectedIds} checkHandler={handleCheck}/>
+                filteredCommits &&
+                <CommitsTable commits={filteredCommits} selectedIds={selectedIds} checkHandler={handleCheck}/>
             }
         </Fragment>
     );
