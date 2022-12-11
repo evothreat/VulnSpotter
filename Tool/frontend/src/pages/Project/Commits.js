@@ -102,8 +102,7 @@ function CommitRow({item, checkHandler, checked}) {
                             {
                                 item.message.length > 60
                                     ? (
-                                        <IconButton onClick={toggleDetails} disableTouchRipple
-                                                    sx={{padding: 0, borderRadius: 0, height: '14px'}}>
+                                        <IconButton onClick={toggleDetails} sx={{padding: 0, borderRadius: 0, height: '14px'}}>
                                             <MoreHorizIcon/>
                                         </IconButton>
                                     )

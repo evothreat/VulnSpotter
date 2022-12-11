@@ -6,6 +6,8 @@ import NotFound from "./pages/NotFound";
 import Layout from "./layout/Layout";
 import TokenService from "./services/TokenService";
 import Explorer from "./pages/Explorer/Explorer";
+import {ThemeProvider} from "@mui/material/styles";
+import {appTheme} from "./theme";
 
 
 function RequireAuth() {
@@ -21,18 +23,20 @@ function RequireAuth() {
 
 export default function App() {
     return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/home" element={<RequireAuth/>}>
-                    <Route path="" element={<Home/>}/>
-                    <Route path="projects/:projId">
-                        <Route path="" element={<Project/>}/>
-                        <Route path="explorer" element={<Explorer/>}/>
+        <ThemeProvider theme={appTheme}>
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/home" element={<RequireAuth/>}>
+                        <Route path="" element={<Home/>}/>
+                        <Route path="projects/:projId">
+                            <Route path="" element={<Project/>}/>
+                            <Route path="explorer" element={<Explorer/>}/>
+                        </Route>
                     </Route>
-                </Route>
-                <Route path="/login" element={<Login/>}/>
-                <Route path="*" element={<NotFound/>}/>
-            </Routes>
-        </BrowserRouter>
+                    <Route path="/login" element={<Login/>}/>
+                    <Route path="*" element={<NotFound/>}/>
+                </Routes>
+            </BrowserRouter>
+        </ThemeProvider>
     );
 }

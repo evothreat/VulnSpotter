@@ -68,7 +68,7 @@ export default function Sidebar({project, viewKey, viewChangeHandler}) {
             }}
         >
             <Box sx={{display: 'flex', width: '100%'}} style={{justifyContent: open ? 'right' : 'left'}}>
-                <IconButton disableTouchRipple sx={{borderRadius: 0, width: '56px'}} onClick={toggleOpen}>
+                <IconButton sx={{borderRadius: 0, width: '56px'}} onClick={toggleOpen}>
                     {open ? <KeyboardDoubleArrowLeftIcon/> : <KeyboardDoubleArrowRightIcon/>}
                 </IconButton>
             </Box>
