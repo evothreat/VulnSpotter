@@ -6,6 +6,13 @@ export const appTheme = createTheme({
             defaultProps: {
                 disableTouchRipple: true
             }
+        },
+        MuiButton: {
+            styleOverrides: {
+                root: {
+                    textTransform: 'none'
+                }
+            }
         }
     }
 });

@@ -1,7 +1,6 @@
 import Button from "@mui/material/Button";
 
 const styles = {
-    textTransform: 'none',
     fontSize: '14px',
     '& .MuiButton-startIcon': {marginRight: '5px'}
 };
