@@ -54,7 +54,7 @@ class FastFilter {
                 this.searchInResult(matchAnd(kws));
             }
         }
-        this.keywords = kws;
+        this.keywords = kws.slice();
     }
 
     changeLogicalOp(op) {
