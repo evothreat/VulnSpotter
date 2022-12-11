@@ -233,7 +233,7 @@ function restoreFilterOpts(projId) {
             group: 'unrated',
             keywords: [],
             logicalOp: 'or',
-            searchOpts: {
+            sorter: {
                 order: 'asc',
                 orderBy: 'created_at'
             }
