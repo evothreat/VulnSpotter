@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Fragment, useCallback, useEffect, useRef, useState} from "react";
+import {Fragment, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import {Autocomplete, Collapse, ToggleButton, ToggleButtonGroup} from "@mui/material";
@@ -9,7 +9,6 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 import * as Utils from "../../utils";
-import {arrayEquals, createComparator} from "../../utils";
 import TableBody from "@mui/material/TableBody";
 import {Waypoint} from "react-waypoint";
 import TableContainer from "@mui/material/TableContainer";
@@ -255,18 +254,21 @@ function CommitsTable({commits, selectedIds, checkHandler}) {
 }
 
 export default function Commits() {
+    const navigate = useNavigate();
     const params = useParams();
     const projId = parseInt(params.projId);
 
-    const navigate = useNavigate();
+    const [commits, setCommits] = useState(null);
+    const [group, setGroup] = useState('unrated');
+    const [keywords, setKeywords] = useState([]);
+    const [logicalOp, setLogicalOp] = useState('or');
 
-    const [group, setGroup] = useState(sessionStorage.getItem('group') || 'unrated');
-    const [commitFilter, setCommitFilter] = useState(null);
+    const filterRef = useRef(null);
+
     const [selectedIds, setSelectedIds] = useState(new Set());
 
     useEffect(() => {
         const groupCp = group;    // need this to avoid race conditions
-
         const reqOpts = groupCp === 'all' ? null : {rated: (groupCp === 'rated')};
 
         ProjectsService.getCommits(projId, reqOpts)
@@ -279,35 +281,12 @@ export default function Commits() {
                     c.cve = Utils.findCVEs(c.message);
                 });
 
-                const filter = new FastFilter(data);
-                filter.getCmpValue = (c) => c.message;
+                filterRef.current = new FastFilter(data);
+                filterRef.current.getCmpValue = (c) => c.message;
 
-                // restore previous sort/filter options
-                const filterOpts = JSON.parse(sessionStorage.getItem('filterOpts'));
-                if (filterOpts) {
-                    filter.changeLogicalOp(filterOpts.logicalOp);
-                    filter.updateKeywords(filterOpts.keywords);
-                }
-
-                const sortOpts = JSON.parse(sessionStorage.getItem('sortOpts'));
-                if (sortOpts) {
-                    filter.result.sort(createComparator(sortOpts.key, sortOpts.order));
-                }
-
-                setCommitFilter(filter);
-
-                sessionStorage.setItem('group', groupCp);
+                setCommits(data);
             });
     }, [projId, group]);
-
-    useEffect(() => {
-        if (commitFilter != null) {
-            sessionStorage.setItem('filterOpts', JSON.stringify({
-                'keywords': commitFilter.keywords,
-                'logicalOp': commitFilter.logicalOp
-            }));
-        }
-    }, [commitFilter]);
 
     const handleGroupChange = (e, val) => {
         if (val) {
@@ -315,16 +294,7 @@ export default function Commits() {
         }
     };
 
-    const gotoExplorer = () => {
-        // NOTE: first check whether any selected
-        navigate('./explorer', {
-            state: {
-                commitIds: Array.from(selectedIds)
-            }
-        });
-    };
-
-    const handleKwsChange = useCallback((e, kws) => {
+    const handleKwsChange = (e, kws) => {
         // if any rows selected - deselect them
         setSelectedIds((ids) => {
             if (ids.size > 0) {
@@ -332,25 +302,12 @@ export default function Commits() {
             }
             return ids;
         });
-
-        setCommitFilter((curFilter) => {
-            if (arrayEquals(kws, curFilter.keywords)) {
-                return curFilter;
-            }
-            curFilter.updateKeywords(kws);
-            return curFilter.clone();
-        });
-    }, [])
+        setKeywords(kws);
+    };
 
     const handleLogicalOpChange = (e, val) => {
         if (val) {
-            setCommitFilter((curFilter) => {
-                if (curFilter.logicalOp !== val) {
-                    curFilter.changeLogicalOp(val);
-                    return curFilter.clone();
-                }
-                return curFilter;
-            });
+            setLogicalOp(val);
         }
     };
 
@@ -369,6 +326,26 @@ export default function Commits() {
             });
         }
     }, []);
+
+    const gotoExplorer = () => {
+        // NOTE: first check whether any selected
+        navigate('./explorer', {
+            state: {
+                commitIds: Array.from(selectedIds)
+            }
+        });
+    };
+
+    const filteredCommits = useMemo(() => {
+        if (!commits) {
+            return null;
+        }
+        const filter = filterRef.current;
+        filter.changeLogicalOp(logicalOp);
+        filter.updateKeywords(keywords);
+        return filter.result.slice();
+
+    }, [commits, logicalOp, keywords]);
 
     return (
         <Fragment>
@@ -391,35 +368,27 @@ export default function Commits() {
                 </ToggleButtonGroup>
 
                 <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '10px'}}>
-                    {
-                        <Autocomplete
-                            value={commitFilter?.keywords || []}
-                            multiple
-                            freeSolo
-                            options={VULN_KEYWORDS}
-                            disableCloseOnSelect
-                            renderInput={(params) => (
-                                <TextField {...params} variant="standard" label="Filter by keywords"/>
-                            )}
-                            onChange={handleKwsChange}
-                            sx={{flex: '1', ...autocompleteInputStyle}}
-                        />
-                    }
-                    {
-                        commitFilter && (
-                            <ToggleButtonGroup color="primary" value={commitFilter.logicalOp} exclusive size="small"
-                                               onChange={handleLogicalOpChange}
-                                               sx={{height: '34px'}}>
-                                <ToggleButton disableRipple value="or">OR</ToggleButton>
-                                <ToggleButton disableRipple value="and">AND</ToggleButton>
-                            </ToggleButtonGroup>
-                        )
-                    }
+                    <Autocomplete
+                        value={keywords}
+                        multiple
+                        freeSolo
+                        options={VULN_KEYWORDS}
+                        disableCloseOnSelect
+                        renderInput={(params) => (
+                            <TextField {...params} variant="standard" label="Filter by keywords"/>
+                        )}
+                        onChange={handleKwsChange}
+                        sx={{flex: '1', ...autocompleteInputStyle}}
+                    />
+                    <ToggleButtonGroup color="primary" value={logicalOp} exclusive size="small" onChange={handleLogicalOpChange}
+                                       sx={{height: '34px'}}>
+                        <ToggleButton disableRipple value="or">OR</ToggleButton>
+                        <ToggleButton disableRipple value="and">AND</ToggleButton>
+                    </ToggleButtonGroup>
                 </Box>
             </Box>
             {
-                commitFilter && <CommitsTable commits={commitFilter.result} selectedIds={selectedIds}
-                                              checkHandler={handleCheck}/>
+                filteredCommits && <CommitsTable commits={filteredCommits} selectedIds={selectedIds} checkHandler={handleCheck}/>
             }
         </Fragment>
     );
