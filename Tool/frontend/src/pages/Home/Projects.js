@@ -70,6 +70,7 @@ export default function Projects() {
 
     const handleCreateInDlg = (repoUrl, projName, extensions) => {
         hideCreateDlg();
+        console.log(repoUrl, projName, extensions)
         ProjectsService.create(repoUrl, projName, extensions)
             .then(() => showInfo('Once the project is created, you will be notified'));
     };

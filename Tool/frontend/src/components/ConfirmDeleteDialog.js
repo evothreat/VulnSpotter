@@ -22,7 +22,7 @@ export default function ConfirmDeleteDialog({title, children, closeHandler, dele
             <DialogActions>
                 <Button variant="outlined" onClick={closeHandler}>Cancel</Button>
                 <Button variant="contained" onClick={deleteHandler} autoFocus>
-                    Yes, delete it
+                    Delete
                 </Button>
             </DialogActions>
         </Dialog>

@@ -20,6 +20,7 @@ import TokenService from "../../services/TokenService";
 import ConfirmDeleteDialog from "../../components/ConfirmDeleteDialog";
 import RouterLink from "../../components/RouterLink";
 import ActionButton from "../../components/ActionButton";
+import {fmtTimeSince} from "../../utils";
 
 
 const headCells = [
@@ -39,13 +40,13 @@ const headCells = [
         content: 'Repository',
         key: 'repository',
         sortable: true,
-        width: '30%'
+        width: '26%'
     },
     {
-        content: 'Commits',
-        key: 'commit_n',
+        content: 'Created',
+        key: 'created_at',
         sortable: true,
-        width: '10%'
+        width: '14%'
     },
     {
         width: '10%',
@@ -77,7 +78,7 @@ function ProjectTableList({items, setItemToDelete, setItemToRename}) {
                             </TableCell>
                             <TableCell>{it.personal ? 'Me' : it.owner_name}</TableCell>
                             <TableCell>{it.repository.substring(it.repository.indexOf('/') + 1)}</TableCell>
-                            <TableCell>{it.commit_n}</TableCell>
+                            <TableCell>{fmtTimeSince(it.created_at) + ' ago'}</TableCell>
                             <TableCell align="right">
                                 {
                                     it.personal
@@ -136,7 +137,7 @@ export default function ProjectsTable() {
     const [group, setGroup] = useState('all');
     const [sorter, setSorter] = useState({
         order: 'desc',
-        orderBy: 'id'
+        orderBy: 'created_at'
     });
     const [searchKw, setSearchKw] = useState('');
     const [itemToDelete, setItemToDelete] = useState(null);

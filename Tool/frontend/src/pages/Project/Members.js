@@ -24,18 +24,19 @@ import {useParams} from "react-router-dom";
 import MainActionButton from "../../components/MainActionButton";
 import ActionButton from "../../components/ActionButton";
 import PageHeader from "../../components/PageHeader";
+import {fmtTimeSince} from "../../utils";
 
 
 const headCells = [
     {
         content: 'Name',
-        width: '30%',
+        width: '25%',
         key: 'full_name',
         sortable: true
     },
     {
         content: 'Username',
-        width: '30%',
+        width: '20%',
         key: 'username',
         sortable: true
     },
@@ -43,18 +44,24 @@ const headCells = [
         content: 'Role',
         sortable: true,
         key: 'role',
-        width: '20%'
+        width: '16%'
     },
     {
         content: 'Status',
-        width: '10%',
+        width: '12%',
+        key: 'active',
+        sortable: true
+    },
+    {
+        content: 'Access granted',
+        width: '20%',
         key: 'active',
         sortable: true
     },
     {
         content: '',
         sortable: false,
-        width: '10%',
+        width: '7%',
         align: 'right'
     }
 ];
@@ -77,6 +84,7 @@ function MembersList({items, setItemToDelete}) {
                             <TableCell>{it.username}</TableCell>
                             <TableCell>{Utils.capitalize(it.role)}</TableCell>
                             <TableCell>{it.active ? 'active' : 'pending'}</TableCell>
+                            <TableCell>{fmtTimeSince(it.perm_granted_at) + ' ago'}</TableCell>
                             <TableCell align="right">
                                 {
                                     it.role !== Role.OWNER
@@ -230,6 +238,7 @@ export default function Members() {
                         full_name: inv.invitee.full_name,
                         role: inv.role,
                         invitation_id: inv.id,
+                        perm_granted_at: inv.created_at,
                         active: false
                     };
                 });
@@ -257,6 +266,7 @@ export default function Members() {
                         username: u.username,
                         full_name: u.full_name,
                         role: Role.CONTRIBUTOR,
+                        perm_granted_at: Date.now() / 1000 | 0,
                         active: false,
                         invitation_id: data[i].resource_id
                     }
