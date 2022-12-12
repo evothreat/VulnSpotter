@@ -9,9 +9,11 @@ import {useEffect, useState} from "react";
 import AuthService from "../../services/AuthService";
 import {isObjEmpty, isValidEmail} from "../../utils";
 import EnhancedAlert from "../../components/EnhancedAlert";
+import {useNavigate} from "react-router-dom";
 
 
 export default function Account() {
+    const navigate = useNavigate();
 
     const [alertMsg, setAlertMsg] = useState('');
     const [currUser, setCurrUser] = useState(null);
@@ -83,6 +85,10 @@ export default function Account() {
         }
     };
 
+    const handleCancel = () => {
+        navigate('/home/projects');
+    };
+
     return currUser && (
         <LayoutBody>
             <PageHeader>
@@ -116,7 +122,7 @@ export default function Account() {
                     <MainActionButton type="submit" onClick={handleSubmit}>
                         Save
                     </MainActionButton>
-                    <MainActionButton variant="outlined">
+                    <MainActionButton variant="outlined" onClick={handleCancel}>
                         Cancel
                     </MainActionButton>
                 </Stack>
