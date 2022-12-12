@@ -18,6 +18,7 @@ import * as React from "react";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+import {useProject} from "./useProject";
 
 
 
@@ -50,8 +51,8 @@ const sidebarItemStyle = {
 };
 
 
-export default function Sidebar({project, viewKey, viewChangeHandler}) {
-
+export default function Sidebar({viewKey, viewChangeHandler}) {
+    const [project,] = useProject();
     const [open, setOpen] = useState(false);
 
     const toggleOpen = () => setOpen((prevState) => !prevState);

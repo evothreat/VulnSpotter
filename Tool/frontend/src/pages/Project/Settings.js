@@ -6,10 +6,13 @@ import MainActionButton from "../../components/MainActionButton";
 import EnhancedAlert from "../../components/EnhancedAlert";
 import LayoutBody from "../../layout/LayoutBody";
 import * as React from "react";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {FILE_EXTENSIONS} from "../../constants";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import DeleteIcon from '@mui/icons-material/Delete';
+import {useProject} from "./useProject";
+import {arrayEquals, isObjEmpty} from "../../utils";
+import ProjectsService from "../../services/ProjectsService";
 
 
 function SettingsDivider() {
@@ -35,11 +38,53 @@ function SettingsItem({title, description, button}) {
 }
 
 export default function Settings() {
+    const [project, setProject] = useProject();
     const [inputErrors, setInputErrors] = useState({});
 
     const [alertMsg, setAlertMsg] = useState('');
     const [projName, setProjName] = useState('');
     const [extensions, setExtensions] = useState([]);
+
+    useEffect(() => {
+        setProjName(project.name);
+        setExtensions(project.extensions);
+    }, [project]);
+
+    const resetInput = () => {
+        setProjName(project.name);
+        setExtensions(project.extensions);
+    };
+
+    const handleUpdateProject = () => {
+        if (!projName) {
+            setInputErrors({
+                projName: true
+            });
+            return;
+        }
+        const fields = {};
+        if (project.name !== projName) {
+            fields.name = projName;
+        }
+        if (!arrayEquals(project.extensions, extensions)) {
+            fields.extensions = extensions;
+        }
+        if (!isObjEmpty(fields)) {
+            ProjectsService.update(project.id, fields)
+                .then(() => {
+                    if (!isObjEmpty(inputErrors)) {
+                        setInputErrors({});
+                    }
+                    setAlertMsg('Project settings successfully updated.');
+                    setProject((curProj) => {
+                        return {
+                          ...curProj,
+                          ...fields
+                        };
+                    });
+                });
+        }
+    };
 
     return (
         <LayoutBody>
@@ -72,11 +117,11 @@ export default function Settings() {
                 </Stack>
 
                 <Stack direction="row" gap="10px">
-                    <MainActionButton>
+                    <MainActionButton onClick={handleUpdateProject}>
                         Save
                     </MainActionButton>
-                    <MainActionButton variant="outlined">
-                        Cancel
+                    <MainActionButton variant="outlined" onClick={resetInput}>
+                        Reset
                     </MainActionButton>
                 </Stack>
             </Stack>
