@@ -16,7 +16,7 @@ def project(d):
         'name': d['name'],
         'repository': d['repository'],
         'commit_n': d['commit_n'],
-        'extensions': d['extensions'],
+        'extensions': d['extensions'].split(',') if d['extensions'] else [],
         'owner': {
             'id': d['owner_id'],
             'full_name': d['full_name'],
