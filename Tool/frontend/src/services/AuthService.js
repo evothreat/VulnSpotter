@@ -16,7 +16,6 @@ class AuthService {
 
     logout() {
         TokenService.invalidate();
-        window.location.replace('/login');
     }
 
     register(username, email, password) {

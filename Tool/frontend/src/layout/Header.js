@@ -13,17 +13,21 @@ import Notifications from "./Notifications";
 import Invitations from "./Invitations";
 import RouterLink from "../components/RouterLink";
 import {HEADER_HEIGHT} from "./constants";
-
-// TODO: introduce path constants
-// TODO: add correct settings with icons
-const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
+import AuthService from "../services/AuthService";
+import {useNavigate} from "react-router-dom";
 
 
 function UserMenu() {
+    const navigate = useNavigate();
     const [anchorEl, setAnchorEl] = useState(null);
 
     const handleOpen = (e) => setAnchorEl(e.currentTarget);
     const handleClose = () => setAnchorEl(null);
+
+    const logout = () => {
+        AuthService.logout();
+        navigate('/login');
+    };
 
     return (
         <Fragment>
@@ -44,11 +48,16 @@ function UserMenu() {
                 open={anchorEl != null}
                 onClose={handleClose}
             >
-                {settings.map((s) => (
-                    <MenuItem key={s} onClick={handleClose}>
-                        <Typography sx={{textAlign: 'center'}}>{s}</Typography>
+                    <MenuItem onClick={handleClose}>
+                        <Typography sx={{textAlign: 'center'}}>
+                            Account
+                        </Typography>
                     </MenuItem>
-                ))}
+                    <MenuItem onClick={logout}>
+                        <Typography sx={{textAlign: 'center'}}>
+                            Logout
+                        </Typography>
+                    </MenuItem>
             </Menu>
         </Fragment>
     );
@@ -61,13 +70,13 @@ export default function Header() {
                 <Box sx={{display: 'flex'}}>
                     <PolicyIcon sx={{height: '32px', width: '32px', mr: '8px'}}/>
                     <RouterLink variant="h6" noWrap to="/home" color="inherit"
-                          sx={{
-                              fontFamily: 'monospace',
-                              fontWeight: 'bolder',
-                              letterSpacing: '.2rem',
-                              color: 'inherit',
-                              textDecoration: 'none',
-                          }}
+                                sx={{
+                                    fontFamily: 'monospace',
+                                    fontWeight: 'bolder',
+                                    letterSpacing: '.2rem',
+                                    color: 'inherit',
+                                    textDecoration: 'none',
+                                }}
                     >
                         VulnDetector
                     </RouterLink>
