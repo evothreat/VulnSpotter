@@ -1,5 +1,5 @@
 import {BrowserRouter, Navigate, Outlet, Route, Routes} from "react-router-dom";
-import Home from "./pages/Home/Home";
+import Projects from "./pages/Home/Projects";
 import Project from "./pages/Project/Project";
 import Login from "./pages/Login/Login";
 import NotFound from "./pages/NotFound";
@@ -8,6 +8,7 @@ import TokenService from "./services/TokenService";
 import Explorer from "./pages/Explorer/Explorer";
 import {ThemeProvider} from "@mui/material/styles";
 import {appTheme} from "./theme";
+import Account from "./pages/Home/Account";
 
 
 function RequireAuth() {
@@ -27,11 +28,12 @@ export default function App() {
             <BrowserRouter>
                 <Routes>
                     <Route path="/home" element={<RequireAuth/>}>
-                        <Route path="" element={<Home/>}/>
-                        <Route path="projects/:projId">
-                            <Route path="" element={<Project/>}/>
-                            <Route path="explorer" element={<Explorer/>}/>
+                        <Route path="projects">
+                            <Route index element={<Projects/>}/>
+                            <Route path=":projId" element={<Project/>}/>
+                            <Route path=":projId/explorer" element={<Explorer/>}/>
                         </Route>
+                        <Route path="account" element={<Account/>}/>
                     </Route>
                     <Route path="/login" element={<Login/>}/>
                     <Route path="*" element={<NotFound/>}/>

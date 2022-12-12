@@ -70,7 +70,7 @@ function CreateProjectDialog({closeHandler, createHandler}) {
     );
 }
 
-export default function Home() {
+export default function Projects() {
 
     const [openCreateDlg, setOpenCreateDlg] = useState(false);
     const [alertMsg, setAlertMsg] = useState('');

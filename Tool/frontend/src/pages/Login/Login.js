@@ -28,7 +28,7 @@ export default function Login() {
 
         AuthService.login(e.target.username.value, e.target.password.value)
             .then(() => {
-                navigate('/home');
+                navigate('/home/projects');
 
             }).catch((err) => {
                 if (err.response?.status === 401) {

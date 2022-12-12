@@ -47,8 +47,9 @@ function UserMenu() {
                 }}
                 open={anchorEl != null}
                 onClose={handleClose}
+                onClick={handleClose}
             >
-                    <MenuItem onClick={handleClose}>
+                    <MenuItem onClick={() => navigate('/home/account')}>
                         <Typography sx={{textAlign: 'center'}}>
                             Account
                         </Typography>
@@ -69,7 +70,7 @@ export default function Header() {
             <Toolbar style={{minHeight: HEADER_HEIGHT, justifyContent: 'space-between'}}>
                 <Box sx={{display: 'flex'}}>
                     <PolicyIcon sx={{height: '32px', width: '32px', mr: '8px'}}/>
-                    <RouterLink variant="h6" noWrap to="/home" color="inherit"
+                    <RouterLink variant="h6" noWrap to="/home/projects" color="inherit"
                                 sx={{
                                     fontFamily: 'monospace',
                                     fontWeight: 'bolder',
