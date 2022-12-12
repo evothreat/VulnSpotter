@@ -13,6 +13,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import {useProject} from "./useProject";
 import {arrayEquals, isObjEmpty} from "../../utils";
 import ProjectsService from "../../services/ProjectsService";
+import ConfirmDeleteDialog from "../../components/ConfirmDeleteDialog";
+import {useNavigate} from "react-router-dom";
 
 
 function SettingsDivider() {
@@ -38,12 +40,14 @@ function SettingsItem({title, description, button}) {
 }
 
 export default function Settings() {
+    const navigate = useNavigate();
     const [project, setProject] = useProject();
     const [inputErrors, setInputErrors] = useState({});
 
     const [alertMsg, setAlertMsg] = useState('');
     const [projName, setProjName] = useState('');
     const [extensions, setExtensions] = useState([]);
+    const [shouldDelete, setShouldDelete] = useState(false);
 
     useEffect(() => {
         setProjName(project.name);
@@ -86,6 +90,11 @@ export default function Settings() {
         }
     };
 
+    const handleDelProject = () => {
+        ProjectsService.delete(project.id)
+            .then(() => navigate('/home/projects'));
+    };
+
     return (
         <LayoutBody>
             <PageHeader>
@@ -93,7 +102,7 @@ export default function Settings() {
                     Settings
                 </Typography>
             </PageHeader>
-            <Stack gap="30px" mt="30px">
+            <Stack gap="30px">
                 <Stack width="350px" gap="10px">
                     <FormTextField required label="Project name" name="projName"
                                    value={projName} onChange={(e) => setProjName(e.target.value)}
@@ -142,7 +151,8 @@ export default function Settings() {
             <SettingsItem title="Delete project"
                           description="Delete the whole Project with all commits and votes permanently."
                           button={
-                              <MainActionButton color="error" startIcon={<DeleteIcon/>}>
+                              <MainActionButton color="error" startIcon={<DeleteIcon/>}
+                                                onClick={() => setShouldDelete(true)}>
                                   Delete
                               </MainActionButton>
                           }
@@ -150,6 +160,14 @@ export default function Settings() {
 
             {
                 alertMsg && <EnhancedAlert msg={alertMsg} severity="success" closeHandler={() => setAlertMsg('')}/>
+            }
+            {
+                shouldDelete &&
+                <ConfirmDeleteDialog title="Delete Project"
+                                     closeHandler={() => setShouldDelete(false)}
+                                     deleteHandler={handleDelProject}>
+                    Are you sure you want to permanently delete the "{project.name}"-Project?
+                </ConfirmDeleteDialog>
             }
         </LayoutBody>
     );
