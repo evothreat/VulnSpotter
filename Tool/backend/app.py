@@ -36,8 +36,10 @@ db_conn = sqlite3.connect(config.DB_PATH,
 # this constraint must be enabled on each connection
 db_conn.execute('PRAGMA foreign_keys=ON')
 
+# to speed up row-deletions
+db_conn.execute('PRAGMA secure_delete=OFF')
 # to speed up database transactions
-# db_conn.execute('PRAGMA journal_mode=WAL')
+db_conn.execute('PRAGMA journal_mode=WAL')
 
 db_conn.row_factory = sqlite3.Row
 
