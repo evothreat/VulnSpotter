@@ -6,6 +6,7 @@ import Sidebar from "./Sidebar";
 import Commits from "./Commits";
 import Members from "./Members";
 import LayoutBody from "../../layout/LayoutBody";
+import Settings from "./Settings";
 
 
 function getView(key, props) {
@@ -14,6 +15,8 @@ function getView(key, props) {
             return <Commits {...props}/>;
         case 'members':
             return <Members {...props}/>            // bad approach, pass only children & required parameters
+        case 'settings':
+            return <Settings {...props}/>
         default:
             return null;
     }

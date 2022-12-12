@@ -13,6 +13,15 @@ export const appTheme = createTheme({
                     textTransform: 'none'
                 }
             }
+        },
+        MuiAutocomplete: {
+            defaultProps: {
+                ListboxProps: {
+                    sx: {
+                        maxHeight: '210px'
+                    }
+                }
+            }
         }
     }
 });

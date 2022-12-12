@@ -11,19 +11,7 @@ import EnhancedAlert from "../../components/EnhancedAlert";
 import MainActionButton from "../../components/MainActionButton";
 import PageHeader from "../../components/PageHeader";
 import LayoutBody from "../../layout/LayoutBody";
-
-
-const FILE_EXTENSIONS = [
-    'c',
-    'cpp',
-    'java',
-    'php',
-    'py',
-    'ruby',
-    'js',
-    's',
-    'asm'
-];
+import {FILE_EXTENSIONS} from "../../constants";
 
 
 function CreateProjectDialog({closeHandler, createHandler}) {
@@ -44,7 +32,6 @@ function CreateProjectDialog({closeHandler, createHandler}) {
                     <TextField name="repoUrl" margin="dense" label="Repository URL" fullWidth required autoFocus/>
                     <TextField name="projName" margin="dense" label="Project name" fullWidth required/>
                     <Autocomplete
-                        ListboxProps={{sx: {maxHeight: '210px'}}}
                         freeSolo
                         fullWidth
                         multiple

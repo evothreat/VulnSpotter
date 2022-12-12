@@ -184,7 +184,6 @@ function InviteUsersDialog({members, inviteHandler, closeHandler}) {
                 <DialogTitle>Invite Users</DialogTitle>
                 <DialogContent>
                     <Autocomplete
-                        ListboxProps={{sx: {maxHeight: '210px'}}}
                         multiple
                         disableCloseOnSelect
                         fullWidth

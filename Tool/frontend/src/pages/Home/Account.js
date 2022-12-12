@@ -97,7 +97,7 @@ export default function Account() {
                 </Typography>
             </PageHeader>
             <Stack width="300px" gap="30px">
-                <Stack gap="8px">
+                <Stack gap="10px">
                     <FormTextField required label="Full name" name="fullName"
                                    value={fullName} onChange={(e) => setFullName(e.target.value)}
                                    error={inputErrors.fullName}/>
@@ -109,7 +109,7 @@ export default function Account() {
                                    error={inputErrors.email}/>
                 </Stack>
 
-                <Stack gap="8px">
+                <Stack gap="10px">
                     <FormTextField type="password" label="Password (min. 4 characters)" name="password1"
                                    value={password1} onChange={(e) => setPassword1(e.target.value)}
                                    error={inputErrors.password1}/>
@@ -119,7 +119,7 @@ export default function Account() {
                 </Stack>
 
                 <Stack direction="row" gap="8px">
-                    <MainActionButton type="submit" onClick={handleSubmit}>
+                    <MainActionButton onClick={handleSubmit}>
                         Save
                     </MainActionButton>
                     <MainActionButton variant="outlined" onClick={handleCancel}>

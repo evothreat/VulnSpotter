@@ -5,6 +5,19 @@ const Role = Object.freeze({
 });
 
 
+const FILE_EXTENSIONS = [
+    'c',
+    'cpp',
+    'java',
+    'php',
+    'py',
+    'ruby',
+    'js',
+    's',
+    'asm'
+];
+
 export {
-    Role
+    Role,
+    FILE_EXTENSIONS
 };
