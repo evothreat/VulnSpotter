@@ -29,6 +29,10 @@ class AuthService {
     getCurrentUser() {
         return api.get('/users/me');
     }
+
+    updateCurrentUser(data) {
+        return api.patch('/users/me', data);
+    }
 }
 
 export default new AuthService();

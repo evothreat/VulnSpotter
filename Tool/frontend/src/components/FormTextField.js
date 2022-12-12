@@ -4,15 +4,14 @@ import Box from "@mui/material/Box";
 import * as React from "react";
 
 
-export default function FormTextField({label, value, type}) {
+export default function FormTextField({label, ...props}) {
     return (
         <Box sx={{display: 'flex', flexDirection: 'column', gap: '3px'}}>
-            <Typography fontSize="small">{label}</Typography>
+            <Typography fontSize="small">{props.required ? label + '*' : label}</Typography>
             <TextField
-                value={value}
-                type={type}
                 fullWidth
                 size="small"
+                {...props}
             />
         </Box>
     );

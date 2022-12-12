@@ -1,3 +1,5 @@
+const EMAIL_RE = /^\S+@\S+\.\S+$/;
+
 function fmtTimeSince(time) {
     const date = typeof time === 'number' ? new Date(time * 1000) : time;
     const seconds = Math.floor((new Date() - date) / 1000);
@@ -200,6 +202,10 @@ function remove(a, id) {
     return a.filter((v) => v.id !== id);
 }
 
+function isValidEmail(s) {
+    return EMAIL_RE.test(s);
+}
+
 
 export {
     fmtTimeSince,
@@ -219,6 +225,7 @@ export {
     arrayEquals,
     arrayDiff,
     symmetricDiff,
+    isValidEmail,
     complement,
     equals,
     remove
