@@ -75,40 +75,12 @@ def setup_db():
                             ('dicaprio', 'Leonardo Di Caprio', 'dicaprio@gmail.com', generate_password_hash('dicaprio'))
                         ])
 
-    # projects
-    db_conn.executemany('INSERT INTO projects(name,repository,owner_id,commit_n) VALUES (?,?,?,?)',
-                        [
-                            ('camino', 'github.com/mozilla/camino', 1, 0),
-                            ('chatzilla', 'github.com/mozilla/chatzilla', 2, 0),
-                            ('penelope', 'github.com/mozilla/penelope', 3, 0),
-                            ('mobile-browser', 'github.com/mozilla/mobile-browser', 1, 0),
-                            ('graphs', 'github.com/mozilla/graphs', 1, 0),
-                            ('dom-inspector', 'github.com/mozilla/dom-inspector', 4, 0),
-                            ('cvs-trunk-mirror', 'github.com/mozilla/cvs-trunk-mirror', 5, 0),
-                            ('comm-central', 'github.com/mozilla/comm-central', 6, 0),
-                            ('pyxpcom', 'github.com/mozilla/pyxpcom', 1, 0),
-                            ('schema-validation', 'github.com/mozilla/schema-validation', 7, 0),
-                            ('tamarin-redux', 'github.com/mozilla/tamarin-redux', 8, 0),
-                            ('venkman', 'github.com/mozilla/venkman', 9, 0),
-                        ])
-    # members
-    db_conn.executemany('INSERT INTO membership(user_id,project_id,role) VALUES (?,?,?)',
-                        [
-                            (1, 1, Role.OWNER),
-                            (1, 4, Role.OWNER),
-                            (1, 5, Role.OWNER),
-                            (1, 9, Role.OWNER),
-                            (1, 3, Role.CONTRIBUTOR),
-                            (1, 7, Role.CONTRIBUTOR),
-                            (1, 6, Role.CONTRIBUTOR)
-                        ])
-
 
 def notify(users, actor_id, activity, proj_id):
     with db_conn:
         cur_time = unix_time()
-        update_id = db_conn.execute('INSERT INTO project_updates(actor_id,activity,project_id,updated_at) '
-                                    'VALUES (?,?,?,?)', (actor_id, activity, proj_id, cur_time)).lastrowid
+        update_id = db_conn.execute('INSERT INTO project_updates(actor_id,activity,project_id) '
+                                    'VALUES (?,?,?)', (actor_id, activity, proj_id)).lastrowid
 
         db_conn.executemany('INSERT INTO notifications(user_id,update_id,is_seen,created_at) VALUES (?,?,?,?)',
                             ((u, update_id, False, cur_time) for u in users))
@@ -240,7 +212,7 @@ def create_project():
 @jwt_required()
 def get_projects():
     # also count number of commits?
-    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.owner_id,p.commit_n,p.extensions,u.full_name '
+    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.owner_id,p.extensions,p.created_at,u.full_name '
                            'FROM membership m '
                            'JOIN projects p ON m.user_id=? AND m.project_id=p.id '
                            'JOIN users u ON p.owner_id=u.id', (get_jwt_identity(),)).fetchall()
@@ -251,10 +223,11 @@ def get_projects():
 @app.route('/api/users/me/projects/<int:proj_id>', methods=['GET'])
 @jwt_required()
 def get_project(proj_id):
-    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.owner_id,p.commit_n,p.extensions,u.full_name '
+    data = db_conn.execute('SELECT p.id,p.name,p.repository,p.owner_id,p.extensions,p.created_at,u.full_name '
                            'FROM membership m '
                            'JOIN projects p ON m.user_id=? AND m.project_id=? AND m.project_id=p.id '
-                           'JOIN users u ON p.owner_id=u.id LIMIT 1', (get_jwt_identity(), proj_id)).fetchone()
+                           'JOIN users u ON p.owner_id=u.id LIMIT 1',
+                           (get_jwt_identity(), proj_id)).fetchone()
 
     return views.project(data) if data else ('', 404)
 
@@ -325,7 +298,7 @@ def delete_project(proj_id):
 @jwt_required()
 def get_notifications():
     data = db_conn.execute(
-        'SELECT n.id,n.is_seen,n.created_at,pu.actor_id,pu.activity,pu.project_id,pu.updated_at,'
+        'SELECT n.id,n.is_seen,n.created_at,pu.actor_id,pu.activity,pu.project_id,'
         'u.full_name AS user_name,p.name AS project_name FROM notifications n '
         'JOIN project_updates pu ON n.user_id=? {} AND pu.id=n.update_id '
         'JOIN users u on pu.actor_id=u.id '
@@ -542,7 +515,7 @@ def update_vote(vote_id):
 @app.route('/api/users/me/projects/<int:proj_id>/invitations', methods=['GET'])
 @jwt_required()
 def get_sent_invitations(proj_id):
-    data = db_conn.execute('SELECT i.id,i.invitee_id,i.project_id,i.role,u.username,u.full_name '
+    data = db_conn.execute('SELECT i.id,i.invitee_id,i.project_id,i.role,i.created_at,u.username,u.full_name '
                            'FROM invitations i JOIN users u ON i.project_id=? '
                            'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?) '
                            'AND u.id=i.invitee_id',
@@ -561,9 +534,9 @@ def send_invitation():
     with db_conn:
         # insert only if the current user is owner of the project
         record_id = db_conn.execute(
-            'INSERT OR IGNORE INTO invitations(invitee_id,project_id,role) '
-            'SELECT ?,?,? WHERE EXISTS(SELECT * FROM projects p WHERE p.id=? AND p.owner_id=?)',
-            (data['invitee_id'], proj_id, Role.CONTRIBUTOR, proj_id, get_jwt_identity())
+            'INSERT OR IGNORE INTO invitations(invitee_id,project_id,role,created_at) '
+            'SELECT ?,?,?,? WHERE EXISTS(SELECT * FROM projects p WHERE p.id=? AND p.owner_id=?)',
+            (data['invitee_id'], proj_id, Role.CONTRIBUTOR, unix_time(), proj_id, get_jwt_identity())
         ).lastrowid
 
         if record_id is None:
@@ -575,7 +548,7 @@ def send_invitation():
 @app.route('/api/users/me/sent-invitations/<int:invitation_id>', methods=['GET'])
 @jwt_required()
 def get_sent_invitation(invitation_id):
-    data = db_conn.execute('SELECT i.id,i.invitee_id,i.project_id,i.role,u.username,u.full_name '
+    data = db_conn.execute('SELECT i.id,i.invitee_id,i.project_id,i.role,i.created_at,u.username,u.full_name '
                            'FROM invitations i JOIN users u ON i.id=? '
                            'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?) '
                            'AND u.id=i.invitee_id LIMIT 1',
@@ -600,7 +573,7 @@ def delete_sent_invitation(invitation_id):
 @app.route('/api/users/me/invitations', methods=['GET'])
 @jwt_required()
 def get_invitations():
-    data = db_conn.execute('SELECT i.id,i.project_id,i.role,p.name,p.owner_id,u.full_name FROM invitations i '
+    data = db_conn.execute('SELECT i.id,i.project_id,i.role,i.created_at,p.name,p.owner_id,u.full_name FROM invitations i '
                            'JOIN projects p ON i.invitee_id=? AND i.project_id=p.id JOIN users u on p.owner_id = u.id',
                            (get_jwt_identity(),)).fetchall()
     return [views.invitation(d) for d in data]
@@ -611,8 +584,8 @@ def get_invitations():
 def accept_invitation(invitation_id):
     with db_conn:
         record_id = db_conn.execute(
-            'INSERT INTO membership(user_id,project_id,role) '
-            'SELECT invitee_id,project_id,role FROM invitations WHERE id=? AND invitee_id=? LIMIT 1',
+            'INSERT INTO membership(user_id,project_id,role,perm_granted_at) '
+            'SELECT invitee_id,project_id,role,created_at FROM invitations WHERE id=? AND invitee_id=? LIMIT 1',
             (invitation_id, get_jwt_identity())
         ).lastrowid
 
@@ -643,7 +616,7 @@ def get_members(proj_id):
     if not is_owner(get_jwt_identity(), proj_id):
         return '', 404
 
-    data = db_conn.execute('SELECT u.id,u.username,u.full_name,m.role FROM membership m '
+    data = db_conn.execute('SELECT u.id,u.username,u.full_name,m.role,m.perm_granted_at FROM membership m '
                            'JOIN users u ON m.project_id=? AND u.id=m.user_id',
                            (proj_id,)).fetchall()
     return [views.member(d) for d in data]

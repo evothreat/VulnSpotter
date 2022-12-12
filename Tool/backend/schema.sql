@@ -9,13 +9,17 @@ CREATE TABLE users
 
 CREATE TABLE membership
 (
-    user_id    INTEGER,
-    project_id INTEGER,
-    role       TEXT,
+    user_id         INTEGER,
+    project_id      INTEGER,
+    role            TEXT,
+    perm_granted_at INTEGER,
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
     FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
     PRIMARY KEY (user_id, project_id)
 );
+
+CREATE INDEX ix_membership_user ON membership (user_id);
+CREATE INDEX ix_membership_project ON membership (project_id);
 
 CREATE TABLE projects
 (
@@ -23,10 +27,12 @@ CREATE TABLE projects
     owner_id   INTEGER,
     name       TEXT,
     repository TEXT,
-    commit_n   INTEGER,
     extensions TEXT,
+    created_at INTEGER,
     FOREIGN KEY (owner_id) REFERENCES users (id) ON DELETE CASCADE
 );
+
+CREATE INDEX ix_projects_owner ON projects (owner_id);
 
 CREATE TABLE commits
 (
@@ -38,6 +44,8 @@ CREATE TABLE commits
     FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
 );
 
+CREATE INDEX ix_commits_project ON commits (project_id);
+
 CREATE TABLE commit_diffs
 (
     id        INTEGER PRIMARY KEY,
@@ -47,6 +55,7 @@ CREATE TABLE commit_diffs
     FOREIGN KEY (commit_id) REFERENCES commits (id) ON DELETE CASCADE
 );
 
+CREATE INDEX ix_commit_diff_commit ON commit_diffs (commit_id);
 CREATE INDEX ix_suitable_diffs ON commit_diffs (suitable) WHERE suitable = 1;
 
 CREATE TABLE diff_content
@@ -57,16 +66,20 @@ CREATE TABLE diff_content
     FOREIGN KEY (diff_id) REFERENCES commit_diffs (id) ON DELETE CASCADE
 );
 
+CREATE INDEX ix_diff_content_diff ON diff_content (diff_id);
+
 CREATE TABLE project_updates
 (
     id         INTEGER PRIMARY KEY,
     actor_id   INTEGER,
     activity   TEXT,
     project_id INTEGER,
-    updated_at INTEGER,
     FOREIGN KEY (actor_id) REFERENCES users (id) ON DELETE CASCADE,
     FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
 );
+
+CREATE INDEX ix_project_updates_actor ON project_updates (actor_id);
+CREATE INDEX ix_project_updates_project ON project_updates (project_id);
 
 CREATE TABLE notifications
 (
@@ -79,16 +92,23 @@ CREATE TABLE notifications
     FOREIGN KEY (update_id) REFERENCES project_updates (id) ON DELETE CASCADE
 );
 
+CREATE INDEX ix_notifications_user ON notifications (user_id);
+CREATE INDEX ix_notifications_update ON notifications (update_id);
+
 CREATE TABLE invitations
 (
     id         INTEGER PRIMARY KEY,
     invitee_id INTEGER,
     project_id INTEGER,
     role       TEXT,
+    created_at INTEGER,
     FOREIGN KEY (invitee_id) REFERENCES users (id) ON DELETE CASCADE,
     FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
     UNIQUE (invitee_id, project_id)
 );
+
+CREATE INDEX ix_invitations_invitee ON invitations (invitee_id);
+CREATE INDEX ix_invitations_project ON invitations (project_id);
 
 CREATE TABLE votes
 (
@@ -100,6 +120,9 @@ CREATE TABLE votes
     FOREIGN KEY (diff_id) REFERENCES commit_diffs (id) ON DELETE CASCADE,
     UNIQUE (user_id, diff_id)
 );
+
+CREATE INDEX ix_votes_user ON votes (user_id);
+CREATE INDEX ix_votes_diff ON votes (diff_id);
 
 CREATE TABLE cve_info
 (
@@ -118,3 +141,6 @@ CREATE TABLE commit_cve
     FOREIGN KEY (cve_id) REFERENCES cve_info (id) ON DELETE CASCADE,
     PRIMARY KEY (commit_id, cve_id)
 );
+
+CREATE INDEX ix_commit_cve_commit ON commit_cve (commit_id);
+CREATE INDEX ix_commit_cve_cve ON commit_cve (cve_id);

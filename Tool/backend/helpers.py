@@ -18,7 +18,7 @@ from cve_utils import get_cve_info
 from enums import Role
 from git_utils import parse_diff_linenos, parse_diff_file_ext
 from profiler import profile
-from utils import normpath, pathjoin, split_on_startswith, pad_list
+from utils import normpath, pathjoin, split_on_startswith, pad_list, unix_time
 
 GET_CONTENT_BINDVAR_N = 250
 GET_CONTENT_STMT = \
@@ -134,11 +134,11 @@ def create_project_from_repo(user_id, repo_url, proj_name, extensions):
     create_cve_records(repo_name, found_cve_list)
 
     with open_db_transaction() as conn:
-        proj_id = conn.execute('INSERT INTO projects(owner_id,name,repository,commit_n,extensions) VALUES (?,?,?,?,?)',
-                               (user_id, proj_name, repo_loc, len(commits), ','.join(extensions))).lastrowid
+        proj_id = conn.execute('INSERT INTO projects(owner_id,name,repository,extensions,created_at) VALUES (?,?,?,?,?)',
+                               (user_id, proj_name, repo_loc, ','.join(extensions), unix_time())).lastrowid
 
-        conn.execute('INSERT INTO membership(user_id,project_id,role) VALUES (?,?,?)',
-                     (user_id, proj_id, Role.OWNER))
+        conn.execute('INSERT INTO membership(user_id,project_id,role,perm_granted_at) VALUES (?,?,?,?)',
+                     (user_id, proj_id, Role.OWNER, unix_time()))
 
         create_commit_records(conn, proj_id, commits)
 

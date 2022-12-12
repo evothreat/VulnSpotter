@@ -50,7 +50,7 @@ CREATE_PROJECT = {
             'type': 'array'
         }
     },
-    'required': ['repo_url', 'proj_name'],
+    'required': ['repository', 'project_name'],
     'additionalProperties': False
 }
 

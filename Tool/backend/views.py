@@ -15,12 +15,12 @@ def project(d):
         'id': d['id'],
         'name': d['name'],
         'repository': d['repository'],
-        'commit_n': d['commit_n'],
         'extensions': d['extensions'].split(',') if d['extensions'] else [],
         'owner': {
             'id': d['owner_id'],
             'full_name': d['full_name'],
-        }
+        },
+        'created_at': d['created_at']
     }
 
 
@@ -45,8 +45,7 @@ def notification(d):
             'project': {
                 'id': d['project_id'],
                 'name': d['project_name']
-            } if d['project_id'] else None,
-            'updated_at': d['updated_at'],
+            } if d['project_id'] else None
         },
         'is_seen': d['is_seen'],
         'created_at': d['created_at']
@@ -62,7 +61,8 @@ def sent_invitation(d):
             'id': d['invitee_id'],
             'username': d['username'],
             'full_name': d['full_name']
-        }
+        },
+        'created_at': d['created_at']
     }
 
 
@@ -77,7 +77,8 @@ def invitation(d):
         'owner': {
             'id': d['owner_id'],
             'full_name': d['full_name']
-        }
+        },
+        'created_at': d['created_at']
     }
 
 
@@ -86,7 +87,8 @@ def member(d):
         'id': d['id'],
         'full_name': d['full_name'],
         'username': d['username'],
-        'role': d['role']
+        'role': d['role'],
+        'perm_granted_at': d['perm_granted_at']
     }
 
 
