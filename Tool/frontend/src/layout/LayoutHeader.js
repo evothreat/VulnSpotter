@@ -9,8 +9,8 @@ import Menu from '@mui/material/Menu';
 import Avatar from '@mui/material/Avatar';
 import MenuItem from '@mui/material/MenuItem';
 import PolicyIcon from '@mui/icons-material/Policy';
-import Notifications from "./Notifications";
-import Invitations from "./Invitations";
+import Notifications from "./features/Notifications";
+import Invitations from "./features/Invitations";
 import RouterLink from "../components/RouterLink";
 import {HEADER_HEIGHT} from "./constants";
 import AuthService from "../services/AuthService";
@@ -64,7 +64,7 @@ function UserMenu() {
     );
 }
 
-export default function Header() {
+export default function LayoutHeader() {
     return (
         <AppBar position="fixed" sx={{zIndex: (theme) => theme.zIndex.drawer + 1}}>
             <Toolbar style={{minHeight: HEADER_HEIGHT, justifyContent: 'space-between'}}>

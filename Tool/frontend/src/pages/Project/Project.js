@@ -5,7 +5,7 @@ import ProjectsService from "../../services/ProjectsService";
 import Sidebar from "./Sidebar";
 import Commits from "./Commits";
 import Members from "./Members";
-import Box from "@mui/material/Box";
+import LayoutBody from "../../layout/LayoutBody";
 
 
 function getView(key, props) {
@@ -33,9 +33,9 @@ export default function Project() {
     const handleViewChange = (viewId) => setViewKey(viewId);
 
     return project && (
-        <Box sx={{width: '990px', mr: 'auto', ml: 'auto'}}>
+        <LayoutBody>
             <Sidebar project={project} viewKey={viewKey} viewChangeHandler={handleViewChange}/>
             {getView(viewKey)}
-        </Box>
+        </LayoutBody>
     );
 }

@@ -1,6 +1,6 @@
+import * as React from "react";
 import {useRef, useState} from "react";
 import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
 import AddIcon from '@mui/icons-material/Add';
 import Button from "@mui/material/Button";
 import ProjectsTable from "./ProjectsTable";
@@ -10,7 +10,7 @@ import TextField from "@mui/material/TextField";
 import EnhancedAlert from "../../components/EnhancedAlert";
 import MainActionButton from "../../components/MainActionButton";
 import PageHeader from "../../components/PageHeader";
-import * as React from "react";
+import LayoutBody from "../../layout/LayoutBody";
 
 
 const FILE_EXTENSIONS = [
@@ -88,7 +88,7 @@ export default function Projects() {
     };
 
     return (
-        <Box sx={{width: '990px', mr: 'auto', ml: 'auto'}}>
+        <LayoutBody>
             <PageHeader>
                 <Typography variant="h6">
                     Projects
@@ -107,6 +107,6 @@ export default function Projects() {
             {
                 alertMsg && <EnhancedAlert msg={alertMsg} severity="info" closeHandler={hideInfo}/>
             }
-        </Box>
+        </LayoutBody>
     )
 }
