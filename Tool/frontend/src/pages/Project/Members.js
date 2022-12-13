@@ -30,13 +30,13 @@ import {fmtTimeSince} from "../../utils";
 const headCells = [
     {
         content: 'Name',
-        width: '25%',
+        width: '32%',
         key: 'full_name',
         sortable: true
     },
     {
         content: 'Username',
-        width: '20%',
+        width: '25%',
         key: 'username',
         sortable: true
     },
@@ -44,70 +44,64 @@ const headCells = [
         content: 'Role',
         sortable: true,
         key: 'role',
-        width: '16%'
+        width: '18%'
     },
     {
-        content: 'Status',
-        width: '12%',
-        key: 'active',
-        sortable: true
-    },
-    {
-        content: 'Access granted',
+        content: 'Joined',
         width: '20%',
-        key: 'active',
+        key: 'joined_at',
         sortable: true
     },
     {
         content: '',
         sortable: false,
-        width: '7%',
+        width: '5%',
         align: 'right'
     }
 ];
 
+const cmpByFullNameAsc = Utils.createComparator('full_name', 'asc');
 
-function MembersList({items, setItemToDelete}) {
+    function MembersList({items, setItemToDelete}) {
 
-    const handleDelClick = (e) => {
-        const itemId = parseInt(e.currentTarget.dataset.itemId);
-        setItemToDelete(items.find((it) => it.id === itemId));
-    };
+        const handleDelClick = (e) => {
+            const itemId = parseInt(e.currentTarget.dataset.itemId);
+            setItemToDelete(items.find((it) => it.id === itemId));
+        };
 
-    return (
-        <TableBody>
-            {
-                items.length > 0
-                    ? items.map((it) =>
-                        <TableRow key={it.id} hover sx={{'& td': {height: '30px'}}}>
-                            <TableCell>{it.full_name}</TableCell>
-                            <TableCell>{it.username}</TableCell>
-                            <TableCell>{Utils.capitalize(it.role)}</TableCell>
-                            <TableCell>{it.active ? 'active' : 'pending'}</TableCell>
-                            <TableCell>{fmtTimeSince(it.perm_granted_at) + ' ago'}</TableCell>
-                            <TableCell align="right">
-                                {
-                                    it.role !== Role.OWNER
-                                        ? (
-                                            <Box sx={{display: 'flex', justifyContent: 'right'}}>
-                                                <ActionButton data-item-id={it.id} onClick={handleDelClick}>
-                                                    <DeleteForeverIcon fontSize="inherit"/>
-                                                </ActionButton>
-                                            </Box>
-                                        )
-                                        : null
-                                }
+        return (
+            <TableBody>
+                {
+                    items.length > 0
+                        ? items.map((it) =>
+                            <TableRow key={it.id} hover sx={{'& td': {height: '30px'}}}>
+                                <TableCell>{it.full_name}</TableCell>
+                                <TableCell>{it.username}</TableCell>
+                                <TableCell>{Utils.capitalize(it.role)}</TableCell>
+                                <TableCell>{it.active ? fmtTimeSince(it.joined_at) + ' ago' : '-'}</TableCell>
+                                <TableCell align="right">
+                                    {
+                                        it.role !== Role.OWNER
+                                            ? (
+                                                <Box sx={{display: 'flex', justifyContent: 'right'}}>
+                                                    <ActionButton data-item-id={it.id} onClick={handleDelClick}>
+                                                        <DeleteForeverIcon fontSize="inherit"/>
+                                                    </ActionButton>
+                                                </Box>
+                                            )
+                                            : null
+                                    }
+                                </TableCell>
+                            </TableRow>)
+                        : <TableRow>
+                            <TableCell colSpan="100%" sx={{border: 0, color: '#606060'}}>
+                                There are no items to display
                             </TableCell>
-                        </TableRow>)
-                    : <TableRow>
-                        <TableCell colSpan="100%" sx={{border: 0, color: '#606060'}}>
-                            There are no items to display
-                        </TableCell>
-                    </TableRow>
-            }
-        </TableBody>
-    );
-}
+                        </TableRow>
+                }
+            </TableBody>
+        );
+    }
 
 function MembersTable({items, setItems}) {
     const params = useParams();
@@ -136,12 +130,12 @@ function MembersTable({items, setItems}) {
         const item = itemToDelete;
         setItemToDelete(null);
 
-        const req = item.active ? ProjectsService.removeMember(projId, item.id)
+        const req = item.active
+            ? ProjectsService.removeMember(projId, item.id)
             : InvitationsService.deleteSent(item.invitation_id);
+
         req.then(() => setItems((curItems) => Utils.remove(curItems, item.id)));
     };
-
-    const clearItemToDelete = () => setItemToDelete(null);
 
     return (
         <Fragment>
@@ -156,7 +150,7 @@ function MembersTable({items, setItems}) {
             </TableContainer>
             {
                 itemToDelete &&
-                <ConfirmDeleteDialog title="Remove Member" closeHandler={clearItemToDelete}
+                <ConfirmDeleteDialog title="Remove Member" closeHandler={() => setItemToDelete(null)}
                                      deleteHandler={handleDelete}>
                     Are you sure you want to remove "{itemToDelete.full_name}" from project?
                 </ConfirmDeleteDialog>
@@ -174,17 +168,9 @@ function InviteUsersDialog({members, inviteHandler, closeHandler}) {
         api.get('/users')
             .then((data) => {
                 const users = data.filter((u) => !members.some((u2) => u.id === u2.id));
-                setAllUsers(users.sort(Utils.createComparator('full_name', 'asc')));
+                setAllUsers(users.sort(cmpByFullNameAsc));
             });
     }, [members]);
-
-    const getFullName = (u) => u.full_name;
-
-    const checkEquality = (opt, val) => opt.id === val.id;
-
-    const changeHandler = (e, val) => selected.current = val;
-
-    const handleSubmit = () => inviteHandler(selected.current);
 
     return (
         allUsers && (
@@ -197,8 +183,8 @@ function InviteUsersDialog({members, inviteHandler, closeHandler}) {
                         fullWidth
                         noOptionsText="No users"
                         options={allUsers}
-                        getOptionLabel={getFullName}
-                        isOptionEqualToValue={checkEquality}
+                        getOptionLabel={(u) => u.full_name}
+                        isOptionEqualToValue={(opt, val) => opt.id === val.id}
                         renderInput={(params) => (
                             <TextField
                                 {...params}
@@ -207,12 +193,12 @@ function InviteUsersDialog({members, inviteHandler, closeHandler}) {
                                 label="Selected users"
                             />
                         )}
-                        onChange={changeHandler}
+                        onChange={(e, val) => selected.current = val}
                     />
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={closeHandler} variant="outlined">Cancel</Button>
-                    <Button onClick={handleSubmit} variant="contained">Invite</Button>
+                    <Button onClick={() => inviteHandler(selected.current)} variant="contained">Invite</Button>
                 </DialogActions>
             </Dialog>
         )
@@ -238,8 +224,8 @@ export default function Members() {
                         full_name: inv.invitee.full_name,
                         role: inv.role,
                         invitation_id: inv.id,
-                        perm_granted_at: inv.created_at,
-                        active: false
+                        active: false,
+                        joined_at: inv.created_at,
                     };
                 });
                 members.forEach((m) => m.active = true);
@@ -250,28 +236,26 @@ export default function Members() {
     const showInviteDlg = () => setOpenInviteDlg(true);
     const hideInviteDlg = () => setOpenInviteDlg(false);
 
-    const showSuccessMsg = (msg) => setAlertMsg(msg);
-    const hideSuccessMsg = () => setAlertMsg('');
-
-
     const handleInvite = (selUsers) => {
         hideInviteDlg();
 
         Promise.all(selUsers.map((u) => InvitationsService.send(projId, u.id)))
             .then((data) => {
-                showSuccessMsg('Invitations were successfully sent to users.');
-                const invitees = selUsers.map((u, i) => {
-                    return {
-                        id: u.id,
-                        username: u.username,
-                        full_name: u.full_name,
-                        role: Role.CONTRIBUTOR,
-                        perm_granted_at: Date.now() / 1000 | 0,
-                        active: false,
-                        invitation_id: data[i].resource_id
-                    }
-                })
-                setProjMembers((prevMembers) => prevMembers.concat(invitees));
+                setAlertMsg('Invitations were successfully sent to users.');
+
+                setProjMembers((prevMembers) => {
+                    prevMembers.concat(selUsers.map((u, i) => {
+                        return {
+                            id: u.id,
+                            username: u.username,
+                            full_name: u.full_name,
+                            role: Role.CONTRIBUTOR,
+                            active: false,
+                            joined_at: Date.now() / 1000 | 0,
+                            invitation_id: data[i].resource_id
+                        }
+                    }))
+                });
             });
     };
 
@@ -293,7 +277,8 @@ export default function Members() {
                 <InviteUsersDialog members={projMembers} inviteHandler={handleInvite} closeHandler={hideInviteDlg}/>
             }
             {
-                alertMsg && <EnhancedAlert msg={alertMsg} severity="success" closeHandler={hideSuccessMsg}/>
+                alertMsg && <EnhancedAlert msg={alertMsg} severity="success"
+                                           closeHandler={() => setAlertMsg('')}/>
             }
         </Fragment>
     );
