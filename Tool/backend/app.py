@@ -41,10 +41,14 @@ exports_map = {}
 
 
 def setup_db():
-    # to speed up row-deletions
-    db_conn.execute('PRAGMA secure_delete=OFF')
+    # size of pages which are loaded into memory (maybe increase to 32768)
+    db_conn.execute('PRAGMA page_size=16384')
     # to speed up database transactions
     db_conn.execute('PRAGMA journal_mode=WAL')
+    # lazier synchronization
+    db_conn.execute('PRAGMA synchronous=NORMAL')
+    # to speed up row-deletions
+    db_conn.execute('PRAGMA secure_delete=OFF')
 
     with open(config.SQL_SCHEMA_PATH) as f:
         db_conn.executescript(f.read())
