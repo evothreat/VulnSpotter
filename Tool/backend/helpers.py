@@ -54,6 +54,7 @@ def register_boolean_type():
 def open_db_transaction():
     conn = sqlite3.connect(config.DB_PATH, isolation_level=None, detect_types=sqlite3.PARSE_DECLTYPES)
     conn.execute('PRAGMA foreign_keys=ON')
+    conn.execute('PRAGMA synchronous=NORMAL')
     # conn.row_factory = sqlite3.Row
     try:
         conn.execute('BEGIN')
