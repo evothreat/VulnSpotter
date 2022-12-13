@@ -666,7 +666,7 @@ def create_export():
     cleaner.daemon = True  # to run even if current thread exits
     cleaner.start()
 
-    return '', 201, {'Location': url_for('get_export', export_id=export_id, _external=True)}
+    return {'download_url': url_for('get_export', export_id=export_id, _external=True)}, 201
 
 
 @app.route('/api/exports/<export_id>')
