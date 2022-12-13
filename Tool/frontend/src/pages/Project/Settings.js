@@ -1,6 +1,6 @@
 import PageHeader from "../../components/PageHeader";
 import Typography from "@mui/material/Typography";
-import {Autocomplete, Divider, Stack} from "@mui/material";
+import {Autocomplete, CircularProgress, Dialog, DialogContent, DialogTitle, Divider, Stack} from "@mui/material";
 import FormTextField from "../../components/FormTextField";
 import MainActionButton from "../../components/MainActionButton";
 import EnhancedAlert from "../../components/EnhancedAlert";
@@ -17,9 +17,23 @@ import ConfirmDeleteDialog from "../../components/ConfirmDeleteDialog";
 import {useNavigate} from "react-router-dom";
 
 
+function PrepareExportDialog() {
+    return (
+        <Dialog open={true} maxWidth="xs" fullWidth>
+            <DialogTitle>Please wait</DialogTitle>
+            <DialogContent>
+                    <Stack direction="row" sx={{padding: '5px 0 5px 30px', gap: '30px', alignItems: 'center'}}>
+                        <CircularProgress/>
+                        <Typography>Preparing to download ...</Typography>
+                    </Stack>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 function SettingsDivider() {
     return (
-        <Divider sx={{mt: '25px', mb: '15px'}}/>
+        <Divider sx={{mt: '30px', mb: '25px'}}/>
     );
 }
 
@@ -47,7 +61,9 @@ export default function Settings() {
     const [alertMsg, setAlertMsg] = useState('');
     const [projName, setProjName] = useState(project.name);
     const [extensions, setExtensions] = useState(project.extensions);
+
     const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+    const [showPrepareExport, setShowPrepareExport] = useState(false);
 
     const resetInput = () => {
         setProjName(project.name);
@@ -77,8 +93,8 @@ export default function Settings() {
                     setAlertMsg('Project settings successfully updated.');
                     setProject((curProj) => {
                         return {
-                          ...curProj,
-                          ...fields
+                            ...curProj,
+                            ...fields
                         };
                     });
                 });
@@ -88,6 +104,16 @@ export default function Settings() {
     const handleDelProject = () => {
         setShowConfirmDelete(false);
         ProjectsService.delete(project.id).then(() => navigate('/home/projects'));
+    };
+
+    const handleExport = () => {
+        setShowPrepareExport(true);
+
+        ProjectsService.export(project.id)
+            .then((data) => {
+                setShowPrepareExport(false);
+                window.location.assign(data.download_url);
+            });
     };
 
     return (
@@ -135,7 +161,7 @@ export default function Settings() {
             <SettingsItem title="Export commits"
                           description="Export all commits and associated votes of all members in JSON format."
                           button={
-                              <MainActionButton startIcon={<FileDownloadIcon/>}>
+                              <MainActionButton startIcon={<FileDownloadIcon/>} onClick={handleExport}>
                                   Export
                               </MainActionButton>
                           }
@@ -163,6 +189,9 @@ export default function Settings() {
                                      deleteHandler={handleDelProject}>
                     Are you sure you want to permanently delete the "{project.name}"-Project?
                 </ConfirmDeleteDialog>
+            }
+            {
+                showPrepareExport && <PrepareExportDialog/>
             }
         </LayoutBody>
     );
