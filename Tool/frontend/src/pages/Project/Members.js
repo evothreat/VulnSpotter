@@ -62,7 +62,7 @@ const headCells = [
 
 const cmpByFullNameAsc = Utils.createComparator('full_name', 'asc');
 
-function MemberRow({item, deleteHandler}) {
+function renderMemberRow(item, deleteHandler) {
     return (
         <TableRow key={item.id} hover sx={{'& td': {height: '30px'}}}>
             <TableCell>{item.full_name}</TableCell>
@@ -134,9 +134,7 @@ function MembersTable({items, setItems}) {
                             <TableBody>
                                 {
                                     orderedItems.length > 0
-                                        ? orderedItems.map((it) =>
-                                            <MemberRow item={it} deleteHandler={(m) => setItemToDelete(m)}/>
-                                        )
+                                        ? orderedItems.map((it) => renderMemberRow(it, (m) => setItemToDelete(m)))
                                         : <TableRow>
                                             <TableCell colSpan="100%" sx={{border: 0, color: '#606060'}}>
                                                 There are no items to display
@@ -243,19 +241,18 @@ export default function Members() {
             .then((data) => {
                 setAlertMsg('Invitations were successfully sent to users.');
 
-                setProjMembers((prevMembers) => {
-                    prevMembers.concat(selUsers.map((u, i) => {
-                        return {
-                            id: u.id,
-                            username: u.username,
-                            full_name: u.full_name,
-                            role: Role.CONTRIBUTOR,
-                            active: false,
-                            joined_at: Date.now() / 1000 | 0,
-                            invitation_id: data[i].resource_id
-                        }
-                    }))
+                const invitees = selUsers.map((u, i) => {
+                    return {
+                        id: u.id,
+                        username: u.username,
+                        full_name: u.full_name,
+                        role: Role.CONTRIBUTOR,
+                        active: false,
+                        joined_at: Date.now() / 1000 | 0,
+                        invitation_id: data[i].resource_id
+                    }
                 });
+                setProjMembers((prevMembers) => prevMembers.concat(invitees));
             });
     };
 

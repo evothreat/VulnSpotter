@@ -77,7 +77,7 @@ function RenameProjectDialog({itemToRename, closeHandler, renameHandler}) {
     );
 }
 
-function ProjectRow({item, deleteHandler, renameHandler}) {
+function renderProjectRow(item, deleteHandler, renameHandler) {
     return (
         <TableRow key={item.id} hover sx={{'& td': {height: '30px'}}}>
             <TableCell>
@@ -91,11 +91,11 @@ function ProjectRow({item, deleteHandler, renameHandler}) {
                     item.personal
                         ? (
                             <Box sx={{display: 'flex', justifyContent: 'right'}}>
-                                <ActionButton data-item-id={item.id} onClick={() => deleteHandler(item)}>
+                                <ActionButton data-item-id={item.id} onClick={() => renameHandler(item)}>
                                     <DriveFileRenameOutlineIcon fontSize="inherit"/>
                                 </ActionButton>
 
-                                <ActionButton data-item-id={item.id} onClick={() => renameHandler(item)}>
+                                <ActionButton data-item-id={item.id} onClick={() => deleteHandler(item)}>
                                     <DeleteForeverIcon fontSize="inherit"/>
                                 </ActionButton>
                             </Box>
@@ -211,9 +211,7 @@ export default function ProjectsTable() {
                                 {
                                     orderedItems.length > 0
                                         ? orderedItems.map((it) =>
-                                            <ProjectRow item={it}
-                                                        deleteHandler={(p) => setItemToDelete(p)}
-                                                        renameHandler={(p) => setItemToRename(p)}/>
+                                            renderProjectRow(it, (p) => setItemToDelete(p), (p) => setItemToRename(p))
                                         )
                                         : <TableRow>
                                             <TableCell colSpan="100%" sx={{border: 0, color: '#606060'}}>
