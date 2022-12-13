@@ -31,22 +31,21 @@ register_boolean_type()
 db_conn = sqlite3.connect(config.DB_PATH,
                           check_same_thread=False, isolation_level=None,
                           detect_types=sqlite3.PARSE_DECLTYPES, factory=SafeSql)
+db_conn.row_factory = sqlite3.Row
 
 # to enable foreign keys constraint
 # this constraint must be enabled on each connection
 db_conn.execute('PRAGMA foreign_keys=ON')
 
-# to speed up row-deletions
-db_conn.execute('PRAGMA secure_delete=OFF')
-# to speed up database transactions
-db_conn.execute('PRAGMA journal_mode=WAL')
-
-db_conn.row_factory = sqlite3.Row
-
 exports_map = {}
 
 
 def setup_db():
+    # to speed up row-deletions
+    db_conn.execute('PRAGMA secure_delete=OFF')
+    # to speed up database transactions
+    db_conn.execute('PRAGMA journal_mode=WAL')
+
     with open(config.SQL_SCHEMA_PATH) as f:
         db_conn.executescript(f.read())
 
