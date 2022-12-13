@@ -13,6 +13,7 @@ const FILE_EXTENSIONS = [
     'py',
     'ruby',
     'js',
+    'go',
     's',
     'asm'
 ];
