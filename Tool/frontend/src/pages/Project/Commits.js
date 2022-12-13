@@ -336,11 +336,13 @@ export default function Commits() {
 
     const gotoExplorer = () => {
         // NOTE: first check whether any selected
-        navigate('./explorer', {
-            state: {
-                commitIds: Array.from(selectedIds)
-            }
-        });
+        if (selectedIds.size > 0) {
+            navigate('./explorer', {
+                state: {
+                    commitIds: Array.from(selectedIds)
+                }
+            });
+        }
     };
 
     const filteredCommits = useMemo(() => {
