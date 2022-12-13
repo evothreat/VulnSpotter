@@ -22,25 +22,19 @@ function PrepareExportDialog() {
         <Dialog open={true} maxWidth="xs" fullWidth>
             <DialogTitle>Please wait</DialogTitle>
             <DialogContent>
-                    <Stack direction="row" sx={{padding: '5px 0 5px 30px', gap: '30px', alignItems: 'center'}}>
-                        <CircularProgress/>
-                        <Typography>Preparing to download ...</Typography>
-                    </Stack>
+                <Stack direction="row" sx={{padding: '5px 0 5px 30px', gap: '30px', alignItems: 'center'}}>
+                    <CircularProgress/>
+                    <Typography>Preparing to download ...</Typography>
+                </Stack>
             </DialogContent>
         </Dialog>
-    );
-}
-
-function SettingsDivider() {
-    return (
-        <Divider sx={{mt: '30px', mb: '25px'}}/>
     );
 }
 
 function SettingsItem({title, description, button}) {
     return (
         <Stack direction="row" sx={{justifyContent: 'space-between', alignItems: 'flex-end'}}>
-            <Stack gap="10px">
+            <Stack sx={{gap: '10px'}}>
                 <Typography variant="body1" sx={{fontWeight: 'bold', color: '#3c3c3c'}}>
                     {title}
                 </Typography>
@@ -123,8 +117,8 @@ export default function Settings() {
                     Settings
                 </Typography>
             </PageHeader>
-            <Stack gap="30px">
-                <Stack width="350px" gap="10px">
+            <Stack sx={{gap: '30px'}}>
+                <Stack sx={{gap: '10px', width: '350px'}}>
                     <FormTextField required label="Project name" name="projName"
                                    value={projName} onChange={(e) => setProjName(e.target.value)}
                                    error={inputErrors.projName}/>
@@ -146,7 +140,7 @@ export default function Settings() {
 
                 </Stack>
 
-                <Stack direction="row" gap="10px">
+                <Stack direction="row" sx={{gap: '10px'}}>
                     <MainActionButton onClick={handleUpdateProject}>
                         Save
                     </MainActionButton>
@@ -156,29 +150,28 @@ export default function Settings() {
                 </Stack>
             </Stack>
 
-            <SettingsDivider/>
 
-            <SettingsItem title="Export commits"
-                          description="Export all commits and associated votes of all members in JSON format."
-                          button={
-                              <MainActionButton startIcon={<FileDownloadIcon/>} onClick={handleExport}>
-                                  Export
-                              </MainActionButton>
-                          }
-            />
-
-            <SettingsDivider/>
-
-            <SettingsItem title="Delete project"
-                          description="Delete the whole Project with all commits and votes permanently."
-                          button={
-                              <MainActionButton color="error" startIcon={<DeleteIcon/>}
-                                                onClick={() => setShowConfirmDelete(true)}>
-                                  Delete
-                              </MainActionButton>
-                          }
-            />
-
+            <Stack sx={{gap: '30px', mt: '40px'}}>
+                <Divider/>
+                <SettingsItem title="Export commits"
+                              description="Export all commits and associated votes of all members in JSON format."
+                              button={
+                                  <MainActionButton startIcon={<FileDownloadIcon/>} onClick={handleExport}>
+                                      Export
+                                  </MainActionButton>
+                              }
+                />
+                <Divider/>
+                <SettingsItem title="Delete project"
+                              description="Delete the whole Project with all commits and votes permanently."
+                              button={
+                                  <MainActionButton color="error" startIcon={<DeleteIcon/>}
+                                                    onClick={() => setShowConfirmDelete(true)}>
+                                      Delete
+                                  </MainActionButton>
+                              }
+                />
+            </Stack>
             {
                 alertMsg && <EnhancedAlert msg={alertMsg} severity="success" closeHandler={() => setAlertMsg('')}/>
             }

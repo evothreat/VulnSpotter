@@ -96,8 +96,8 @@ export default function Account() {
                     Account
                 </Typography>
             </PageHeader>
-            <Stack gap="50px" direction="row" sx={{maxWidth: '630px'}}>
-                <Stack gap="10px" flex="1">
+            <Stack gap="50px" direction="row" sx={{maxWidth: '630px', gap: '50px'}}>
+                <Stack sx={{gap: '10px', flex: '1'}}>
                     <FormTextField required label="Full name" name="fullName"
                                    value={fullName} onChange={(e) => setFullName(e.target.value)}
                                    error={inputErrors.fullName}/>
@@ -109,7 +109,7 @@ export default function Account() {
                                    error={inputErrors.email}/>
                 </Stack>
 
-                <Stack gap="10px" flex="1">
+                <Stack sx={{gap: '10px', flex: '1'}}>
                     <FormTextField type="password" label="Password (min. 4 characters)" name="password1"
                                    value={password1} onChange={(e) => setPassword1(e.target.value)}
                                    error={inputErrors.password1}/>
@@ -119,7 +119,7 @@ export default function Account() {
                 </Stack>
             </Stack>
 
-            <Stack direction="row" gap="10px" mt="40px">
+            <Stack direction="row" sx={{gap: '10px', mt: '40px'}}>
                 <MainActionButton onClick={handleSubmit}>
                     Save
                 </MainActionButton>
