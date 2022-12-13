@@ -6,7 +6,7 @@ CVE_API_NVD = 'https://services.nvd.nist.gov/rest/json/cves/2.0'
 CVE_API_REDHAT = 'https://access.redhat.com/hydra/rest/securitydata/cve.json'
 
 MAX_REQUESTED = 100
-MAX_PARSED_ALONE = 15
+MAX_PARSED_ALONE = 20
 
 DELAY_SECS_NVD = 5
 DELAY_SECS_REDHAT = 0.5
