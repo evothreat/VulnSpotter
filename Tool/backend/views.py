@@ -88,7 +88,7 @@ def member(d):
         'full_name': d['full_name'],
         'username': d['username'],
         'role': d['role'],
-        'perm_granted_at': d['perm_granted_at']
+        'joined_at': d['joined_at']
     }
 
 

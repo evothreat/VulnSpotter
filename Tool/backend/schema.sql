@@ -9,10 +9,10 @@ CREATE TABLE users
 
 CREATE TABLE membership
 (
-    user_id         INTEGER,
-    project_id      INTEGER,
-    role            TEXT,
-    perm_granted_at INTEGER,
+    user_id    INTEGER,
+    project_id INTEGER,
+    role       TEXT,
+    joined_at  INTEGER,
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
     FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
     PRIMARY KEY (user_id, project_id)

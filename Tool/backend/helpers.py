@@ -137,7 +137,7 @@ def create_project_from_repo(user_id, repo_url, proj_name, extensions):
         proj_id = conn.execute('INSERT INTO projects(owner_id,name,repository,extensions,created_at) VALUES (?,?,?,?,?)',
                                (user_id, proj_name, repo_loc, ','.join(extensions), unix_time())).lastrowid
 
-        conn.execute('INSERT INTO membership(user_id,project_id,role,perm_granted_at) VALUES (?,?,?,?)',
+        conn.execute('INSERT INTO membership(user_id,project_id,role,joined_at) VALUES (?,?,?,?)',
                      (user_id, proj_id, Role.OWNER, unix_time()))
 
         create_commit_records(conn, proj_id, commits)

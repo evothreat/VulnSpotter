@@ -584,9 +584,9 @@ def get_invitations():
 def accept_invitation(invitation_id):
     with db_conn:
         record_id = db_conn.execute(
-            'INSERT INTO membership(user_id,project_id,role,perm_granted_at) '
-            'SELECT invitee_id,project_id,role,created_at FROM invitations WHERE id=? AND invitee_id=? LIMIT 1',
-            (invitation_id, get_jwt_identity())
+            'INSERT INTO membership(user_id,project_id,role,joined_at) '
+            'SELECT invitee_id,project_id,role,? FROM invitations WHERE id=? AND invitee_id=? LIMIT 1',
+            (unix_time(), invitation_id, get_jwt_identity())
         ).lastrowid
 
         if record_id is None:
@@ -616,7 +616,7 @@ def get_members(proj_id):
     if not is_owner(get_jwt_identity(), proj_id):
         return '', 404
 
-    data = db_conn.execute('SELECT u.id,u.username,u.full_name,m.role,m.perm_granted_at FROM membership m '
+    data = db_conn.execute('SELECT u.id,u.username,u.full_name,m.role,m.joined_at FROM membership m '
                            'JOIN users u ON m.project_id=? AND u.id=m.user_id',
                            (proj_id,)).fetchall()
     return [views.member(d) for d in data]
