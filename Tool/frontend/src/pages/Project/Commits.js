@@ -25,23 +25,10 @@ import SimpleCheckbox from "../../components/SimpleCheckbox";
 import MainActionButton from "../../components/MainActionButton";
 import PageHeader from "../../components/PageHeader";
 import {createComparator} from "../../utils";
+import {VULN_KEYWORDS} from "../../constants";
 
 
 const cveDetailUrl = 'https://nvd.nist.gov/vuln/detail/';
-const VULN_KEYWORDS = [
-    'race', 'racy',
-    'buffer', 'overflow', 'stack',
-    'integer', 'signedness', 'widthness', 'underflow',
-    'improper', 'unauthenticated', 'gain access', 'permission',
-    'cross site', 'CSS', 'XSS', 'htmlspecialchar',
-    'denial service', 'DOS', 'crash',
-    'deadlock',
-    'SQL', 'SQLI', 'injection',
-    'format', 'string', 'printf', 'scanf',
-    'request forgery', 'CSRF', 'XSRF', 'forged',
-    'security', 'vulnerability', 'vulnerable', 'hole', 'exploit', 'attack', 'bypass', 'backdoor',
-    'threat', 'expose', 'breach', 'violate', 'fatal', 'blacklist', 'overrun', 'insecure'
-];
 
 const headCells = [
     {
