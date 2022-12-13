@@ -92,7 +92,7 @@ function MembersTable({items, setItems}) {
 
     const [sorter, setSorter] = useState({
         order: 'asc',
-        orderBy: 'id'
+        orderBy: 'joined_at'
     });
     const [itemToDelete, setItemToDelete] = useState(null);
 
