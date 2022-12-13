@@ -39,13 +39,13 @@ const headCells = [
         content: 'Repository',
         key: 'repository',
         sortable: true,
-        width: '26%'
+        width: '25%'
     },
     {
         content: 'Created',
         key: 'created_at',
         sortable: true,
-        width: '14%'
+        width: '15%'
     },
     {
         width: '10%',
