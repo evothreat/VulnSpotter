@@ -6,7 +6,7 @@ import MainActionButton from "../../components/MainActionButton";
 import EnhancedAlert from "../../components/EnhancedAlert";
 import LayoutBody from "../../layout/LayoutBody";
 import * as React from "react";
-import {useEffect, useState} from "react";
+import {useState} from "react";
 import {FILE_EXTENSIONS} from "../../constants";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -45,14 +45,9 @@ export default function Settings() {
     const [inputErrors, setInputErrors] = useState({});
 
     const [alertMsg, setAlertMsg] = useState('');
-    const [projName, setProjName] = useState('');
-    const [extensions, setExtensions] = useState([]);
+    const [projName, setProjName] = useState(project.name);
+    const [extensions, setExtensions] = useState(project.extensions);
     const [shouldDelete, setShouldDelete] = useState(false);
-
-    useEffect(() => {
-        setProjName(project.name);
-        setExtensions(project.extensions);
-    }, [project]);
 
     const resetInput = () => {
         setProjName(project.name);
