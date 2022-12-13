@@ -231,11 +231,8 @@ export default function Members() {
             });
     }, [projId]);
 
-    const showInviteDlg = () => setOpenInviteDlg(true);
-    const hideInviteDlg = () => setOpenInviteDlg(false);
-
     const handleInvite = (selUsers) => {
-        hideInviteDlg();
+        setOpenInviteDlg(false);
 
         Promise.all(selUsers.map((u) => InvitationsService.send(projId, u.id)))
             .then((data) => {
@@ -262,7 +259,7 @@ export default function Members() {
                 <Typography variant="h6">
                     Members
                 </Typography>
-                <MainActionButton startIcon={<PersonAddAlt1Icon/>} onClick={showInviteDlg}>
+                <MainActionButton startIcon={<PersonAddAlt1Icon/>} onClick={() => setOpenInviteDlg(true)}>
                     Invite
                 </MainActionButton>
             </PageHeader>
@@ -271,7 +268,8 @@ export default function Members() {
             }
             {
                 openInviteDlg &&
-                <InviteUsersDialog members={projMembers} inviteHandler={handleInvite} closeHandler={hideInviteDlg}/>
+                <InviteUsersDialog members={projMembers} inviteHandler={handleInvite}
+                                   closeHandler={() => setOpenInviteDlg(false)}/>
             }
             {
                 alertMsg && <EnhancedAlert msg={alertMsg} severity="success"

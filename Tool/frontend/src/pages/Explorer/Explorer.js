@@ -155,7 +155,6 @@ export default function Explorer() {
         if (commitInfo.diffsInfoIt.next()) {
             refreshData();
         } else if (commitIdsIt.next()) {
-            console.log('ID:', commitIdsIt.curr());
             setCommitIdsIt(commitIdsIt.clone());
         } else {
             console.log('no more commits available');

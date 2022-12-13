@@ -62,17 +62,11 @@ export default function Projects() {
     const [openCreateDlg, setOpenCreateDlg] = useState(false);
     const [alertMsg, setAlertMsg] = useState('');
 
-    const showCreateDlg = () => setOpenCreateDlg(true);
-    const hideCreateDlg = () => setOpenCreateDlg(false);
-
-    const showInfo = (msg) => setAlertMsg(msg);
-    const hideInfo = () => setAlertMsg('');
-
     const handleCreateInDlg = (repoUrl, projName, extensions) => {
-        hideCreateDlg();
-        console.log(repoUrl, projName, extensions)
+        setOpenCreateDlg(false);
+
         ProjectsService.create(repoUrl, projName, extensions)
-            .then(() => showInfo('Once the project is created, you will be notified'));
+            .then(() => setAlertMsg('Once the project is created, you will be notified'));
     };
 
     return (
@@ -81,7 +75,7 @@ export default function Projects() {
                 <Typography variant="h6">
                     Projects
                 </Typography>
-                <MainActionButton startIcon={<AddIcon/>} onClick={showCreateDlg}>
+                <MainActionButton startIcon={<AddIcon/>} onClick={() => setOpenCreateDlg(true)}>
                     New
                 </MainActionButton>
             </PageHeader>
@@ -89,11 +83,11 @@ export default function Projects() {
             <ProjectsTable/>
             {
                 openCreateDlg
-                    ? <CreateProjectDialog closeHandler={hideCreateDlg} createHandler={handleCreateInDlg}/>
+                    ? <CreateProjectDialog closeHandler={() => setOpenCreateDlg(false)} createHandler={handleCreateInDlg}/>
                     : null
             }
             {
-                alertMsg && <EnhancedAlert msg={alertMsg} severity="info" closeHandler={hideInfo}/>
+                alertMsg && <EnhancedAlert msg={alertMsg} severity="info" closeHandler={() => setAlertMsg('')}/>
             }
         </LayoutBody>
     )
