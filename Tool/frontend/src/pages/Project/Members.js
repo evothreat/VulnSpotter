@@ -74,7 +74,7 @@ function renderMemberRow(item, deleteHandler) {
                     item.role !== Role.OWNER
                         ? (
                             <Box sx={{display: 'flex', justifyContent: 'right'}}>
-                                <ActionButton data-item-id={item.id} onClick={() => deleteHandler(item)}>
+                                <ActionButton onClick={() => deleteHandler(item)}>
                                     <DeleteForeverIcon fontSize="inherit"/>
                                 </ActionButton>
                             </Box>

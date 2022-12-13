@@ -61,10 +61,6 @@ export default function CveViewer({cveList, setWinRef}) {
         setCveIx(0);
     }
 
-    const handleChange = (e) => {
-        setCveIx(parseInt(e.currentTarget.dataset.index));
-    };
-
     const bindHotkeys = () => {
         Mousetrap.bind(['left', 'right'], (e, key) => {
             e.preventDefault();
@@ -97,8 +93,7 @@ export default function CveViewer({cveList, setWinRef}) {
                         <Box sx={{display: 'flex', justifyContent: 'center', position: 'sticky', bottom: '0', zIndex: '1', bgcolor: 'white'}}>
                             {
                                 cveList.map((_, i) => (
-                                    <IconButton key={i} disableRipple sx={{padding: '8px 3px'}} onClick={handleChange}
-                                                data-index={i}>
+                                    <IconButton key={i} disableRipple sx={{padding: '8px 3px'}} onClick={() => setCveIx(i)}>
                                         <CircleIcon sx={{fontSize: '10px'}}
                                                     style={{color: i === cveIx ? '#71757e' : '#bbb4b4'}}/>
                                     </IconButton>

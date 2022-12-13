@@ -91,11 +91,11 @@ function renderProjectRow(item, deleteHandler, renameHandler) {
                     item.personal
                         ? (
                             <Box sx={{display: 'flex', justifyContent: 'right'}}>
-                                <ActionButton data-item-id={item.id} onClick={() => renameHandler(item)}>
+                                <ActionButton onClick={() => renameHandler(item)}>
                                     <DriveFileRenameOutlineIcon fontSize="inherit"/>
                                 </ActionButton>
 
-                                <ActionButton data-item-id={item.id} onClick={() => deleteHandler(item)}>
+                                <ActionButton onClick={() => deleteHandler(item)}>
                                     <DeleteForeverIcon fontSize="inherit"/>
                                 </ActionButton>
                             </Box>

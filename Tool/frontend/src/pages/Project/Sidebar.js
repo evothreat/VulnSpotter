@@ -57,8 +57,6 @@ export default function Sidebar({viewKey, viewChangeHandler}) {
 
     const toggleOpen = () => setOpen((prevState) => !prevState);
 
-    const handleChange = (e) => viewChangeHandler(e.currentTarget.dataset.viewKey);
-
     return (
         <Drawer
             variant="permanent"
@@ -88,8 +86,7 @@ export default function Sidebar({viewKey, viewChangeHandler}) {
                             <ListItem key={i} disablePadding>
                                 <ListItemButton selected={key === viewKey}
                                                 sx={sidebarItemStyle}
-                                                data-view-key={key}
-                                                onClick={handleChange}>
+                                                onClick={() => viewChangeHandler(key)}>
                                     <ListItemIcon sx={{minWidth: 0, mr: '18px'}}>
                                         <Icon sx={{width: '20px', height: '20px'}}/>
                                     </ListItemIcon>

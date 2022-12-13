@@ -91,17 +91,9 @@ function renderDiffRow({linenoLeft, linenoRight, diffType, value}, hunkId) {
 }
 
 function renderExpander(direction, hunkId, expandHandler) {
-    const handleClick = (e) => {
-        expandHandler(
-            parseInt(e.currentTarget.dataset.direction),
-            e.currentTarget.dataset.hunkId
-        );
-    }
-
     return (
         <tr key={hunkId + direction} className={cssStyle.expander}>
-            <td className={cssStyle.expButton} data-hunk-id={hunkId} data-direction={direction}
-                onClick={handleClick}>
+            <td className={cssStyle.expButton} onClick={() => expandHandler(direction, hunkId)}>
                 {
                     direction > 0
                         ? <VerticalExpandLessIcon/>
