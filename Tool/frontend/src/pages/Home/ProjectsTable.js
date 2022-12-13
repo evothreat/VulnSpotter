@@ -11,16 +11,15 @@ import {Dialog, DialogActions, DialogContent, DialogTitle, ToggleButton, ToggleB
 import {SearchBar} from "../../components/SearchBar";
 import Box from "@mui/material/Box";
 import * as Utils from "../../utils";
+import {fmtTimeSince} from "../../utils";
 import Button from "@mui/material/Button";
 import ProjectsService from "../../services/ProjectsService";
-import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import EnhancedTableHead from "../../components/EnhancedTableHead";
 import TokenService from "../../services/TokenService";
 import ConfirmDeleteDialog from "../../components/ConfirmDeleteDialog";
 import RouterLink from "../../components/RouterLink";
 import ActionButton from "../../components/ActionButton";
-import {fmtTimeSince} from "../../utils";
 
 
 const headCells = [
@@ -54,60 +53,6 @@ const headCells = [
     }
 ];
 
-
-function ProjectTableList({items, setItemToDelete, setItemToRename}) {
-
-    const handleDelClick = (e) => {
-        const itemId = parseInt(e.currentTarget.dataset.itemId);
-        setItemToDelete(items.find((it) => it.id === itemId));
-    };
-
-    const handleRenClick = (e) => {
-        const itemId = parseInt(e.currentTarget.dataset.itemId);
-        setItemToRename(items.find((it) => it.id === itemId));
-    };
-
-    return (
-        <TableBody>
-            {
-                items.length > 0
-                    ? items.map((it) =>
-                        <TableRow key={it.id} hover sx={{'& td': {height: '30px'}}}>
-                            <TableCell>
-                                <RouterLink underline="hover" to={`/home/projects/${it.id}`}>{it.name}</RouterLink>
-                            </TableCell>
-                            <TableCell>{it.personal ? 'Me' : it.owner_name}</TableCell>
-                            <TableCell>{it.repository.substring(it.repository.indexOf('/') + 1)}</TableCell>
-                            <TableCell>{fmtTimeSince(it.created_at) + ' ago'}</TableCell>
-                            <TableCell align="right">
-                                {
-                                    it.personal
-                                        ? (
-                                            <Box sx={{display: 'flex', justifyContent: 'right'}}>
-                                                <ActionButton data-item-id={it.id} onClick={handleRenClick}>
-                                                    <DriveFileRenameOutlineIcon fontSize="inherit"/>
-                                                </ActionButton>
-
-                                                <ActionButton data-item-id={it.id} onClick={handleDelClick}>
-                                                    <DeleteForeverIcon fontSize="inherit"/>
-                                                </ActionButton>
-                                            </Box>
-                                        )
-                                        : null
-                                }
-
-                            </TableCell>
-                        </TableRow>)
-                    : <TableRow>
-                        <TableCell colSpan="100%" sx={{border: 0, color: '#606060'}}>
-                            There are no items to display
-                        </TableCell>
-                    </TableRow>
-            }
-        </TableBody>
-    );
-}
-
 function RenameProjectDialog({itemToRename, closeHandler, renameHandler}) {
 
     const handleSubmit = (e) => {
@@ -129,6 +74,37 @@ function RenameProjectDialog({itemToRename, closeHandler, renameHandler}) {
                 </DialogActions>
             </form>
         </Dialog>
+    );
+}
+
+function ProjectRow({item, deleteHandler, renameHandler}) {
+    return (
+        <TableRow key={item.id} hover sx={{'& td': {height: '30px'}}}>
+            <TableCell>
+                <RouterLink underline="hover" to={`/home/projects/${item.id}`}>{item.name}</RouterLink>
+            </TableCell>
+            <TableCell>{item.personal ? 'Me' : item.owner_name}</TableCell>
+            <TableCell>{item.repository.substring(item.repository.indexOf('/') + 1)}</TableCell>
+            <TableCell>{fmtTimeSince(item.created_at) + ' ago'}</TableCell>
+            <TableCell align="right">
+                {
+                    item.personal
+                        ? (
+                            <Box sx={{display: 'flex', justifyContent: 'right'}}>
+                                <ActionButton data-item-id={item.id} onClick={() => deleteHandler(item)}>
+                                    <DriveFileRenameOutlineIcon fontSize="inherit"/>
+                                </ActionButton>
+
+                                <ActionButton data-item-id={item.id} onClick={() => renameHandler(item)}>
+                                    <DeleteForeverIcon fontSize="inherit"/>
+                                </ActionButton>
+                            </Box>
+                        )
+                        : null
+                }
+
+            </TableCell>
+        </TableRow>
     );
 }
 
@@ -164,17 +140,16 @@ export default function ProjectsTable() {
     };
 
     const sortItems = (key) => {
-        const isAsc = sorter.orderBy === key && sorter.order === 'asc';
-
         setSorter({
-            order: isAsc ? 'desc' : 'asc',
+            order: sorter.orderBy === key && sorter.order === 'asc' ? 'desc' : 'asc',
             orderBy: key
         });
     };
 
-    const searchItems = (kw) => setSearchKw(kw);
-
     const getItems = () => {
+        if (!items) {
+            return null;
+        }
         return items.filter((it) => (group === 'all' ||
                                     (group === 'personal' && it.personal)) &&
                                     it.name.toLowerCase().includes(searchKw.toLowerCase()))
@@ -186,7 +161,9 @@ export default function ProjectsTable() {
         setItemToDelete(null);
 
         ProjectsService.delete(itemId)
-            .then(() => setItems((curItems) => Utils.remove(curItems, itemId)));
+            .then(() => {
+                setItems((curItems) => Utils.remove(curItems, itemId))
+            });
     };
 
     const handleRename = (newName) => {
@@ -203,9 +180,7 @@ export default function ProjectsTable() {
             });
     };
 
-    const clearItemToDelete = () => setItemToDelete(null);
-    const clearItemToRename = () => setItemToRename(null);
-
+    const orderedItems = getItems();
     return (
         <Fragment>
             <Box sx={{
@@ -220,30 +195,45 @@ export default function ProjectsTable() {
                     <ToggleButton value="personal">Personal</ToggleButton>
                 </ToggleButtonGroup>
 
-                <SearchBar width="260px" placeholder="Search by name" changeHandler={searchItems}/>
+                <SearchBar width="260px" placeholder="Search by name" changeHandler={(kw) => setSearchKw(kw)}/>
             </Box>
-            {
-                items == null
-                    ? <Typography variant="body2">Loading projects...</Typography>
-                    : <TableContainer sx={{height: '465px', borderBottom: 'thin solid lightgray'}}>
-                        <Table size="small" stickyHeader sx={{tableLayout: 'fixed'}}>
-                            <EnhancedTableHead
-                                headCells={headCells}
-                                order={sorter.order}
-                                orderBy={sorter.orderBy}
-                                sortReqHandler={sortItems}/>
-                            <ProjectTableList items={getItems()}
-                                              setItemToDelete={setItemToDelete}
-                                              setItemToRename={setItemToRename}/>
-                        </Table>
-                    </TableContainer>
-            }
 
-            {itemToRename && <RenameProjectDialog itemToRename={itemToRename} renameHandler={handleRename}
-                                                  closeHandler={clearItemToRename}/>}
+            <TableContainer sx={{height: '465px', borderBottom: 'thin solid lightgray'}}>
+                <Table size="small" stickyHeader sx={{tableLayout: 'fixed'}}>
+                    <EnhancedTableHead
+                        headCells={headCells}
+                        order={sorter.order}
+                        orderBy={sorter.orderBy}
+                        sortReqHandler={sortItems}/>
+                    {
+                        orderedItems && (
+                            <TableBody>
+                                {
+                                    orderedItems.length > 0
+                                        ? orderedItems.map((it) =>
+                                            <ProjectRow item={it}
+                                                        deleteHandler={(p) => setItemToDelete(p)}
+                                                        renameHandler={(p) => setItemToRename(p)}/>
+                                        )
+                                        : <TableRow>
+                                            <TableCell colSpan="100%" sx={{border: 0, color: '#606060'}}>
+                                                There are no items to display
+                                            </TableCell>
+                                        </TableRow>
+                                }
+                            </TableBody>
+                        )
+                    }
+                </Table>
+            </TableContainer>
+            {
+                itemToRename && <RenameProjectDialog itemToRename={itemToRename} renameHandler={handleRename}
+                                                     closeHandler={() => setItemToRename(null)}/>
+            }
             {
                 itemToDelete &&
-                <ConfirmDeleteDialog title="Delete Project" closeHandler={clearItemToDelete} deleteHandler={handleDelete}>
+                <ConfirmDeleteDialog title="Delete Project" closeHandler={() => setItemToDelete(null)}
+                                     deleteHandler={handleDelete}>
                     Are you sure you want to permanently delete the "{itemToDelete.name}"-Project?
                 </ConfirmDeleteDialog>
             }

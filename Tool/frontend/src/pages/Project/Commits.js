@@ -156,7 +156,7 @@ function CommitsTable({commits, selectedIds, checkHandler, sortReqHandler, order
 
     const containerRef = useRef(null);
     const commitsRef = useRef(commits);
-    
+
     if (commitsRef.current !== commits) {
         if (containerRef.current) {
             containerRef.current.scrollTop = 0;
@@ -184,45 +184,43 @@ function CommitsTable({commits, selectedIds, checkHandler, sortReqHandler, order
     };
 
     const orderedItems = commits?.slice(0, endIx);
-    return orderedItems
-        ? (
-            <Box>
-                <TableContainer ref={containerRef} sx={{height: TABLE_HEIGHT, borderBottom: 'thin solid lightgray'}}>
-                    <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
-                        <EnhancedTableHead headCells={headCells} order={order}
-                                           orderBy={orderBy}
-                                           sortReqHandler={sortReqHandler}
-                                           selectAllCheckbox selectAllHandler={handleSelectAll}
-                                           selectAllChecked={commits.length > 0 && commits.length === selectedIds.size}/>
-                        <TableBody>
-                            {
-                                orderedItems.length > 0
-                                    ? <Fragment>
-                                        {
-                                            orderedItems.map((it) =>
-                                                <PureCommitRow item={it} key={it.id} checked={selectedIds.has(it.id)}
-                                                               checkHandler={checkHandler}/>
-                                            )
-                                        }
-                                        <TableRow key="012345">
-                                            <TableCell colSpan="100%" sx={{border: 'none'}}>
-                                                <Waypoint bottomOffset={BOTTOM_OFFSET} onEnter={showNextItems}/>
-                                            </TableCell>
-                                        </TableRow>
-                                    </Fragment>
-                                    : <TableRow>
-                                        <TableCell colSpan="100%" sx={{border: 0, color: '#606060'}}>
-                                            There are no items to display
+    return orderedItems && (
+        <Box>
+            <TableContainer ref={containerRef} sx={{height: TABLE_HEIGHT, borderBottom: 'thin solid lightgray'}}>
+                <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
+                    <EnhancedTableHead headCells={headCells} order={order}
+                                       orderBy={orderBy}
+                                       sortReqHandler={sortReqHandler}
+                                       selectAllCheckbox selectAllHandler={handleSelectAll}
+                                       selectAllChecked={commits.length > 0 && commits.length === selectedIds.size}/>
+                    <TableBody>
+                        {
+                            orderedItems.length > 0
+                                ? <Fragment>
+                                    {
+                                        orderedItems.map((it) =>
+                                            <PureCommitRow item={it} key={it.id} checked={selectedIds.has(it.id)}
+                                                           checkHandler={checkHandler}/>
+                                        )
+                                    }
+                                    <TableRow key="012345">
+                                        <TableCell colSpan="100%" sx={{border: 'none'}}>
+                                            <Waypoint bottomOffset={BOTTOM_OFFSET} onEnter={showNextItems}/>
                                         </TableCell>
                                     </TableRow>
-                            }
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-                <Typography variant="body2" sx={{mt: '8px', color: '#606060'}}>{commits.length} results</Typography>
-            </Box>
-        )
-        : <Typography variant="body2">Loading commits...</Typography>;
+                                </Fragment>
+                                : <TableRow>
+                                    <TableCell colSpan="100%" sx={{border: 0, color: '#606060'}}>
+                                        There are no items to display
+                                    </TableCell>
+                                </TableRow>
+                        }
+                    </TableBody>
+                </Table>
+            </TableContainer>
+            <Typography variant="body2" sx={{mt: '8px', color: '#606060'}}>{commits.length} results</Typography>
+        </Box>
+    );
 }
 
 function restoreFilterOpts(projId) {

@@ -62,46 +62,29 @@ const headCells = [
 
 const cmpByFullNameAsc = Utils.createComparator('full_name', 'asc');
 
-    function MembersList({items, setItemToDelete}) {
-
-        const handleDelClick = (e) => {
-            const itemId = parseInt(e.currentTarget.dataset.itemId);
-            setItemToDelete(items.find((it) => it.id === itemId));
-        };
-
-        return (
-            <TableBody>
+function MemberRow({item, deleteHandler}) {
+    return (
+        <TableRow key={item.id} hover sx={{'& td': {height: '30px'}}}>
+            <TableCell>{item.full_name}</TableCell>
+            <TableCell>{item.username}</TableCell>
+            <TableCell>{Utils.capitalize(item.role)}</TableCell>
+            <TableCell>{item.active ? fmtTimeSince(item.joined_at) + ' ago' : '-'}</TableCell>
+            <TableCell align="right">
                 {
-                    items.length > 0
-                        ? items.map((it) =>
-                            <TableRow key={it.id} hover sx={{'& td': {height: '30px'}}}>
-                                <TableCell>{it.full_name}</TableCell>
-                                <TableCell>{it.username}</TableCell>
-                                <TableCell>{Utils.capitalize(it.role)}</TableCell>
-                                <TableCell>{it.active ? fmtTimeSince(it.joined_at) + ' ago' : '-'}</TableCell>
-                                <TableCell align="right">
-                                    {
-                                        it.role !== Role.OWNER
-                                            ? (
-                                                <Box sx={{display: 'flex', justifyContent: 'right'}}>
-                                                    <ActionButton data-item-id={it.id} onClick={handleDelClick}>
-                                                        <DeleteForeverIcon fontSize="inherit"/>
-                                                    </ActionButton>
-                                                </Box>
-                                            )
-                                            : null
-                                    }
-                                </TableCell>
-                            </TableRow>)
-                        : <TableRow>
-                            <TableCell colSpan="100%" sx={{border: 0, color: '#606060'}}>
-                                There are no items to display
-                            </TableCell>
-                        </TableRow>
+                    item.role !== Role.OWNER
+                        ? (
+                            <Box sx={{display: 'flex', justifyContent: 'right'}}>
+                                <ActionButton data-item-id={item.id} onClick={() => deleteHandler(item)}>
+                                    <DeleteForeverIcon fontSize="inherit"/>
+                                </ActionButton>
+                            </Box>
+                        )
+                        : null
                 }
-            </TableBody>
-        );
-    }
+            </TableCell>
+        </TableRow>
+    );
+}
 
 function MembersTable({items, setItems}) {
     const params = useParams();
@@ -137,6 +120,7 @@ function MembersTable({items, setItems}) {
         req.then(() => setItems((curItems) => Utils.remove(curItems, item.id)));
     };
 
+    const orderedItems = getItems();
     return (
         <Fragment>
             <TableContainer sx={{height: '520px', borderBottom: 'thin solid lightgray'}}>
@@ -145,7 +129,23 @@ function MembersTable({items, setItems}) {
                                        order={sorter.order}
                                        orderBy={sorter.orderBy}
                                        sortReqHandler={sortItems}/>
-                    <MembersList items={getItems()} setItemToDelete={setItemToDelete}/>
+                    {
+                        orderedItems && (
+                            <TableBody>
+                                {
+                                    orderedItems.length > 0
+                                        ? orderedItems.map((it) =>
+                                            <MemberRow item={it} deleteHandler={(m) => setItemToDelete(m)}/>
+                                        )
+                                        : <TableRow>
+                                            <TableCell colSpan="100%" sx={{border: 0, color: '#606060'}}>
+                                                There are no items to display
+                                            </TableCell>
+                                        </TableRow>
+                                }
+                            </TableBody>
+                        )
+                    }
                 </Table>
             </TableContainer>
             {
