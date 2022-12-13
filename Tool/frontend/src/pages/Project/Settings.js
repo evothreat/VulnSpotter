@@ -47,7 +47,7 @@ export default function Settings() {
     const [alertMsg, setAlertMsg] = useState('');
     const [projName, setProjName] = useState(project.name);
     const [extensions, setExtensions] = useState(project.extensions);
-    const [shouldDelete, setShouldDelete] = useState(false);
+    const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
     const resetInput = () => {
         setProjName(project.name);
@@ -86,8 +86,8 @@ export default function Settings() {
     };
 
     const handleDelProject = () => {
-        ProjectsService.delete(project.id)
-            .then(() => navigate('/home/projects'));
+        setShowConfirmDelete(false);
+        ProjectsService.delete(project.id).then(() => navigate('/home/projects'));
     };
 
     return (
@@ -147,7 +147,7 @@ export default function Settings() {
                           description="Delete the whole Project with all commits and votes permanently."
                           button={
                               <MainActionButton color="error" startIcon={<DeleteIcon/>}
-                                                onClick={() => setShouldDelete(true)}>
+                                                onClick={() => setShowConfirmDelete(true)}>
                                   Delete
                               </MainActionButton>
                           }
@@ -157,9 +157,9 @@ export default function Settings() {
                 alertMsg && <EnhancedAlert msg={alertMsg} severity="success" closeHandler={() => setAlertMsg('')}/>
             }
             {
-                shouldDelete &&
+                showConfirmDelete &&
                 <ConfirmDeleteDialog title="Delete Project"
-                                     closeHandler={() => setShouldDelete(false)}
+                                     closeHandler={() => setShowConfirmDelete(false)}
                                      deleteHandler={handleDelProject}>
                     Are you sure you want to permanently delete the "{project.name}"-Project?
                 </ConfirmDeleteDialog>
