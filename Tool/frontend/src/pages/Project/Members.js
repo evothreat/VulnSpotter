@@ -150,7 +150,7 @@ function MembersTable({items, setItems}) {
                 itemToDelete &&
                 <ConfirmDeleteDialog title="Remove Member" closeHandler={() => setItemToDelete(null)}
                                      deleteHandler={handleDelete}>
-                    Are you sure you want to remove "{itemToDelete.full_name}" from project?
+                    Are you sure you want to remove <b>{itemToDelete.full_name}</b> from project?
                 </ConfirmDeleteDialog>
             }
         </Fragment>

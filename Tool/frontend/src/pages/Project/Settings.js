@@ -180,7 +180,7 @@ export default function Settings() {
                 <ConfirmDeleteDialog title="Delete Project"
                                      closeHandler={() => setShowConfirmDelete(false)}
                                      deleteHandler={handleDelProject}>
-                    Are you sure you want to permanently delete the "{project.name}"-Project?
+                    Are you sure you want to permanently delete the <b>{project.name}</b>-Project?
                 </ConfirmDeleteDialog>
             }
             {

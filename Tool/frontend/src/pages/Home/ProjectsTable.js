@@ -232,7 +232,7 @@ export default function ProjectsTable() {
                 itemToDelete &&
                 <ConfirmDeleteDialog title="Delete Project" closeHandler={() => setItemToDelete(null)}
                                      deleteHandler={handleDelete}>
-                    Are you sure you want to permanently delete the "{itemToDelete.name}"-Project?
+                    Are you sure you want to permanently delete the <b>{itemToDelete.name}</b>-Project?
                 </ConfirmDeleteDialog>
             }
         </Fragment>
