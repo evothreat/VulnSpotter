@@ -36,6 +36,8 @@ db_conn.row_factory = sqlite3.Row
 # to enable foreign keys constraint
 # this constraint must be enabled on each connection
 db_conn.execute('PRAGMA foreign_keys=ON')
+# lazier synchronization
+db_conn.execute('PRAGMA synchronous=NORMAL')
 
 exports_map = {}
 
@@ -45,8 +47,6 @@ def setup_db():
     db_conn.execute('PRAGMA page_size=16384')
     # to speed up database transactions
     db_conn.execute('PRAGMA journal_mode=WAL')
-    # lazier synchronization
-    db_conn.execute('PRAGMA synchronous=NORMAL')
     # to speed up row-deletions
     db_conn.execute('PRAGMA secure_delete=OFF')
 
