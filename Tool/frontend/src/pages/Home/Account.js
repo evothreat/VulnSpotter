@@ -96,8 +96,8 @@ export default function Account() {
                     Account
                 </Typography>
             </PageHeader>
-            <Stack width="300px" gap="30px">
-                <Stack gap="10px">
+            <Stack gap="50px" direction="row" sx={{maxWidth: '630px'}}>
+                <Stack gap="10px" flex="1">
                     <FormTextField required label="Full name" name="fullName"
                                    value={fullName} onChange={(e) => setFullName(e.target.value)}
                                    error={inputErrors.fullName}/>
@@ -109,7 +109,7 @@ export default function Account() {
                                    error={inputErrors.email}/>
                 </Stack>
 
-                <Stack gap="10px">
+                <Stack gap="10px" flex="1">
                     <FormTextField type="password" label="Password (min. 4 characters)" name="password1"
                                    value={password1} onChange={(e) => setPassword1(e.target.value)}
                                    error={inputErrors.password1}/>
@@ -117,15 +117,15 @@ export default function Account() {
                                    value={password2} onChange={(e) => setPassword2(e.target.value)}
                                    error={inputErrors.password2}/>
                 </Stack>
+            </Stack>
 
-                <Stack direction="row" gap="8px">
-                    <MainActionButton onClick={handleSubmit}>
-                        Save
-                    </MainActionButton>
-                    <MainActionButton variant="outlined" onClick={handleCancel}>
-                        Cancel
-                    </MainActionButton>
-                </Stack>
+            <Stack direction="row" gap="10px" mt="40px">
+                <MainActionButton onClick={handleSubmit}>
+                    Save
+                </MainActionButton>
+                <MainActionButton variant="outlined" onClick={handleCancel}>
+                    Cancel
+                </MainActionButton>
             </Stack>
             {
                 alertMsg && <EnhancedAlert msg={alertMsg} severity="success" closeHandler={() => setAlertMsg('')}/>
