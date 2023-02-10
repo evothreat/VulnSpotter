@@ -9,8 +9,8 @@ from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
 
 import config
-import resource_schemas
-import views
+import resource_schemas as schemas
+import resource_views as views
 from enums import *
 from helpers import validate_request_json, register_boolean_type, gen_export_file, assign_bindvars, \
     create_project_from_repo
@@ -100,7 +100,7 @@ def is_member(user_id, proj_id):
 
 
 @app.route('/api/register', methods=['POST'])
-@validate_request_json(resource_schemas.REGISTER)
+@validate_request_json(schemas.REGISTER)
 def register():
     data = request.json
 
@@ -119,7 +119,7 @@ def register():
 
 
 @app.route('/api/auth', methods=['POST'])
-@validate_request_json(resource_schemas.AUTHENTICATE)
+@validate_request_json(schemas.AUTHENTICATE)
 def authenticate():
     data = request.json
 
@@ -154,7 +154,7 @@ def get_current_user():
 
 @app.route('/api/users/me', methods=['PATCH'])
 @jwt_required()
-@validate_request_json(resource_schemas.UPDATE_CURR_USER)
+@validate_request_json(schemas.UPDATE_CURR_USER)
 def update_current_user():
     data = request.json.copy()
 
@@ -198,7 +198,7 @@ def handle_create_project(user_id, *args):
 
 @app.route('/api/users/me/projects', methods=['POST'])
 @jwt_required()
-@validate_request_json(resource_schemas.CREATE_PROJECT)
+@validate_request_json(schemas.CREATE_PROJECT)
 def create_project():
     data = request.json
 
@@ -237,7 +237,7 @@ def get_project(proj_id):
 
 @app.route('/api/users/me/projects/<int:proj_id>', methods=['PATCH'])
 @jwt_required()
-@validate_request_json(resource_schemas.UPDATE_PROJECT)
+@validate_request_json(schemas.UPDATE_PROJECT)
 def update_project(proj_id):
     user_id = get_jwt_identity()
     data = request.json.copy()  # make copy, because we don't want to modify original object
@@ -473,7 +473,7 @@ def get_cve_list(commit_id):
 
 @app.route('/api/users/me/votes', methods=['POST'])
 @jwt_required()
-@validate_request_json(resource_schemas.CREATE_VOTE)
+@validate_request_json(schemas.CREATE_VOTE)
 def create_vote():
     data = request.json
     with db_conn:
@@ -529,7 +529,7 @@ def get_sent_invitations(proj_id):
 
 @app.route('/api/users/me/sent-invitations', methods=['POST'])
 @jwt_required()
-@validate_request_json(resource_schemas.SEND_INVITATION)
+@validate_request_json(schemas.SEND_INVITATION)
 def send_invitation():
     data = request.json
     proj_id = data['project_id']
@@ -651,7 +651,7 @@ def delete_export(export_id):
 
 @app.route('/api/exports', methods=['POST'])
 @jwt_required()
-@validate_request_json(resource_schemas.CREATE_EXPORT)
+@validate_request_json(schemas.CREATE_EXPORT)
 def create_export():
     proj_id = request.json['project_id']
     if not is_member(get_jwt_identity(), proj_id):
