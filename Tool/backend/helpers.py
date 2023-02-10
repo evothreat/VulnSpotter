@@ -14,7 +14,7 @@ from jsonschema.exceptions import ValidationError
 from jsonschema.validators import validate
 
 import config
-from cve_utils import get_cve_info
+from cve_lookup import get_cve_info
 from enums import Role
 from diff_parser import parse_diff_linenos, parse_diff_file_ext
 from profiler import profile
