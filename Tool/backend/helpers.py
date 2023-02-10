@@ -16,7 +16,7 @@ from jsonschema.validators import validate
 import config
 from cve_utils import get_cve_info
 from enums import Role
-from git_utils import parse_diff_linenos, parse_diff_file_ext
+from diff_parser import parse_diff_linenos, parse_diff_file_ext
 from profiler import profile
 from utils import normpath, pathjoin, split_on_startswith, pad_list, unix_time
 
