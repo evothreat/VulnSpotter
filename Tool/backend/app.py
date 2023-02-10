@@ -9,8 +9,8 @@ from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
 
 import config
-import resource_schemas as schemas
-import resource_views as views
+import schemas as schemas
+import views as views
 from enums import *
 from helpers import validate_request_json, register_boolean_type, gen_export_file, assign_bindvars, \
     create_project_from_repo
