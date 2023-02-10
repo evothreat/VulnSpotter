@@ -2,7 +2,7 @@ import sqlite3
 from threading import RLock
 
 
-class SafeSql(sqlite3.Connection):
+class SqliteGuard(sqlite3.Connection):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # with RLock same thread can acquire lock multiple times (i.e. in transaction)

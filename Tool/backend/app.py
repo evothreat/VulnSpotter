@@ -14,7 +14,7 @@ import resource_views as views
 from enums import *
 from helpers import validate_request_json, register_boolean_type, gen_export_file, assign_bindvars, \
     create_project_from_repo
-from safe_sql import SafeSql
+from sqlite_guard import SqliteGuard
 from utils import pathjoin, unix_time, pad_list
 
 IN_CLAUSE_BINDVAR_N = 25
@@ -30,7 +30,7 @@ app.config['JWT_REFRESH_TOKEN_EXPIRES'] = config.JWT_REFRESH_TOKEN_EXPIRES
 register_boolean_type()
 db_conn = sqlite3.connect(config.DB_PATH,
                           check_same_thread=False, isolation_level=None,
-                          detect_types=sqlite3.PARSE_DECLTYPES, factory=SafeSql)
+                          detect_types=sqlite3.PARSE_DECLTYPES, factory=SqliteGuard)
 db_conn.row_factory = sqlite3.Row
 
 # to enable foreign keys constraint
