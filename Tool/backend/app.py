@@ -12,8 +12,9 @@ import config
 import schemas as schemas
 import views as views
 from enums import *
-from helpers import validate_request_json, register_boolean_type, gen_export_file, assign_bindvars, \
+from helpers import validate_request_json, register_boolean_type, assign_bindvars, \
     create_project_from_repo
+from exporter import gen_export_file
 from sqlite_guard import SqliteGuard
 from utils import pathjoin, unix_time, pad_list
 
