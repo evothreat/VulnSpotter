@@ -10,8 +10,8 @@ import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutli
 import {Dialog, DialogActions, DialogContent, DialogTitle, ToggleButton, ToggleButtonGroup,} from "@mui/material";
 import {SearchBar} from "../../components/SearchBar";
 import Box from "@mui/material/Box";
-import * as Utils from "../../utils";
-import {fmtTimeSince} from "../../utils";
+import * as Utils from "../../utils/common";
+import {fmtTimeSince} from "../../utils/common";
 import Button from "@mui/material/Button";
 import ProjectsService from "../../services/ProjectsService";
 import TextField from "@mui/material/TextField";

@@ -1,6 +1,6 @@
 /* eslint-disable no-loop-func */
 import * as DiffLib from "diff";
-import {trim} from "./utils";
+import {trim} from "./common";
 
 const DiffType = Object.freeze({
     REMOVED: -1,

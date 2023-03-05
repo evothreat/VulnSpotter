@@ -7,7 +7,7 @@ import MainActionButton from "../../components/MainActionButton";
 import FormTextField from "../../components/FormTextField";
 import {useEffect, useState} from "react";
 import AuthService from "../../services/AuthService";
-import {isObjEmpty, isValidEmail} from "../../utils";
+import {isObjEmpty, isValidEmail} from "../../utils/common";
 import EnhancedAlert from "../../components/EnhancedAlert";
 import {useNavigate} from "react-router-dom";
 

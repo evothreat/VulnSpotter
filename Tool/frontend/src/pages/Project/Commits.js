@@ -8,7 +8,7 @@ import IconButton from "@mui/material/IconButton";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
-import * as Utils from "../../utils";
+import * as Utils from "../../utils/common";
 import TableBody from "@mui/material/TableBody";
 import {Waypoint} from "react-waypoint";
 import TableContainer from "@mui/material/TableContainer";
@@ -20,11 +20,11 @@ import FindInPageIcon from "@mui/icons-material/FindInPage";
 import cssStyle from "./Commits.module.css"
 import RouterLink from "../../components/RouterLink";
 import TextField from "@mui/material/TextField";
-import FastFilter from "../../services/FastFilter";
+import FastFilter from "../../utils/FastFilter";
 import SimpleCheckbox from "../../components/SimpleCheckbox";
 import MainActionButton from "../../components/MainActionButton";
 import PageHeader from "../../components/PageHeader";
-import {createComparator} from "../../utils";
+import {createComparator} from "../../utils/common";
 import {VULN_KEYWORDS} from "../../constants";
 
 

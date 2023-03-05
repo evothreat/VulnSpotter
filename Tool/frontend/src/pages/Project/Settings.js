@@ -11,7 +11,7 @@ import {FILE_EXTENSIONS} from "../../constants";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import DeleteIcon from '@mui/icons-material/Delete';
 import {useProject} from "./useProject";
-import {arrayEquals, isObjEmpty} from "../../utils";
+import {arrayEquals, isObjEmpty} from "../../utils/common";
 import ProjectsService from "../../services/ProjectsService";
 import ConfirmDeleteDialog from "../../components/ConfirmDeleteDialog";
 import {useNavigate} from "react-router-dom";

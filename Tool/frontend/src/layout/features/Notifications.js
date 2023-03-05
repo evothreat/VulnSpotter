@@ -1,7 +1,7 @@
 import {getMessage} from "./message";
 import {Fade, List, ListItem, ListItemIcon, ListItemText, ListSubheader, Popover} from "@mui/material";
 import Typography from "@mui/material/Typography";
-import * as Utils from "../../utils";
+import * as Utils from "../../utils/common";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";

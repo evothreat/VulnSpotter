@@ -3,7 +3,7 @@ import "../../../prism.css";
 import cssStyle from "./DiffViewer.module.css"
 import classnames from "classnames";
 import {Fragment, useEffect, useState} from "react";
-import {areHunksSequent, calcHunks, DiffType} from "../../../diffUtils";
+import {areHunksSequent, calcHunks, DiffType} from "../../../utils/diffUtils";
 import {nanoid} from "nanoid";
 import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "../Icons";
 import useSyncScroller from "../useSyncScroller";

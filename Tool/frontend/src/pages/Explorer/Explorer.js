@@ -3,9 +3,9 @@ import DiffViewer from "./DiffViewer/DiffViewer";
 import React, {useEffect, useRef, useState} from "react";
 import {useLocation, useNavigate, useSearchParams} from "react-router-dom";
 import CommitsService from "../../services/CommitsService";
-import {createLineDiff, DiffType, parsePatch} from "../../diffUtils";
+import {createLineDiff, DiffType, parsePatch} from "../../utils/diffUtils";
 import Typography from "@mui/material/Typography";
-import {ArrayIterator, getCvss3Severity, isObjEmpty, mod, normalizeText} from "../../utils";
+import {getCvss3Severity, isObjEmpty, mod, normalizeText} from "../../utils/common";
 import useHotkeys from "./useHotkeys";
 import CveViewer from "./CveViewer";
 import WindowTitle from "./WindowTitle";
@@ -13,6 +13,7 @@ import {Divider} from "@mui/material";
 import DiffViewerHeader from "./DiffViewer/DiffViewerHeader";
 import DiffViewerBody from "./DiffViewer/DiffViewerBody";
 import VotesService from "../../services/VotesService";
+import ArrayIterator from "../../utils/ArrayIterator";
 
 
 // store as global constant to avoid unnecessary useEffect call (in useHotkeys)

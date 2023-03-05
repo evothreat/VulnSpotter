@@ -1,6 +1,6 @@
 import * as React from "react";
 import {Fragment, useEffect, useRef, useState} from "react";
-import * as Utils from "../../utils";
+import * as Utils from "../../utils/common";
 import Typography from "@mui/material/Typography";
 import TableContainer from "@mui/material/TableContainer";
 import Table from "@mui/material/Table";
@@ -24,7 +24,7 @@ import {useParams} from "react-router-dom";
 import MainActionButton from "../../components/MainActionButton";
 import ActionButton from "../../components/ActionButton";
 import PageHeader from "../../components/PageHeader";
-import {fmtTimeSince} from "../../utils";
+import {fmtTimeSince} from "../../utils/common";
 
 
 const headCells = [

@@ -1,6 +1,6 @@
 import React, {useRef, useState} from "react";
 import * as Mousetrap from "mousetrap";
-import {mod} from "../../utils";
+import {mod} from "../../utils/common";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";

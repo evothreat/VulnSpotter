@@ -1,6 +1,6 @@
 import {Fade, List, ListItem, ListItemIcon, ListItemText, ListSubheader, Popover} from "@mui/material";
 import Typography from "@mui/material/Typography";
-import * as Utils from "../../utils";
+import * as Utils from "../../utils/common";
 import Box from "@mui/material/Box";
 import * as React from "react";
 import {Fragment, useEffect, useState} from "react";

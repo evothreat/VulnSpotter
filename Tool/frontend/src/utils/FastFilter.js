@@ -1,4 +1,4 @@
-import {arrayDiff} from "../utils";
+import {arrayDiff} from "./common";
 
 function matchOr(kws) {
     const kwsRegex = new RegExp(kws.join('|'), 'i');
