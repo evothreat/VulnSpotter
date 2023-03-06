@@ -38,8 +38,8 @@ class ProjectsService {
         return api.get(`${this.basePath}/${id}/members`);
     }
 
-    removeMember(projId, memberId) {
-        return api.delete(`${this.basePath}/${projId}/members/${memberId}`);
+    removeMember(id, memberId) {
+        return api.delete(`${this.basePath}/${id}/members/${memberId}`);
     }
 
     getInvitations(id) {
