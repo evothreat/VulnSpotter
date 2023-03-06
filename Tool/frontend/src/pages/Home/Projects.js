@@ -62,7 +62,7 @@ export default function Projects() {
     const [openCreateDlg, setOpenCreateDlg] = useState(false);
     const [alertMsg, setAlertMsg] = useState('');
 
-    const handleCreateInDlg = (repoUrl, projName, extensions) => {
+    const handleCreateProject = (repoUrl, projName, extensions) => {
         setOpenCreateDlg(false);
 
         ProjectsService.create(repoUrl, projName, extensions)
@@ -83,7 +83,7 @@ export default function Projects() {
             <ProjectsTable/>
             {
                 openCreateDlg
-                    ? <CreateProjectDialog closeHandler={() => setOpenCreateDlg(false)} createHandler={handleCreateInDlg}/>
+                    ? <CreateProjectDialog closeHandler={() => setOpenCreateDlg(false)} createHandler={handleCreateProject}/>
                     : null
             }
             {
