@@ -3,7 +3,7 @@ import "../../../prism.css";
 import cssStyle from "./DiffViewer.module.css"
 import classnames from "classnames";
 import {Fragment, useEffect, useState} from "react";
-import {areHunksSequent, calcHunks, DiffType} from "../../../utils/diffUtils";
+import {areHunksSequent, calcHunks, createLineDiff, DiffType} from "../../../utils/diffUtils";
 import {nanoid} from "nanoid";
 import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "../Icons";
 import useSyncScroller from "../useSyncScroller";
@@ -202,6 +202,16 @@ function DiffWindow({lineHunks, expandHandler, hasBottomExpander, setWinRef}) {
     );
 }
 
+function toLineDiffs(lines, beginLeft, beginRight, direction) {
+    if (direction > 0) {
+        beginLeft -= lines.length;
+        beginRight -= lines.length;
+    } else {
+        beginLeft++;
+        beginRight++;
+    }
+    return lines.map((l) => createLineDiff(beginLeft++, beginRight++, DiffType.CONSTANT, l));
+}
 
 export default function DiffViewerBody({codeLines, getMoreLines, setWinRef}) {
 
@@ -215,59 +225,53 @@ export default function DiffViewerBody({codeLines, getMoreLines, setWinRef}) {
         [codeLines]);
 
     const handleExpand = async (direction, hunkId) => {
-        for (let i = 0; lineHunks.length > i; i++) {
-            if (lineHunks[i].id === hunkId) {
-                const cur = lineHunks[i];
-                let prevLine;
-                let curLine;
-                if (direction < 0) {
-                    const next = lineHunks[i + 1];
-                    if (!next) {
-                        curLine = cur.lines.at(-1);
-                    } else if (areHunksSequent(cur, next)) {
-                        next.visible = true;
-                        setLineHunks(lineHunks.slice());
-                    } else {
-                        prevLine = cur.lines.at(-1);
-                        curLine = next.lines[0];
-                    }
-                } else if (direction > 0) {
-                    const prev = lineHunks[i - 1];
-                    if (!prev) {
-                        curLine = cur.lines[0];
-                    } else if (areHunksSequent(prev, cur)) {
-                        prev.visible = true;
-                        setLineHunks(lineHunks.slice());
-                    } else {
-                        prevLine = prev.lines.at(-1);
-                        curLine = cur.lines[0];
-                    }
-                }
-                if (curLine) {
-                    const beginLine = prevLine && direction < 0 ? prevLine : curLine;
-                    const newLines = await getMoreLines(
-                        prevLine?.linenoRight, curLine.linenoRight, direction,
-                        beginLine.linenoLeft, beginLine.linenoRight
-                    );
-                    if (!newLines) {
-                        return;
-                    }
-                    if (newLines.length > 0) {
-                        setLineHunks((curHunks) => {
-                            const ix = curHunks?.findIndex((h) => h.id === hunkId);
-                            if (ix > -1) {
-                                const newHunks = curHunks.slice();
-                                const newHunk = createHunk(newLines, true);
-                                newHunks.splice(direction > 0 ? ix : ix + 1, 0, newHunk);
-                                return newHunks;
-                            }
-                            return curHunks;
-                        });
-                    } else if (!prevLine && direction < 0) {
-                        setHasBottomExpander(false);
-                    }
-                }
+        const hunkIndex = lineHunks.findIndex(hunk => hunk.id === hunkId);
+        if (hunkIndex < 0) return;
+
+        const curHunk = lineHunks[hunkIndex];
+        let prevLine, curLine;
+
+        if (direction < 0) {
+            const next = lineHunks[hunkIndex + 1];
+            if (!next) {
+                curLine = curHunk.lines.at(-1);
+            } else if (areHunksSequent(curHunk, next)) {
+                next.visible = true;
+                setLineHunks(lineHunks.slice());
+            } else {
+                prevLine = curHunk.lines.at(-1);
+                curLine = next.lines[0];
             }
+        } else if (direction > 0) {
+            const prev = lineHunks[hunkIndex - 1];
+            if (!prev) {
+                curLine = curHunk.lines[0];
+            } else if (areHunksSequent(prev, curHunk)) {
+                prev.visible = true;
+                setLineHunks(lineHunks.slice());
+            } else {
+                prevLine = prev.lines.at(-1);
+                curLine = curHunk.lines[0];
+            }
+        }
+        const recvLines = await getMoreLines(prevLine?.linenoRight, curLine.linenoRight, direction);
+        if (recvLines == null) return;
+
+        if (recvLines.length > 0) {
+            const beginLine = prevLine && direction < 0 ? prevLine : curLine;
+            const newLines = toLineDiffs(recvLines, beginLine.linenoLeft, beginLine.linenoRight, direction);
+
+            setLineHunks(curHunks => {
+                const newHunks = curHunks.slice();
+                const ix = newHunks.findIndex(h => h.id === hunkId);
+                newHunks.splice(
+                    direction > 0 ? ix : ix + 1, 0,
+                    createHunk(newLines, true)
+                );
+                return newHunks;
+            });
+        } else if (!prevLine && direction < 0) {
+            setHasBottomExpander(false);
         }
     };
 

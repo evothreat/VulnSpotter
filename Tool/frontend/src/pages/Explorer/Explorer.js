@@ -3,7 +3,7 @@ import DiffViewer from "./DiffViewer/DiffViewer";
 import React, {useEffect, useRef, useState} from "react";
 import {useLocation, useNavigate, useSearchParams} from "react-router-dom";
 import CommitsService from "../../services/CommitsService";
-import {createLineDiff, DiffType, parsePatch} from "../../utils/diffUtils";
+import {parsePatch} from "../../utils/diffUtils";
 import Typography from "@mui/material/Typography";
 import {getCvss3Severity, isObjEmpty, mod, normalizeText} from "../../utils/common";
 import useHotkeys from "./useHotkeys";
@@ -154,32 +154,21 @@ export default function Explorer() {
         }
     };
 
-    const getMoreLines = async (prevLineno, curLineno, dir, beginLeft, beginRight) => {
+    const getMoreLines = async (prevLineno, curLineno, dir) => {
         try {
             const data = await CommitsService.getFileLines(
                 curCommit.id, curDiffInfo.content.newFileName,
                 prevLineno, curLineno, dir
             );
-            if (data.length === 0) {
-                return [];
-            }
             const lines = data.split('\n');
             if (lines.at(-1) === '') {
                 lines.pop();
             }
-            // this should be done in DiffViewer?
-            if (dir > 0) {
-                beginLeft -= lines.length;
-                beginRight -= lines.length;
-            } else {
-                beginLeft++;
-                beginRight++;
-            }
-            return lines.map((l) => createLineDiff(beginLeft++, beginRight++, DiffType.CONSTANT, l));
+            return lines;
         } catch (err) {
             console.error(err);
+            return null;
         }
-        return null;
     };
 
     const switchWindow = (e) => {
