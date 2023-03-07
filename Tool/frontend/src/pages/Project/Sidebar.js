@@ -55,7 +55,7 @@ export default function Sidebar({viewKey, viewChangeHandler}) {
     const [project,] = useProject();
     const [open, setOpen] = useState(false);
 
-    const toggleOpen = () => setOpen((prevState) => !prevState);
+    const toggleOpen = () => setOpen(prevState => !prevState);
 
     return (
         <Drawer

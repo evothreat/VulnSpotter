@@ -66,26 +66,26 @@ export default function Invitations() {
     const [anchorEl, setAnchorEl] = useState(null);
     const [invitations, setInvitations] = useState([]);
 
-    const handleOpen = (e) => setAnchorEl(e.currentTarget);
+    const handleOpen = e => setAnchorEl(e.currentTarget);
     const handleClose = () => setAnchorEl(null);
 
-    const handleAccept = (inviteId) => {
+    const handleAccept = inviteId => {
         InvitationsService.accept(inviteId)
-            .then(() => setInvitations((curInvites) => Utils.remove(curInvites, inviteId)));
+            .then(() => setInvitations(curInvites => Utils.remove(curInvites, inviteId)));
     };
 
-    const handleDecline = (inviteId) => {
+    const handleDecline = inviteId => {
         InvitationsService.decline(inviteId)
-            .then(() => setInvitations((curInvites) => Utils.remove(curInvites, inviteId)));
+            .then(() => setInvitations(curInvites => Utils.remove(curInvites, inviteId)));
     };
 
     useEffect(() => {
         let isMounted = true;
         const updateInvitations = () => {
             InvitationsService.getAll()
-                .then((data) => {
+                .then(data => {
                     if (isMounted) {
-                        setInvitations((curInvites) => Utils.equals(curInvites, data) ? curInvites : data);
+                        setInvitations(curInvites => Utils.equals(curInvites, data) ? curInvites : data);
                     }
                 });
         };

@@ -21,7 +21,7 @@ function UserMenu() {
     const navigate = useNavigate();
     const [anchorEl, setAnchorEl] = useState(null);
 
-    const handleOpen = (e) => setAnchorEl(e.currentTarget);
+    const handleOpen = e => setAnchorEl(e.currentTarget);
     const handleClose = () => setAnchorEl(null);
 
     const logout = () => {
@@ -66,7 +66,7 @@ function UserMenu() {
 
 export default function LayoutHeader() {
     return (
-        <AppBar position="fixed" sx={{zIndex: (theme) => theme.zIndex.drawer + 1}}>
+        <AppBar position="fixed" sx={{zIndex: theme => theme.zIndex.drawer + 1}}>
             <Toolbar style={{minHeight: HEADER_HEIGHT, justifyContent: 'space-between'}}>
                 <Box sx={{display: 'flex'}}>
                     <PolicyIcon sx={{height: '32px', width: '32px', mr: '8px'}}/>

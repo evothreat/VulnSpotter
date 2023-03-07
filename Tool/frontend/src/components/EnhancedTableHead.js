@@ -15,7 +15,7 @@ function EnhancedTableHead({headCells, order, orderBy, sortReqHandler, selectAll
                         ?
                         <TableCell key="check" sx={{width: '1%'}}>
                             <SimpleCheckbox checked={selectAllChecked}
-                                            onChange={(e) => selectAllHandler(e.target.checked)}/>
+                                            onChange={e => selectAllHandler(e.target.checked)}/>
                         </TableCell>
                         : null
                 }

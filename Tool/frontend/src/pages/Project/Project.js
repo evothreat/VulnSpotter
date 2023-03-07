@@ -28,7 +28,7 @@ export default function Project() {
 
     const [viewKey, setViewKey] = useState('commits');
 
-    const handleViewChange = (viewId) => setViewKey(viewId);
+    const handleViewChange = viewId => setViewKey(viewId);
 
     return (
         <ProjectProvider projectId={projId}>

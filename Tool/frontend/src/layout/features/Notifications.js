@@ -70,7 +70,7 @@ export default function Notifications() {
         let isMounted = true;
         // fetch all notifications once
         NotificationsService.getAll()
-            .then((data) => {
+            .then(data => {
                 if (isMounted) {
                     setNotifs(data.sort(cmpByCreationTime));
                 }
@@ -78,9 +78,9 @@ export default function Notifications() {
         // fetch only unseen notifications
         const updateNotifs = () => {
             NotificationsService.getUnseen()
-                .then((data) => {
+                .then(data => {
                     if (isMounted) {
-                        setNotifs((curNotifs) => {
+                        setNotifs(curNotifs => {
                             const newNotifs = Utils.complement(data, curNotifs).sort(cmpByCreationTime);
                             return newNotifs.length > 0 ? newNotifs.concat(curNotifs) : curNotifs;
                         });
@@ -94,20 +94,20 @@ export default function Notifications() {
         };
     }, []);
 
-    const handleOpen = (e) => setAnchorEl(e.currentTarget);
+    const handleOpen = e => setAnchorEl(e.currentTarget);
     const handleClose = () => {
         setAnchorEl(null);
         markAllAsSeen();
     };
 
     const markAllAsSeen = () => {
-        const ids = notifs.filter((n) => !n.is_seen).map((n) => n.id);
+        const ids = notifs.filter(n => !n.is_seen).map(n => n.id);
 
         if (ids.length > 0) {
             NotificationsService.updateMany(ids, {is_seen: true})
                 .then(() => {
-                    setNotifs((curNotifs) => {
-                        curNotifs.forEach((n) => {
+                    setNotifs(curNotifs => {
+                        curNotifs.forEach(n => {
                             if (ids.includes(n.id)) {
                                 n.is_seen = true;
                             }
@@ -119,12 +119,12 @@ export default function Notifications() {
     };
 
     const deleteAll = () => {
-        const ids = notifs.map((n) => n.id);
+        const ids = notifs.map(n => n.id);
 
         if (ids.length > 0) {
             NotificationsService.deleteMany(ids)
                 .then(() => {
-                    setNotifs((curNotifs) => curNotifs.filter((n) => !ids.includes(n.id)));
+                    setNotifs(curNotifs => curNotifs.filter(n => !ids.includes(n.id)));
                 });
         }
     };
@@ -132,7 +132,7 @@ export default function Notifications() {
     return (
         <Fragment>
             <IconButton color="inherit" onClick={handleOpen}>
-                <NewMessageBadge badgeContent={notifs.filter((n) => !n.is_seen).length}>
+                <NewMessageBadge badgeContent={notifs.filter(n => !n.is_seen).length}>
                     <NotificationsIcon/>
                 </NewMessageBadge>
             </IconButton>

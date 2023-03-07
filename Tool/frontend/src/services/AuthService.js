@@ -7,7 +7,7 @@ class AuthService {
         return api.post('/auth', {
             'username': username,
             'password': password
-        }).then((data) => {
+        }).then(data => {
             TokenService.setRefreshToken(data.refresh_token);
             TokenService.setAccessToken(data.access_token);
             TokenService.setUserId(data.user_id);

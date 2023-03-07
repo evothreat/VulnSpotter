@@ -85,7 +85,7 @@ export default function Settings() {
                         setInputErrors({});
                     }
                     setAlertMsg('Project settings successfully updated.');
-                    setProject((curProj) => {
+                    setProject(curProj => {
                         return {
                             ...curProj,
                             ...fields
@@ -104,7 +104,7 @@ export default function Settings() {
         setShowPrepareExport(true);
 
         ProjectsService.export(project.id)
-            .then((data) => {
+            .then(data => {
                 setShowPrepareExport(false);
                 window.location.assign(data.download_url);
             });
@@ -120,7 +120,7 @@ export default function Settings() {
             <Stack sx={{gap: '30px'}}>
                 <Stack sx={{gap: '10px', width: '350px'}}>
                     <FormTextField required label="Project name" name="projName"
-                                   value={projName} onChange={(e) => setProjName(e.target.value)}
+                                   value={projName} onChange={e => setProjName(e.target.value)}
                                    error={inputErrors.projName}/>
                     <Autocomplete
                         freeSolo
@@ -129,7 +129,7 @@ export default function Settings() {
                         disableCloseOnSelect
                         value={extensions}
                         options={FILE_EXTENSIONS}
-                        renderInput={(params) => (
+                        renderInput={params => (
                             <FormTextField {...params}
                                            label="Extensions"
                                            size="small"

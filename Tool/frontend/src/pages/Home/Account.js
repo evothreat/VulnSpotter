@@ -26,7 +26,7 @@ export default function Account() {
     const [inputErrors, setInputErrors] = useState({});
 
     useEffect(() => {
-        AuthService.getCurrentUser().then((data) => {
+        AuthService.getCurrentUser().then(data => {
             setCurrUser(data);
             setFullName(data.full_name);
             setEmail(data.email);
@@ -99,22 +99,22 @@ export default function Account() {
             <Stack gap="50px" direction="row" sx={{maxWidth: '630px', gap: '50px'}}>
                 <Stack sx={{gap: '10px', flex: '1'}}>
                     <FormTextField required label="Full name" name="fullName"
-                                   value={fullName} onChange={(e) => setFullName(e.target.value)}
+                                   value={fullName} onChange={e => setFullName(e.target.value)}
                                    error={inputErrors.fullName}/>
 
                     <FormTextField required disabled label="Username" value={currUser.username}/>
 
                     <FormTextField required label="E-Mail" name="email"
-                                   value={email} onChange={(e) => setEmail(e.target.value)}
+                                   value={email} onChange={e => setEmail(e.target.value)}
                                    error={inputErrors.email}/>
                 </Stack>
 
                 <Stack sx={{gap: '10px', flex: '1'}}>
                     <FormTextField type="password" label="Password (min. 4 characters)" name="password1"
-                                   value={password1} onChange={(e) => setPassword1(e.target.value)}
+                                   value={password1} onChange={e => setPassword1(e.target.value)}
                                    error={inputErrors.password1}/>
                     <FormTextField type="password" label="Confirm password" name="password2"
-                                   value={password2} onChange={(e) => setPassword2(e.target.value)}
+                                   value={password2} onChange={e => setPassword2(e.target.value)}
                                    error={inputErrors.password2}/>
                 </Stack>
             </Stack>

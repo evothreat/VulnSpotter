@@ -29,7 +29,7 @@ function createWordDiff(diffType, value) {
 function calcWordDiff(oldLine, newLine) {
     return (
         DiffLib.diffWords(oldLine, newLine)
-            .map((w) => {
+            .map(w => {
                 if (w.removed) {
                     return createWordDiff(DiffType.REMOVED, w.value);
                 } else if (w.added) {
@@ -81,12 +81,12 @@ function calcDiff(oldCode, newCode) {
                 }
                 ix++;
             } else {
-                lines.forEach((l) => diff.push(createLineDiff(lnLeft++, lnRight, DiffType.REMOVED, l)));
+                lines.forEach(l => diff.push(createLineDiff(lnLeft++, lnRight, DiffType.REMOVED, l)));
             }
         } else if (cur.added) {
-            lines.forEach((l) => diff.push(createLineDiff(lnLeft, lnRight++, DiffType.ADDED, l)));
+            lines.forEach(l => diff.push(createLineDiff(lnLeft, lnRight++, DiffType.ADDED, l)));
         } else {
-            lines.forEach((l) => diff.push(createLineDiff(lnLeft++, lnRight++, DiffType.CONSTANT, l)));
+            lines.forEach(l => diff.push(createLineDiff(lnLeft++, lnRight++, DiffType.CONSTANT, l)));
         }
         ix++;
     }

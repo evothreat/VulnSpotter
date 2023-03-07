@@ -96,7 +96,7 @@ function MembersTable({items, setItems}) {
     });
     const [itemToDelete, setItemToDelete] = useState(null);
 
-    const sortItems = (key) => {
+    const sortItems = key => {
         const isAsc = sorter.orderBy === key && sorter.order === 'asc';
 
         setSorter({
@@ -117,7 +117,7 @@ function MembersTable({items, setItems}) {
             ? ProjectsService.removeMember(projId, item.id)
             : InvitationsService.deleteSent(item.invitation_id);
 
-        req.then(() => setItems((curItems) => Utils.remove(curItems, item.id)));
+        req.then(() => setItems(curItems => Utils.remove(curItems, item.id)));
     };
 
     const orderedItems = getItems();
@@ -134,7 +134,7 @@ function MembersTable({items, setItems}) {
                             <TableBody>
                                 {
                                     orderedItems.length > 0
-                                        ? orderedItems.map((it) => renderMemberRow(it, (m) => setItemToDelete(m)))
+                                        ? orderedItems.map(it => renderMemberRow(it, m => setItemToDelete(m)))
                                         : <TableRow>
                                             <TableCell colSpan="100%" sx={{border: 0, color: '#606060'}}>
                                                 There are no items to display
@@ -164,8 +164,8 @@ function InviteUsersDialog({members, inviteHandler, closeHandler}) {
 
     useEffect(() => {
         api.get('/users')
-            .then((data) => {
-                const users = data.filter((u) => !members.some((u2) => u.id === u2.id));
+            .then(data => {
+                const users = data.filter(u => !members.some(u2 => u.id === u2.id));
                 setAllUsers(users.sort(cmpByFullNameAsc));
             });
     }, [members]);
@@ -181,9 +181,9 @@ function InviteUsersDialog({members, inviteHandler, closeHandler}) {
                         fullWidth
                         noOptionsText="No users"
                         options={allUsers}
-                        getOptionLabel={(u) => u.full_name}
+                        getOptionLabel={u => u.full_name}
                         isOptionEqualToValue={(opt, val) => opt.id === val.id}
-                        renderInput={(params) => (
+                        renderInput={params => (
                             <TextField
                                 {...params}
                                 margin="dense"
@@ -213,9 +213,9 @@ export default function Members() {
 
     useEffect(() => {
         Promise.all([ProjectsService.getMembers(projId), ProjectsService.getInvitations(projId)])
-            .then((data) => {
+            .then(data => {
                 const members = data[0];
-                const invitees = data[1].map((inv) => {
+                const invitees = data[1].map(inv => {
                     return {
                         id: inv.invitee.id,
                         username: inv.invitee.username,
@@ -226,16 +226,16 @@ export default function Members() {
                         joined_at: inv.created_at,
                     };
                 });
-                members.forEach((m) => m.active = true);
+                members.forEach(m => m.active = true);
                 setProjMembers(members.concat(invitees));
             });
     }, [projId]);
 
-    const handleInvite = (selUsers) => {
+    const handleInvite = selUsers => {
         setOpenInviteDlg(false);
 
-        Promise.all(selUsers.map((u) => InvitationsService.send(projId, u.id)))
-            .then((data) => {
+        Promise.all(selUsers.map(u => InvitationsService.send(projId, u.id)))
+            .then(data => {
                 setAlertMsg('Invitations were successfully sent to users.');
 
                 const invitees = selUsers.map((u, i) => {
@@ -249,7 +249,7 @@ export default function Members() {
                         invitation_id: data[i].resource_id
                     }
                 });
-                setProjMembers((prevMembers) => prevMembers.concat(invitees));
+                setProjMembers(prevMembers => prevMembers.concat(invitees));
             });
     };
 

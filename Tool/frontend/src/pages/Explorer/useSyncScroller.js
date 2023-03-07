@@ -18,14 +18,14 @@ export default function useSyncScroller(key) {
                 nodeRef.current.onscroll = null;
             }
             // remove self (unsafe)
-            groups[key] = groups[key].filter((ref) => ref !== nodeRef);
+            groups[key] = groups[key].filter(ref => ref !== nodeRef);
             if (groups[key].length === 0) {
                 delete groups[key];
             }
         };
     }, [key]);
 
-    return useCallback((node) => {
+    return useCallback(node => {
         if (nodeRef.current) {
             if (nodeRef.current !== node) {
                 nodeRef.current.onscroll = null;

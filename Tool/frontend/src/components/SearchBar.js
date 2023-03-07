@@ -9,12 +9,12 @@ export function SearchBar({width, placeholder, changeHandler}) {
 
     const [input, setInput] = useState('');
 
-    const handleChange = (e) => {
+    const handleChange = e => {
         setInput(e.target.value);
         changeHandler(e.target.value);
     };
 
-    const handleClear = (e) => {
+    const handleClear = e => {
         e.preventDefault();
         setInput('');
         changeHandler('');

@@ -19,7 +19,7 @@ function CreateProjectDialog({closeHandler, createHandler}) {
     const selectedExt = useRef(null);
     const [isInvalidRepoUrl, setIsInvalidRepoUrl] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = e => {
         e.preventDefault();
 
         const repoUrl = e.target.repoUrl.value;
@@ -46,7 +46,7 @@ function CreateProjectDialog({closeHandler, createHandler}) {
                         multiple
                         disableCloseOnSelect
                         options={FILE_EXTENSIONS}
-                        renderInput={(params) => (
+                        renderInput={params => (
                             <TextField
                                 {...params}
                                 margin="dense"

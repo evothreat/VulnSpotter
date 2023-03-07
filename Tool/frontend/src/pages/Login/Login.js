@@ -23,14 +23,14 @@ export default function Login() {
     const navigate = useNavigate();
     const [showError, setShowError] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = e => {
         e.preventDefault();
 
         AuthService.login(e.target.username.value, e.target.password.value)
             .then(() => {
                 navigate('/home/projects');
 
-            }).catch((err) => {
+            }).catch(err => {
                 if (err.response?.status === 401) {
                     setShowError(true);
                 }

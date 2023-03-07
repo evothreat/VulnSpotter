@@ -55,7 +55,7 @@ const headCells = [
 
 function RenameProjectDialog({itemToRename, closeHandler, renameHandler}) {
 
-    const handleSubmit = (e) => {
+    const handleSubmit = e => {
         e.preventDefault();
         renameHandler(e.target.projName.value);
     };
@@ -121,10 +121,10 @@ export default function ProjectsTable() {
 
     useEffect(() => {
         ProjectsService.getAll()
-            .then((data) => {
+            .then(data => {
                 const userId = TokenService.getUserId();
 
-                data.forEach((p) => {
+                data.forEach(p => {
                     p.owner_name = p.owner.full_name;
                     p.personal = userId === p.owner.id;
                 });
@@ -139,7 +139,7 @@ export default function ProjectsTable() {
         }
     };
 
-    const sortItems = (key) => {
+    const sortItems = key => {
         setSorter({
             order: sorter.orderBy === key && sorter.order === 'asc' ? 'desc' : 'asc',
             orderBy: key
@@ -150,7 +150,7 @@ export default function ProjectsTable() {
         if (!items) {
             return null;
         }
-        return items.filter((it) => (group === 'all' ||
+        return items.filter(it => (group === 'all' ||
                                     (group === 'personal' && it.personal)) &&
                                     it.name.toLowerCase().includes(searchKw.toLowerCase()))
                     .sort(Utils.createComparator(sorter.orderBy, sorter.order));
@@ -162,18 +162,18 @@ export default function ProjectsTable() {
 
         ProjectsService.delete(itemId)
             .then(() => {
-                setItems((curItems) => Utils.remove(curItems, itemId))
+                setItems(curItems => Utils.remove(curItems, itemId))
             });
     };
 
-    const handleRename = (newName) => {
+    const handleRename = newName => {
         const itemId = itemToRename.id;
         setItemToRename(null);
 
         ProjectsService.update(itemId, {'name': newName})
             .then(() => {
-                setItems((curItems) => {
-                        curItems.find((it) => it.id === itemId).name = newName;
+                setItems(curItems => {
+                        curItems.find(it => it.id === itemId).name = newName;
                         return curItems.slice();
                     }
                 );
@@ -195,7 +195,7 @@ export default function ProjectsTable() {
                     <ToggleButton value="personal">Personal</ToggleButton>
                 </ToggleButtonGroup>
 
-                <SearchBar width="260px" placeholder="Search by name" changeHandler={(kw) => setSearchKw(kw)}/>
+                <SearchBar width="260px" placeholder="Search by name" changeHandler={kw => setSearchKw(kw)}/>
             </Box>
 
             <TableContainer sx={{height: '465px', borderBottom: 'thin solid lightgray'}}>
@@ -210,8 +210,8 @@ export default function ProjectsTable() {
                             <TableBody>
                                 {
                                     orderedItems.length > 0
-                                        ? orderedItems.map((it) =>
-                                            renderProjectRow(it, (p) => setItemToDelete(p), (p) => setItemToRename(p))
+                                        ? orderedItems.map(it =>
+                                            renderProjectRow(it, p => setItemToDelete(p), p => setItemToRename(p))
                                         )
                                         : <TableRow>
                                             <TableCell colSpan="100%" sx={{border: 0, color: '#606060'}}>

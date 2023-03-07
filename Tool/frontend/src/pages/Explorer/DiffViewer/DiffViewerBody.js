@@ -55,7 +55,7 @@ function renderDiffRow({linenoLeft, linenoRight, diffType, value}, hunkId) {
         lStyle = cssStyle.removed;
         rStyle = cssStyle.added;
 
-        value.forEach((w) => {
+        value.forEach(w => {
             // maybe extract to renderDiffWord
             const wordVal = highlight(w.value);
             if (w.diffType === DiffType.REMOVED) {
@@ -167,14 +167,14 @@ function DiffWindow({lineHunks, expandHandler, hasBottomExpander, setWinRef}) {
         }
     }, [lineHunks, expandHandler, hasBottomExpander]);
 
-    const setLeftWinRefs = (node) => {
+    const setLeftWinRefs = node => {
         setScrollRefLeft(node);
         if (setWinRef) {
             setWinRef.setLeftRef(node);
         }
     };
 
-    const setRightWinRefs = (node) => {
+    const setRightWinRefs = node => {
         setScrollRefRight(node);
         if (setWinRef) {
             setWinRef.setRightRef(node);
@@ -210,7 +210,7 @@ function toLineDiffs(lines, beginLeft, beginRight, direction) {
         beginLeft++;
         beginRight++;
     }
-    return lines.map((l) => createLineDiff(beginLeft++, beginRight++, DiffType.CONSTANT, l));
+    return lines.map(l => createLineDiff(beginLeft++, beginRight++, DiffType.CONSTANT, l));
 }
 
 export default function DiffViewerBody({codeLines, getMoreLines, setWinRef}) {
@@ -220,7 +220,7 @@ export default function DiffViewerBody({codeLines, getMoreLines, setWinRef}) {
 
     useEffect(() =>
             setLineHunks(
-                calcHunks(codeLines).map((h) => createHunk(h, h.some(isNotConstant)))
+                calcHunks(codeLines).map(h => createHunk(h, h.some(isNotConstant)))
             ),
         [codeLines]);
 

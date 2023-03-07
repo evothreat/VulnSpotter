@@ -85,7 +85,7 @@ export default function Explorer() {
                 }
                 // patch
                 const diffsInfoIt = new ArrayIterator(
-                    diffs_info.map((di) => {
+                    diffs_info.map(di => {
                         return {
                             ...di,
                             content: parsePatch(di.content)[0]
@@ -123,13 +123,13 @@ export default function Explorer() {
             diffInfo.vote = vote;
             // delete voteUpdates.current[diffInfo.id];
         }
-        setCommitInfo((curInfo) => {
+        setCommitInfo(curInfo => {
             // NOTE: updating the actual state. Passing commitInfo would overwrite actual state...
             return {...curInfo};
         });
     };
 
-    const gotoPrevDiff = (e) => {
+    const gotoPrevDiff = e => {
         e?.preventDefault();
 
         if (commitInfo.diffsInfoIt.prev()) {
@@ -142,7 +142,7 @@ export default function Explorer() {
         }
     };
 
-    const gotoNextDiff = (e) => {
+    const gotoNextDiff = e => {
         e?.preventDefault();
 
         if (commitInfo.diffsInfoIt.next()) {
@@ -171,10 +171,10 @@ export default function Explorer() {
         }
     };
 
-    const switchWindow = (e) => {
+    const switchWindow = e => {
         e.preventDefault();
 
-        let ix = windowRefs.findIndex((ref) => ref.current === document.activeElement);
+        let ix = windowRefs.findIndex(ref => ref.current === document.activeElement);
         ix = ix !== -1 ? mod(ix + 1, windowRefs.length) : 0;
         if (windowRefs[ix].current) {
             windowRefs[ix].current.focus();
@@ -213,7 +213,7 @@ export default function Explorer() {
 
         if (isObjEmpty(vote)) {
             VotesService.create(diffId, choice)
-                .then((data) => {
+                .then(data => {
                     voteUpdates.current[diffId] = {
                         id: data.resource_id,
                         choice: choice
@@ -248,12 +248,12 @@ export default function Explorer() {
                 {
                     // render message
                     curCommit &&
-                    <MessageWindow message={curCommit.message} setWinRef={(el) => windowRefs[0].current = el}/>
+                    <MessageWindow message={curCommit.message} setWinRef={el => windowRefs[0].current = el}/>
                 }
                 {
                     // render cve-list
                     commitInfo.cveList &&
-                    <CveViewer cveList={commitInfo.cveList} setWinRef={(el) => windowRefs[1].current = el}/>
+                    <CveViewer cveList={commitInfo.cveList} setWinRef={el => windowRefs[1].current = el}/>
                 }
             </Box>
             <Divider orientation="vertical" flexItem/>
@@ -268,8 +268,8 @@ export default function Explorer() {
 
                             <DiffViewerBody codeLines={curDiffInfo.content.lines} getMoreLines={getMoreLines}
                                             setWinRef={{
-                                                setLeftRef: (el) => windowRefs[2].current = el,
-                                                setRightRef: (el) => windowRefs[3].current = el
+                                                setLeftRef: el => windowRefs[2].current = el,
+                                                setRightRef: el => windowRefs[3].current = el
                                             }}/>
                         </DiffViewer>
                     )

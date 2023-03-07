@@ -64,7 +64,7 @@ export default function CveViewer({cveList, setWinRef}) {
     const bindHotkeys = () => {
         Mousetrap.bind(['left', 'right'], (e, key) => {
             e.preventDefault();
-            setCveIx((curIx) => mod((curIx + (key === 'right' ? 1 : -1)), cveList.length));
+            setCveIx(curIx => mod((curIx + (key === 'right' ? 1 : -1)), cveList.length));
         });
     };
 

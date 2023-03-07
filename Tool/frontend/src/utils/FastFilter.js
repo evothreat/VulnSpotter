@@ -2,12 +2,12 @@ import {arrayDiff} from "./common";
 
 function matchOr(kws) {
     const kwsRegex = new RegExp(kws.join('|'), 'i');
-    return (str) => kwsRegex.test(str);
+    return str => kwsRegex.test(str);
 }
 
 function matchAnd(kws) {
-    const kwsRegexes = kws.map((kw) => new RegExp(kw, 'i'));
-    return (str) => {
+    const kwsRegexes = kws.map(kw => new RegExp(kw, 'i'));
+    return str => {
         for (const regex of kwsRegexes) {
             if (!regex.test(str)) return false;
         }
@@ -17,7 +17,7 @@ function matchAnd(kws) {
 
 class FastFilter {
 
-    constructor(result, rest = [], keywords = [], logicalOp = 'or', getCmpValue = (obj) => obj) {
+    constructor(result, rest = [], keywords = [], logicalOp = 'or', getCmpValue = obj => obj) {
         this.result = result;
         this.rest = rest;
         this.keywords = keywords;

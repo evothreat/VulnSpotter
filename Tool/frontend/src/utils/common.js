@@ -40,7 +40,7 @@ function capitalize(str) {
 }
 
 function findCVEs(str) {
-    return [...new Set(str.match(/CVE-\d{4}-\d{4,7}/gmi))].map((v) => v.toUpperCase());
+    return [...new Set(str.match(/CVE-\d{4}-\d{4,7}/gmi))].map(v => v.toUpperCase());
 }
 
 function hashStrings() {
@@ -85,7 +85,7 @@ function arrayEquals(a, b) {
 }
 
 function arrayDiff(a, b) {
-    return a.filter((v) => b.indexOf(v) < 0);
+    return a.filter(v => b.indexOf(v) < 0);
 }
 
 function symmetricDiff(a, b) {
@@ -127,7 +127,7 @@ function nextNonSpace(str) {
 
 function normalizeText(text, factor=0.9) {
     const parts = text.split('\n');
-    const rowSize = Math.max(...parts.map((p) => p.length));
+    const rowSize = Math.max(...parts.map(p => p.length));
     const minSize = rowSize * factor;
     let res = '';
     for (let p of parts) {
@@ -156,7 +156,7 @@ function isValidEmail(s) {
 }
 
 function checkUrlExists(url) {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         const xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function() {
             if (this.readyState === 4) {
@@ -178,15 +178,15 @@ function isValidGitRepoUrl(url) {
 
 // requires 'id'-key
 function complement(a, b) {
-    return a.filter((v1) => !b.some((v2) => v1.id === v2.id));
+    return a.filter(v1 => !b.some(v2 => v1.id === v2.id));
 }
 
 function equals(a, b) {
-    return a.length === b.length && a.every((v1) => b.some((v2) => v1.id === v2.id));
+    return a.length === b.length && a.every(v1 => b.some(v2 => v1.id === v2.id));
 }
 
 function remove(a, id) {
-    return a.filter((v) => v.id !== id);
+    return a.filter(v => v.id !== id);
 }
 
 export {

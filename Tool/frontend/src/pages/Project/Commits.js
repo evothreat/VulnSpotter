@@ -68,9 +68,9 @@ const autocompleteInputStyle = {
 function CommitRow({item, checkHandler, checked}) {
     const [detailsOpen, setDetailsOpen] = useState(false);
 
-    const toggleDetails = () => setDetailsOpen((prevState) => !prevState);
+    const toggleDetails = () => setDetailsOpen(prevState => !prevState);
 
-    const handleCheck = (e) => checkHandler(item.id, e.target.checked);
+    const handleCheck = e => checkHandler(item.id, e.target.checked);
 
     return (
         <Fragment>
@@ -154,7 +154,7 @@ function CommitsTable({commits, selectedIds, checkHandler, sortReqHandler, order
     }
 
     const showNextItems = () => {
-        setEndIx((curIx) => {
+        setEndIx(curIx => {
             if (curIx === commits.length) {
                 return curIx;
             }
@@ -162,9 +162,9 @@ function CommitsTable({commits, selectedIds, checkHandler, sortReqHandler, order
         });
     };
 
-    const handleSelectAll = (checked) => {
+    const handleSelectAll = checked => {
         if (checked) {
-            checkHandler(commits.map((it) => it.id), checked);
+            checkHandler(commits.map(it => it.id), checked);
         } else {
             checkHandler([], checked);
         }
@@ -185,7 +185,7 @@ function CommitsTable({commits, selectedIds, checkHandler, sortReqHandler, order
                             orderedItems.length > 0
                                 ? <Fragment>
                                     {
-                                        orderedItems.map((it) =>
+                                        orderedItems.map(it =>
                                             <PureCommitRow item={it} key={it.id} checked={selectedIds.has(it.id)}
                                                            checkHandler={checkHandler}/>
                                         )
@@ -247,17 +247,17 @@ export default function Commits() {
         const reqOpts = groupCp === 'all' ? null : {rated: (groupCp === 'rated')};
 
         ProjectsService.getCommits(projId, reqOpts)
-            .then((data) => {
+            .then(data => {
                 if (groupCp !== group) {
                     return;
                 }
-                data.forEach((c) => {
+                data.forEach(c => {
                     c.message = c.message.trim();
                     c.cve = Utils.findCVEs(c.message);
                 });
 
                 filterRef.current = new FastFilter(data);
-                filterRef.current.getCmpValue = (c) => c.message;
+                filterRef.current.getCmpValue = c => c.message;
 
                 setCommits(data);
             });
@@ -281,7 +281,7 @@ export default function Commits() {
 
     const handleKwsChange = (e, kws) => {
         // if any rows selected - deselect them
-        setSelectedIds((ids) => {
+        setSelectedIds(ids => {
             if (ids.size > 0) {
                 return new Set();
             }
@@ -296,8 +296,8 @@ export default function Commits() {
         }
     };
 
-    const handleSortRequest = (key) => {
-        setSorter((curSorter) => {
+    const handleSortRequest = key => {
+        setSorter(curSorter => {
             return {
                 orderBy: key,
                 order: curSorter.orderBy === key && curSorter.order === 'asc' ? 'desc' : 'asc'
@@ -310,7 +310,7 @@ export default function Commits() {
         if (Array.isArray(commitId)) {
             setSelectedIds(() => new Set(commitId));
         } else {
-            setSelectedIds((selected) => {
+            setSelectedIds(selected => {
                 if (checked) {
                     selected.add(commitId);
                 } else {
@@ -370,7 +370,7 @@ export default function Commits() {
                         freeSolo
                         options={VULN_KEYWORDS}
                         disableCloseOnSelect
-                        renderInput={(params) => (
+                        renderInput={params => (
                             <TextField {...params} variant="standard" label="Filter by keywords"/>
                         )}
                         onChange={handleKwsChange}

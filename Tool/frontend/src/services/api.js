@@ -2,21 +2,21 @@ import TokenService from './TokenService';
 import axios from 'axios';
 
 
-const onRequest = (conf) => {
+const onRequest = conf => {
     conf.headers['Authorization'] = 'Bearer ' + TokenService.getAccessToken();
     return conf;
 };
 
-const onRequestError = (err) => {
+const onRequestError = err => {
     return Promise.reject(err);
 };
 
-const onResponse = (resp) => {
+const onResponse = resp => {
     return resp.data;
 };
 
 // on error invalidate authentication data & redirect!
-const onResponseError = async (err) => {
+const onResponseError = async err => {
     const origReq = err.config;
     if (origReq.url !== '/auth' && err.response?.status === 401 && !origReq._retry) {
         origReq._retry = true;
