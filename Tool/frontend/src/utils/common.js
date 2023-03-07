@@ -1,10 +1,11 @@
 const EMAIL_RE = /^\S+@\S+\.\S+$/;
+const GIT_HTTP_URL_RE = /^(https?|git):\/\/(www\.)?(github|gitlab|bitbucket)\.com\/([\w-]+\/){1,2}([\w-]+)(\.git)?$/;
 
 function fmtTimeSince(time) {
     const date = typeof time === 'number' ? new Date(time * 1000) : time;
     const seconds = Math.floor((new Date() - date) / 1000);
-    let interval = seconds / 31536000;
 
+    let interval = seconds / 31536000;
     if (interval > 1) {
         return Math.floor(interval) + ' years';
     }
@@ -150,6 +151,31 @@ function isObjEmpty(obj) {
     return true;
 }
 
+function isValidEmail(s) {
+    return EMAIL_RE.test(s);
+}
+
+function checkUrlExists(url) {
+    return new Promise((resolve) => {
+        const xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+            if (this.readyState === 4) {
+                if (this.status === 200) {
+                    resolve(true);
+                } else {
+                    resolve(false);
+                }
+            }
+        };
+        xhr.open("HEAD", url);
+        xhr.send();
+    });
+}
+
+function isValidGitRepoUrl(url) {
+    return GIT_HTTP_URL_RE.test(url);
+}
+
 // requires 'id'-key
 function complement(a, b) {
     return a.filter((v1) => !b.some((v2) => v1.id === v2.id));
@@ -162,11 +188,6 @@ function equals(a, b) {
 function remove(a, id) {
     return a.filter((v) => v.id !== id);
 }
-
-function isValidEmail(s) {
-    return EMAIL_RE.test(s);
-}
-
 
 export {
     fmtTimeSince,
@@ -186,6 +207,8 @@ export {
     arrayDiff,
     symmetricDiff,
     isValidEmail,
+    checkUrlExists,
+    isValidGitRepoUrl,
     complement,
     equals,
     remove

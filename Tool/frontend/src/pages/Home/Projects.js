@@ -12,14 +12,22 @@ import MainActionButton from "../../components/MainActionButton";
 import PageHeader from "../../components/PageHeader";
 import LayoutBody from "../../layout/LayoutBody";
 import {FILE_EXTENSIONS} from "../../constants";
+import {isValidGitRepoUrl} from "../../utils/common";
 
 
 function CreateProjectDialog({closeHandler, createHandler}) {
-    const selectedExt = useRef(null)
+    const selectedExt = useRef(null);
+    const [isInvalidRepoUrl, setIsInvalidRepoUrl] = useState(false);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        createHandler(e.target.repoUrl.value, e.target.projName.value, selectedExt.current);
+
+        const repoUrl = e.target.repoUrl.value;
+        if (isValidGitRepoUrl(repoUrl)) {
+            createHandler(repoUrl, e.target.projName.value, selectedExt.current);
+        } else {
+            setIsInvalidRepoUrl(true);
+        }
     };
 
     const handleExtChange = (e, val) => selectedExt.current = val;
@@ -29,7 +37,8 @@ function CreateProjectDialog({closeHandler, createHandler}) {
             <form onSubmit={handleSubmit}>
                 <DialogTitle>New Project</DialogTitle>
                 <DialogContent>
-                    <TextField name="repoUrl" margin="dense" label="Repository URL" fullWidth required autoFocus/>
+                    <TextField name="repoUrl" margin="dense" label="Repository URL" error={isInvalidRepoUrl}
+                               fullWidth required autoFocus/>
                     <TextField name="projName" margin="dense" label="Project name" fullWidth required/>
                     <Autocomplete
                         freeSolo
