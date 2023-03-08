@@ -405,57 +405,6 @@ def get_commit_full_info(commit_id):
     }
 
 
-@app.route('/api/users/me/commits/<int:commit_id>/files', methods=['GET'])
-@jwt_required()
-def get_commit_file_lines(commit_id):
-    query = request.args
-
-    filepath = query.get('path')
-    prev_lineno = query.get('prev_lineno', 0, int)  # 0 to avoid exception
-    cur_lineno = query.get('cur_lineno', 0, int)
-    count = query.get('count', 20, int)
-    direction = query.get('dir', 0, int)
-
-    if not (filepath and cur_lineno and count and direction) or prev_lineno and prev_lineno >= cur_lineno:
-        return '', 422
-
-    data = db_conn.execute('SELECT c.hash,p.repository FROM commits c '
-                           'JOIN projects p ON c.id=? AND p.id=c.project_id '
-                           'AND EXISTS(SELECT * FROM membership m WHERE m.user_id=? AND m.project_id=p.id) LIMIT 1',
-                           (commit_id, get_jwt_identity())).fetchone()
-    if not data:
-        return '', 404
-
-    with git.Repo(pathjoin(config.REPOS_DIR, data['repository'])) as repo:
-        try:
-            blob = repo.commit(data['hash']).tree / filepath
-        except KeyError:
-            return '', 404
-
-        fstream = blob.data_stream.stream
-
-        diff = cur_lineno - prev_lineno - 1
-        # if smaller than maximum or has rest length, which makes only 50% of max_expand_lines
-        if prev_lineno and count * 1.5 > diff:
-            count = diff
-
-        if direction > 0:
-            max_ix = cur_lineno
-        else:
-            max_ix = (prev_lineno or cur_lineno) + count + 1
-
-        lines = bytearray()
-        i = 1
-        while line := fstream.readline():
-            if i == max_ix:
-                fstream.read()  # to discard rest
-                break
-            if i + count >= max_ix:
-                lines.extend(line)
-            i += 1
-        return lines, 200, {'Content-Type': 'text/plain'}
-
-
 @app.route('/api/users/me/commits/<int:commit_id>/cve', methods=['GET'])
 @jwt_required()
 def get_cve_list(commit_id):
@@ -577,9 +526,11 @@ def delete_sent_invitation(invitation_id):
 @app.route('/api/users/me/invitations', methods=['GET'])
 @jwt_required()
 def get_invitations():
-    data = db_conn.execute('SELECT i.id,i.project_id,i.role,i.created_at,p.name,p.owner_id,u.full_name FROM invitations i '
-                           'JOIN projects p ON i.invitee_id=? AND i.project_id=p.id JOIN users u on p.owner_id = u.id',
-                           (get_jwt_identity(),)).fetchall()
+    data = db_conn.execute(
+        'SELECT i.id,i.project_id,i.role,i.created_at,p.name,p.owner_id,u.full_name FROM invitations i '
+        'JOIN projects p ON i.invitee_id=? AND i.project_id=p.id JOIN users u on p.owner_id = u.id',
+        (get_jwt_identity(),)
+    ).fetchall()
     return [views.invitation(d) for d in data]
 
 
@@ -677,6 +628,56 @@ def get_export(export_id):
         return '', 404
 
     return send_file(export_fpath, as_attachment=True)
+
+
+# NOTE: maybe return whole file if no args specified
+@app.route('/api/users/me/commits/<int:commit_id>/file', methods=['GET'])
+@jwt_required()
+def get_commit_file(commit_id):
+    query = request.args
+
+    filepath = query.get('path')
+    prev_lineno = query.get('prev_lineno', 0, int)  # 0 to avoid exception
+    cur_lineno = query.get('cur_lineno', 0, int)
+    count = query.get('count', 20, int)
+    direction = query.get('dir', 0, int)
+
+    if not (filepath and cur_lineno and count and direction) or prev_lineno and prev_lineno >= cur_lineno:
+        return '', 422
+
+    data = db_conn.execute('SELECT c.hash,p.repository FROM commits c '
+                           'JOIN projects p ON c.id=? AND p.id=c.project_id LIMIT 1', (commit_id,)).fetchone()
+    if not data:
+        return '', 404
+
+    with git.Repo(pathjoin(config.REPOS_DIR, data['repository'])) as repo:
+        try:
+            blob = repo.commit(data['hash']).tree / filepath
+        except KeyError:
+            return '', 404
+
+        fstream = blob.data_stream.stream
+
+        diff = cur_lineno - prev_lineno - 1
+        # if smaller than maximum or has rest length, which makes only 50% of max_expand_lines
+        if prev_lineno and count * 1.5 > diff:
+            count = diff
+
+        if direction > 0:
+            max_ix = cur_lineno
+        else:
+            max_ix = (prev_lineno or cur_lineno) + count + 1
+
+        lines = bytearray()
+        i = 1
+        while line := fstream.readline():
+            if i == max_ix:
+                fstream.read()  # to discard rest
+                break
+            if i + count >= max_ix:
+                lines.extend(line)
+            i += 1
+        return lines, 200, {'Content-Type': 'text/plain'}
 
 
 if __name__ == '__main__':
