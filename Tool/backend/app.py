@@ -13,7 +13,7 @@ import schemas as schemas
 import views as views
 from enums import *
 from helpers import validate_request_json, register_boolean_type, assign_bindvars, \
-    create_project_from_repo
+    create_project_from_repo, extract_commit_info
 from exporter import gen_export_file
 from sqlite_guard import SqliteGuard
 from utils import pathjoin, unix_time, pad_list
@@ -630,7 +630,7 @@ def get_export(export_id):
     return send_file(export_fpath, as_attachment=True)
 
 
-# NOTE: maybe return whole file if no args specified
+# NOTE: maybe return whole file if no args specified; maybe return lines in JSON-Format
 @app.route('/api/users/me/commits/<int:commit_id>/file', methods=['GET'])
 @jwt_required()
 def get_commit_file(commit_id):
@@ -678,6 +678,34 @@ def get_commit_file(commit_id):
                 lines.extend(line)
             i += 1
         return lines, 200, {'Content-Type': 'text/plain'}
+
+
+# TODO: put all constants into separate file/variables
+@app.route('/api/users/me/commits/<int:commit_id>/context')
+def get_commit_ctx(commit_id):
+    data = db_conn.execute('SELECT c.hash,p.repository FROM commits c '
+                           'JOIN projects p ON c.id=? AND p.id=c.project_id LIMIT 1', (commit_id,)).fetchone()
+    if not data:
+        return '', 404
+
+    ctx_size = request.args.get('ctx_size', 5)
+
+    with git.Repo(pathjoin(config.REPOS_DIR, data['repository'])) as repo:
+        commit = repo.commit(data['hash'])
+        children = []
+        parents = []
+
+        for _, c in zip(range(ctx_size), commit.iter_parents()):
+            parents.append(extract_commit_info(c))
+
+        for _, c in zip(range(ctx_size), commit.traverse()):
+            children.append(extract_commit_info(c))
+
+        return {
+            'commit': extract_commit_info(commit),
+            'parents': parents,
+            'children': children
+        }
 
 
 if __name__ == '__main__':

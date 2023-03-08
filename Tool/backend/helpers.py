@@ -165,3 +165,10 @@ def create_commit_records(conn, proj_id, commits):
             conn.executemany('INSERT INTO diff_content(diff_id,content) VALUES (?,?)', diff_content)
 
 
+def extract_commit_info(c):
+    return {
+        'hash': c.hexsha,
+        'author': c.author.name,
+        'authored_date': c.authored_date,
+        'message': c.message
+    }
