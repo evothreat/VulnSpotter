@@ -3,7 +3,7 @@ import api from "./api";
 class VotesService {
 
     constructor() {
-        this.basePath = '/users/me/votes';
+        this.basePath = '/users/me/diff_votes';
     }
 
     create(diffId, choice) {

@@ -1,11 +1,11 @@
 import api from "./api";
 
 
-class InvitationsService {
+class InvitesService {
 
     constructor() {
-        this.basePath = '/users/me/invitations';
-        this.basePathSent = '/users/me/sent-invitations';
+        this.basePath = '/users/me/invites';
+        this.basePathSent = '/users/me/sent-invites';
     }
 
     getAll() {
@@ -36,4 +36,4 @@ class InvitationsService {
     }
 }
 
-export default new InvitationsService();
+export default new InvitesService();

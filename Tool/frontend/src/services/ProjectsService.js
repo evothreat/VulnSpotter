@@ -42,8 +42,8 @@ class ProjectsService {
         return api.delete(`${this.basePath}/${id}/members/${memberId}`);
     }
 
-    getInvitations(id) {
-        return api.get(`${this.basePath}/${id}/invitations`);
+    getInvites(id) {
+        return api.get(`${this.basePath}/${id}/invites`);
     }
 
     getCommits(id, opts) {

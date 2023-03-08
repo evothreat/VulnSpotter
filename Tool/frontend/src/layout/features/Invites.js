@@ -4,7 +4,7 @@ import * as Utils from "../../utils/common";
 import Box from "@mui/material/Box";
 import * as React from "react";
 import {Fragment, useEffect, useState} from "react";
-import InvitationsService from "../../services/InvitationsService";
+import InvitesService from "../../services/InvitesService";
 import IconButton from "@mui/material/IconButton";
 import EmailIcon from "@mui/icons-material/Email";
 import ForwardToInboxIcon from '@mui/icons-material/ForwardToInbox';
@@ -14,10 +14,10 @@ import NewMessageBadge from "../../components/NewMessageBadge";
 
 
 // put buttons in secondary
-function InvitationItem({invitation, divider, acceptHandler, declineHandler}) {
+function InviteItem({invite, divider, acceptHandler, declineHandler}) {
 
-    const handleAccept = () => acceptHandler(invitation.id);
-    const handleDecline = () => declineHandler(invitation.id);
+    const handleAccept = () => acceptHandler(invite.id);
+    const handleDecline = () => declineHandler(invite.id);
 
     return (
         <ListItem divider={divider}
@@ -30,7 +30,7 @@ function InvitationItem({invitation, divider, acceptHandler, declineHandler}) {
                 disableTypography
                 primary={
                     <Typography variant="body2" sx={{color: '#000000DE'}}>
-                        <strong>{invitation.owner.full_name}</strong> invited you to the <strong>{invitation.project.name}</strong> project.
+                        <strong>{invite.owner.full_name}</strong> invited you to the <strong>{invite.project.name}</strong> project.
                     </Typography>
                 }
                 secondary={
@@ -47,7 +47,7 @@ function InvitationItem({invitation, divider, acceptHandler, declineHandler}) {
 }
 
 // maybe extract
-function InvitationsHeader() {
+function InvitesHeader() {
     return (
         <ListSubheader sx={{pt: '6px', borderBottom: 'thin solid lightgray'}}>
             <Box sx={{
@@ -55,42 +55,42 @@ function InvitationsHeader() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
             }}>
-                <Typography variant="subtitle1" sx={{color: '#505050'}}>Invitations</Typography>
+                <Typography variant="subtitle1" sx={{color: '#505050'}}>Invites</Typography>
             </Box>
         </ListSubheader>
     );
 }
 
-// mark as seen is not needed cause the invitations are important & should be handled immediately
-export default function Invitations() {
+// mark as seen is not needed cause the invites are important & should be handled immediately
+export default function Invites() {
     const [anchorEl, setAnchorEl] = useState(null);
-    const [invitations, setInvitations] = useState([]);
+    const [invites, setInvites] = useState([]);
 
     const handleOpen = e => setAnchorEl(e.currentTarget);
     const handleClose = () => setAnchorEl(null);
 
     const handleAccept = inviteId => {
-        InvitationsService.accept(inviteId)
-            .then(() => setInvitations(curInvites => Utils.remove(curInvites, inviteId)));
+        InvitesService.accept(inviteId)
+            .then(() => setInvites(curInvites => Utils.remove(curInvites, inviteId)));
     };
 
     const handleDecline = inviteId => {
-        InvitationsService.decline(inviteId)
-            .then(() => setInvitations(curInvites => Utils.remove(curInvites, inviteId)));
+        InvitesService.decline(inviteId)
+            .then(() => setInvites(curInvites => Utils.remove(curInvites, inviteId)));
     };
 
     useEffect(() => {
         let isMounted = true;
-        const updateInvitations = () => {
-            InvitationsService.getAll()
+        const updateInvites = () => {
+            InvitesService.getAll()
                 .then(data => {
                     if (isMounted) {
-                        setInvitations(curInvites => Utils.equals(curInvites, data) ? curInvites : data);
+                        setInvites(curInvites => Utils.equals(curInvites, data) ? curInvites : data);
                     }
                 });
         };
-        updateInvitations();
-        let interval = setInterval(updateInvitations, 300000);  // every 5 minutes, 300000
+        updateInvites();
+        let interval = setInterval(updateInvites, 300000);  // every 5 minutes, 300000
         return () => {
             isMounted = false;
             clearInterval(interval);
@@ -100,7 +100,7 @@ export default function Invitations() {
     return (
         <Fragment>
             <IconButton color="inherit" onClick={handleOpen}>
-                <NewMessageBadge badgeContent={invitations.length}>
+                <NewMessageBadge badgeContent={invites.length}>
                     <EmailIcon/>
                 </NewMessageBadge>
             </IconButton>
@@ -120,15 +120,15 @@ export default function Invitations() {
                 }}
                 TransitionComponent={Fade}
             >
-                <List sx={{width: '370px', maxHeight: '430px', overflowY: 'auto'}} subheader={<InvitationsHeader/>}>
+                <List sx={{width: '370px', maxHeight: '430px', overflowY: 'auto'}} subheader={<InvitesHeader/>}>
                     {
-                        invitations.length > 0
-                            ? invitations.map((inv, i) => <InvitationItem invitation={inv}
+                        invites.length > 0
+                            ? invites.map((inv, i) => <InviteItem invite={inv}
                                                                           key={inv.id}
-                                                                          divider={invitations.length > i + 1}
+                                                                          divider={invites.length > i + 1}
                                                                           acceptHandler={handleAccept}
                                                                           declineHandler={handleDecline}/>)
-                            : <EmptyListMsg text="No invitations"/>
+                            : <EmptyListMsg text="No invites"/>
                     }
                 </List>
             </Popover>

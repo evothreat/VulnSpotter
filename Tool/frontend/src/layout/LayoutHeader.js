@@ -10,7 +10,7 @@ import Avatar from '@mui/material/Avatar';
 import MenuItem from '@mui/material/MenuItem';
 import PolicyIcon from '@mui/icons-material/Policy';
 import Notifications from "./features/Notifications";
-import Invitations from "./features/Invitations";
+import Invites from "./features/Invites";
 import RouterLink from "../components/RouterLink";
 import {HEADER_HEIGHT} from "./constants";
 import AuthService from "../services/AuthService";
@@ -83,7 +83,7 @@ export default function LayoutHeader() {
                     </RouterLink>
                 </Box>
                 <Box>
-                    <Invitations/>
+                    <Invites/>
                     <Notifications/>
                     <UserMenu/>
                 </Box>

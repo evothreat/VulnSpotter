@@ -19,7 +19,7 @@ import api from "../../services/api";
 import TextField from "@mui/material/TextField";
 import ProjectsService from "../../services/ProjectsService";
 import EnhancedAlert from "../../components/EnhancedAlert";
-import InvitationsService from "../../services/InvitationsService";
+import InvitesService from "../../services/InvitesService";
 import {useParams} from "react-router-dom";
 import MainActionButton from "../../components/MainActionButton";
 import ActionButton from "../../components/ActionButton";
@@ -115,7 +115,7 @@ function MembersTable({items, setItems}) {
 
         const req = item.active
             ? ProjectsService.removeMember(projId, item.id)
-            : InvitationsService.deleteSent(item.invitation_id);
+            : InvitesService.deleteSent(item.invite_id);
 
         req.then(() => setItems(curItems => Utils.remove(curItems, item.id)));
     };
@@ -212,7 +212,7 @@ export default function Members() {
     const [alertMsg, setAlertMsg] = useState('');
 
     useEffect(() => {
-        Promise.all([ProjectsService.getMembers(projId), ProjectsService.getInvitations(projId)])
+        Promise.all([ProjectsService.getMembers(projId), ProjectsService.getInvites(projId)])
             .then(data => {
                 const members = data[0];
                 const invitees = data[1].map(inv => {
@@ -221,7 +221,7 @@ export default function Members() {
                         username: inv.invitee.username,
                         full_name: inv.invitee.full_name,
                         role: inv.role,
-                        invitation_id: inv.id,
+                        invite_id: inv.id,
                         active: false,
                         joined_at: inv.created_at,
                     };
@@ -234,9 +234,9 @@ export default function Members() {
     const handleInvite = selUsers => {
         setOpenInviteDlg(false);
 
-        Promise.all(selUsers.map(u => InvitationsService.send(projId, u.id)))
+        Promise.all(selUsers.map(u => InvitesService.send(projId, u.id)))
             .then(data => {
-                setAlertMsg('Invitations were successfully sent to users.');
+                setAlertMsg('Invites were successfully sent to users.');
 
                 const invitees = selUsers.map((u, i) => {
                     return {
@@ -246,7 +246,7 @@ export default function Members() {
                         role: Role.CONTRIBUTOR,
                         active: false,
                         joined_at: Date.now() / 1000 | 0,
-                        invitation_id: data[i].resource_id
+                        invite_id: data[i].resource_id
                     }
                 });
                 setProjMembers(prevMembers => prevMembers.concat(invitees));

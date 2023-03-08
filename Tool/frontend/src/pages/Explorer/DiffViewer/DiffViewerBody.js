@@ -238,6 +238,7 @@ export default function DiffViewerBody({codeLines, getMoreLines, setWinRef}) {
             } else if (areHunksSequent(curHunk, next)) {
                 next.visible = true;
                 setLineHunks(lineHunks.slice());
+                return;
             } else {
                 prevLine = curHunk.lines.at(-1);
                 curLine = next.lines[0];
@@ -249,6 +250,7 @@ export default function DiffViewerBody({codeLines, getMoreLines, setWinRef}) {
             } else if (areHunksSequent(prev, curHunk)) {
                 prev.visible = true;
                 setLineHunks(lineHunks.slice());
+                return;
             } else {
                 prevLine = prev.lines.at(-1);
                 curLine = curHunk.lines[0];
