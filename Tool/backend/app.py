@@ -692,14 +692,9 @@ def get_commit_ctx(commit_id):
 
     with git.Repo(pathjoin(config.REPOS_DIR, data['repository'])) as repo:
         commit = repo.commit(data['hash'])
-        children = []
-        parents = []
 
-        for _, c in zip(range(ctx_size), commit.iter_parents()):
-            parents.append(extract_commit_info(c))
-
-        for _, c in zip(range(ctx_size), commit.traverse()):
-            children.append(extract_commit_info(c))
+        parents = [extract_commit_info(c) for c in commit.iter_parents(max_count=ctx_size)]
+        children = [extract_commit_info(c) for _, c in zip(range(ctx_size), commit.traverse())]
 
         return {
             'commit': extract_commit_info(commit),
