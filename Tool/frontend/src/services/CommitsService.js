@@ -11,7 +11,7 @@ class CommitsService {
     }
 
     getFileLines(id, filepath, prevLineno, curLineno, direction) {
-        let urlPath = `${this.basePath}/${id}/files?path=${filepath}&cur_lineno=${curLineno}&dir=${direction}`;
+        let urlPath = `${this.basePath}/${id}/file?path=${filepath}&cur_lineno=${curLineno}&dir=${direction}`;
         if (prevLineno) {
             urlPath += `&prev_lineno=${prevLineno}`;
         }
