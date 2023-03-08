@@ -52,7 +52,7 @@ def notification(d):
     }
 
 
-def sent_invitation(d):
+def sent_invite(d):
     return {
         'id': d['id'],
         'project_id': d['project_id'],
@@ -66,7 +66,7 @@ def sent_invitation(d):
     }
 
 
-def invitation(d):
+def invite(d):
     return {
         'id': d['id'],
         'role': d['role'],
@@ -92,7 +92,7 @@ def member(d):
     }
 
 
-def vote(d):
+def diff_vote(d):
     return {
         'id': d['id'],
         'user_id': d['user_id'],

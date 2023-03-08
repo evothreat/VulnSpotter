@@ -79,7 +79,7 @@ UPDATE_NOTIFS = {
     'additionalProperties': False
 }
 
-CREATE_VOTE = {
+CREATE_DIFF_VOTE = {
     'type': 'object',
     'properties': {
         'diff_id': {
@@ -93,7 +93,7 @@ CREATE_VOTE = {
     'additionalProperties': False
 }
 
-UPDATE_VOTE = {
+UPDATE_DIFF_VOTE = {
     'type': 'object',
     'properties': {
         'choice': {
@@ -104,7 +104,7 @@ UPDATE_VOTE = {
     'additionalProperties': False
 }
 
-SEND_INVITATION = {
+SEND_INVITE = {
     'type': 'object',
     'properties': {
         'project_id': {

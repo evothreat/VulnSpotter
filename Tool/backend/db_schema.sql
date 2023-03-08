@@ -95,7 +95,7 @@ CREATE TABLE notifications
 CREATE INDEX ix_notifications_user ON notifications (user_id);
 CREATE INDEX ix_notifications_update ON notifications (update_id);
 
-CREATE TABLE invitations
+CREATE TABLE invites
 (
     id         INTEGER PRIMARY KEY,
     invitee_id INTEGER,
@@ -107,10 +107,10 @@ CREATE TABLE invitations
     UNIQUE (invitee_id, project_id)
 );
 
-CREATE INDEX ix_invitations_invitee ON invitations (invitee_id);
-CREATE INDEX ix_invitations_project ON invitations (project_id);
+CREATE INDEX ix_invites_invitee ON invites (invitee_id);
+CREATE INDEX ix_invites_project ON invites (project_id);
 
-CREATE TABLE votes
+CREATE TABLE diff_votes
 (
     id      INTEGER PRIMARY KEY,
     user_id INTEGER,
@@ -121,8 +121,8 @@ CREATE TABLE votes
     UNIQUE (user_id, diff_id)
 );
 
-CREATE INDEX ix_votes_user ON votes (user_id);
-CREATE INDEX ix_votes_diff ON votes (diff_id);
+CREATE INDEX ix_diff_votes_user ON diff_votes (user_id);
+CREATE INDEX ix_diff_votes_diff ON diff_votes (diff_id);
 
 CREATE TABLE cve_info
 (

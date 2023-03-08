@@ -364,8 +364,8 @@ def get_commits(proj_id):
         # NOTE: maybe create index on v.user_id and v.diff_id
         data = db_conn.execute('SELECT c.id,c.hash,c.message,c.created_at FROM commits c '
                                'JOIN commit_diffs cd ON cd.suitable=1 AND c.project_id=? AND cd.commit_id=c.id '
-                               'LEFT JOIN votes v ON v.user_id=? AND v.diff_id=cd.id '
-                               'WHERE v.diff_id IS {} NULL '
+                               'LEFT JOIN diff_votes dv ON dv.user_id=? AND dv.diff_id=cd.id '
+                               'WHERE dv.diff_id IS {} NULL '
                                'GROUP BY c.id'.format('NOT' if rated_arg == 1 else ''),
                                (proj_id, user_id)).fetchall()
     else:
@@ -393,9 +393,9 @@ def get_commit_full_info(commit_id):
                                (commit_id,)).fetchall()
 
     diffs_info = db_conn.execute(
-        'SELECT cd.id,cd.commit_id,dc.content,v.id AS vote_id, v.user_id,v.choice FROM commit_diffs cd '
+        'SELECT cd.id,cd.commit_id,dc.content,dv.id AS vote_id, dv.user_id,dv.choice FROM commit_diffs cd '
         'JOIN diff_content dc ON cd.suitable=1 AND cd.commit_id=? AND cd.id=dc.diff_id '
-        'LEFT JOIN votes v ON v.user_id=? AND v.diff_id=cd.id',
+        'LEFT JOIN diff_votes dv ON dv.user_id=? AND dv.diff_id=cd.id',
         (commit_id, user_id)).fetchall()
 
     return {
@@ -421,15 +421,15 @@ def get_cve_list(commit_id):
     return [views.cve_info(d) for d in data]
 
 
-@app.route('/api/users/me/votes', methods=['POST'])
+@app.route('/api/users/me/diff_votes', methods=['POST'])
 @jwt_required()
-@validate_request_json(schemas.CREATE_VOTE)
-def create_vote():
+@validate_request_json(schemas.CREATE_DIFF_VOTE)
+def create_diff_vote():
     data = request.json
     with db_conn:
         # WARNING: we do not check if the user has right to rate the diff!
         record_id = db_conn.execute(
-            'INSERT INTO votes(user_id,diff_id,choice) VALUES (?,?,?) ',
+            'INSERT INTO diff_votes(user_id,diff_id,choice) VALUES (?,?,?) ',
             (get_jwt_identity(), data['diff_id'], data['choice'])
         ).lastrowid
 
@@ -439,23 +439,23 @@ def create_vote():
     return {'resource_id': record_id}, 201
 
 
-@app.route('/api/users/me/votes/<int:vote_id>', methods=['GET'])
+@app.route('/api/users/me/diff_votes/<int:vote_id>', methods=['GET'])
 @jwt_required()
-def get_vote(vote_id):
-    data = db_conn.execute('SELECT v.id,v.user_id,v.diff_id,v.choice FROM votes v '
-                           'WHERE v.id=? AND v.user_id=? LIMIT 1',
+def get_diff_vote(vote_id):
+    data = db_conn.execute('SELECT dv.id,dv.user_id,dv.diff_id,dv.choice FROM diff_votes dv '
+                           'WHERE dv.id=? AND dv.user_id=? LIMIT 1',
                            (vote_id, get_jwt_identity())).fetchone()
 
-    return views.vote(data) if data else ('', 404)
+    return views.diff_vote(data) if data else ('', 404)
 
 
-@app.route('/api/users/me/votes/<int:vote_id>', methods=['PATCH'])
+@app.route('/api/users/me/diff_votes/<int:vote_id>', methods=['PATCH'])
 @jwt_required()
-def update_vote(vote_id):
+def update_diff_vote(vote_id):
     data = request.json
     with db_conn:
         updated = db_conn.execute(
-            f'UPDATE votes SET {assign_bindvars(data)} WHERE id=? AND user_id=?',
+            f'UPDATE diff_votes SET {assign_bindvars(data)} WHERE id=? AND user_id=?',
             (*data.values(), vote_id, get_jwt_identity())
         ).rowcount
 
@@ -465,29 +465,29 @@ def update_vote(vote_id):
     return '', 204
 
 
-@app.route('/api/users/me/projects/<int:proj_id>/invitations', methods=['GET'])
+@app.route('/api/users/me/projects/<int:proj_id>/invites', methods=['GET'])
 @jwt_required()
-def get_sent_invitations(proj_id):
+def get_sent_invites(proj_id):
     data = db_conn.execute('SELECT i.id,i.invitee_id,i.project_id,i.role,i.created_at,u.username,u.full_name '
-                           'FROM invitations i JOIN users u ON i.project_id=? '
+                           'FROM invites i JOIN users u ON i.project_id=? '
                            'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?) '
                            'AND u.id=i.invitee_id',
                            (proj_id, get_jwt_identity())).fetchall()
 
-    return [views.sent_invitation(d) for d in data]
+    return [views.sent_invite(d) for d in data]
 
 
-@app.route('/api/users/me/sent-invitations', methods=['POST'])
+@app.route('/api/users/me/sent-invites', methods=['POST'])
 @jwt_required()
-@validate_request_json(schemas.SEND_INVITATION)
-def send_invitation():
+@validate_request_json(schemas.SEND_INVITE)
+def send_invite():
     data = request.json
     proj_id = data['project_id']
 
     with db_conn:
         # insert only if the current user is owner of the project
         record_id = db_conn.execute(
-            'INSERT OR IGNORE INTO invitations(invitee_id,project_id,role,created_at) '
+            'INSERT OR IGNORE INTO invites(invitee_id,project_id,role,created_at) '
             'SELECT ?,?,?,? WHERE EXISTS(SELECT * FROM projects p WHERE p.id=? AND p.owner_id=?)',
             (data['invitee_id'], proj_id, Role.CONTRIBUTOR, unix_time(), proj_id, get_jwt_identity())
         ).lastrowid
@@ -498,67 +498,67 @@ def send_invitation():
     return {'resource_id': record_id}, 201
 
 
-@app.route('/api/users/me/sent-invitations/<int:invitation_id>', methods=['GET'])
+@app.route('/api/users/me/sent-invites/<int:invite_id>', methods=['GET'])
 @jwt_required()
-def get_sent_invitation(invitation_id):
+def get_sent_invite(invite_id):
     data = db_conn.execute('SELECT i.id,i.invitee_id,i.project_id,i.role,i.created_at,u.username,u.full_name '
-                           'FROM invitations i JOIN users u ON i.id=? '
+                           'FROM invites i JOIN users u ON i.id=? '
                            'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?) '
                            'AND u.id=i.invitee_id LIMIT 1',
-                           (invitation_id, get_jwt_identity())).fetchone()
+                           (invite_id, get_jwt_identity())).fetchone()
 
-    return views.sent_invitation(data) if data else ('', 404)
+    return views.sent_invite(data) if data else ('', 404)
 
 
-@app.route('/api/users/me/sent-invitations/<int:invitation_id>', methods=['DELETE'])
+@app.route('/api/users/me/sent-invites/<int:invite_id>', methods=['DELETE'])
 @jwt_required()
-def delete_sent_invitation(invitation_id):
+def delete_sent_invite(invite_id):
     with db_conn:
-        deleted = db_conn.execute('DELETE FROM invitations WHERE id=? '
+        deleted = db_conn.execute('DELETE FROM invites WHERE id=? '
                                   'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?)',
-                                  (invitation_id, get_jwt_identity())).rowcount
+                                  (invite_id, get_jwt_identity())).rowcount
         if deleted == 0:
             return '', 404
 
     return '', 204
 
 
-@app.route('/api/users/me/invitations', methods=['GET'])
+@app.route('/api/users/me/invites', methods=['GET'])
 @jwt_required()
-def get_invitations():
+def get_invites():
     data = db_conn.execute(
-        'SELECT i.id,i.project_id,i.role,i.created_at,p.name,p.owner_id,u.full_name FROM invitations i '
+        'SELECT i.id,i.project_id,i.role,i.created_at,p.name,p.owner_id,u.full_name FROM invites i '
         'JOIN projects p ON i.invitee_id=? AND i.project_id=p.id JOIN users u on p.owner_id = u.id',
         (get_jwt_identity(),)
     ).fetchall()
-    return [views.invitation(d) for d in data]
+    return [views.invite(d) for d in data]
 
 
-@app.route('/api/users/me/invitations/<int:invitation_id>', methods=['PATCH'])
+@app.route('/api/users/me/invites/<int:invite_id>', methods=['PATCH'])
 @jwt_required()
-def accept_invitation(invitation_id):
+def accept_invite(invite_id):
     with db_conn:
         record_id = db_conn.execute(
             'INSERT INTO membership(user_id,project_id,role,joined_at) '
-            'SELECT invitee_id,project_id,role,? FROM invitations WHERE id=? AND invitee_id=? LIMIT 1',
-            (unix_time(), invitation_id, get_jwt_identity())
+            'SELECT invitee_id,project_id,role,? FROM invites WHERE id=? AND invitee_id=? LIMIT 1',
+            (unix_time(), invite_id, get_jwt_identity())
         ).lastrowid
 
         if record_id is None:
             return '', 404
 
-        db_conn.execute('DELETE FROM invitations WHERE id=?', (invitation_id,))  # AND user_id=?
+        db_conn.execute('DELETE FROM invites WHERE id=?', (invite_id,))  # AND user_id=?
         # TODO: notify both users!
 
     return '', 204
 
 
-@app.route('/api/users/me/invitations/<int:invitation_id>', methods=['DELETE'])
+@app.route('/api/users/me/invites/<int:invite_id>', methods=['DELETE'])
 @jwt_required()
-def delete_invitation(invitation_id):
+def delete_invite(invite_id):
     with db_conn:
-        deleted = db_conn.execute('DELETE FROM invitations WHERE id=? AND invitee_id=?',
-                                  (invitation_id, get_jwt_identity())).rowcount
+        deleted = db_conn.execute('DELETE FROM invites WHERE id=? AND invitee_id=?',
+                                  (invite_id, get_jwt_identity())).rowcount
         if deleted == 0:
             return '', 404
 
