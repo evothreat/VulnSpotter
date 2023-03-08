@@ -668,16 +668,19 @@ def get_commit_file(commit_id):
         else:
             max_ix = (prev_lineno or cur_lineno) + count + 1
 
-        lines = bytearray()
+        lines = []
         i = 1
         while line := fstream.readline():
             if i == max_ix:
                 fstream.read()  # to discard rest
                 break
             if i + count >= max_ix:
-                lines.extend(line)
+                lines.append(line.decode('utf-8', errors='replace'))
             i += 1
-        return lines, 200, {'Content-Type': 'text/plain'}
+
+        return {
+            'lines': lines
+        }
 
 
 # TODO: put all constants into separate file/variables
