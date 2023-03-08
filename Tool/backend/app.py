@@ -688,7 +688,7 @@ def get_commit_ctx(commit_id):
     if not data:
         return '', 404
 
-    ctx_size = request.args.get('ctx_size', 5)
+    ctx_size = request.args.get('ctx_size', 5, int)
 
     with git.Repo(pathjoin(config.REPOS_DIR, data['repository'])) as repo:
         commit = repo.commit(data['hash'])
