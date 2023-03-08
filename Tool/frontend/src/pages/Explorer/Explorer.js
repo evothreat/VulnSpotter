@@ -156,14 +156,10 @@ export default function Explorer() {
 
     const getMoreLines = async (prevLineno, curLineno, dir) => {
         try {
-            const data = await CommitsService.getFileLines(
+            const {lines} = await CommitsService.getFileLines(
                 curCommit.id, curDiffInfo.content.newFileName,
                 prevLineno, curLineno, dir
             );
-            const lines = data.split('\n');
-            if (lines.at(-1) === '') {
-                lines.pop();
-            }
             return lines;
         } catch (err) {
             console.error(err);
