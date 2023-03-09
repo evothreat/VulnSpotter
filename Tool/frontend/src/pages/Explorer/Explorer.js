@@ -26,7 +26,7 @@ function MessageWindow({message, setWinRef}) {
     return (
         <Box sx={{flex: '1 1 0', display: 'flex', flexDirection: 'column'}}>
             <WindowTitle title="Message"/>
-            <Box ref={setWinRef} tabIndex="0" sx={{flex: '1 1 0', overflowY: 'auto'}}>
+            <Box ref={setWinRef} tabIndex="1" sx={{flex: '1 1 0', overflowY: 'auto'}}>
                 <Typography sx={{padding: '10px 15px', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', fontSize: '14px'}}>
                     {normalizeText(message)}
                 </Typography>
@@ -174,7 +174,6 @@ export default function Explorer() {
 
     const switchWindow = e => {
         e.preventDefault();
-
         let ix = windowRefs.findIndex(ref => ref.current === document.activeElement);
         ix = ix !== -1 ? mod(ix + 1, windowRefs.length) : 0;
         if (windowRefs[ix].current) {
@@ -186,6 +185,8 @@ export default function Explorer() {
         e.preventDefault();
 
         const selectedWin = windowRefs[parseInt(key) - 1].current;
+        console.log('next window is ' + (parseInt(key) - 1))
+        console.log('selected win:', selectedWin)
         if (selectedWin) {
             selectedWin.focus();
         }

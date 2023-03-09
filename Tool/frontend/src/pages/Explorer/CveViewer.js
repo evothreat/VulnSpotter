@@ -77,7 +77,7 @@ export default function CveViewer({cveList, setWinRef}) {
         <Box sx={{flex: '1 1 0', display: 'flex', flexDirection: 'column'}}>
             <WindowTitle title="CVE"/>
 
-            <Box ref={setWinRef} tabIndex="0" sx={{flex: '1 1 0', display: 'flex', flexDirection: 'column', position: 'relative', overflowY: 'auto'}}
+            <Box ref={setWinRef} tabIndex="1" sx={{flex: '1 1 0', display: 'flex', flexDirection: 'column', position: 'relative', overflowY: 'auto'}}
                  onFocus={bindHotkeys} onBlur={unbindHotkeys}>
                 {
                     cveList.length === 0

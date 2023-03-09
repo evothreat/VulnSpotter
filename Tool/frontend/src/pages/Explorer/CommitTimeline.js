@@ -57,7 +57,7 @@ function CommitTimelineDialog({data, closeHandler}) {
     return (
         <Dialog open={true} onClose={closeHandler} maxWidth="md" fullWidth>
             <DialogTitle sx={{padding: '12px 24px'}}>History</DialogTitle>
-            <DialogContent dividers ref={contentRef} sx={{overflowX: 'hidden', padding: '0 20px 0 0'}}>
+            <DialogContent dividers ref={contentRef} tabIndex="1" sx={{overflowX: 'hidden', padding: '0 20px 0 0'}}>
                 <CommitTimeline data={data}/>
             </DialogContent>
             <DialogActions disableSpacing>
