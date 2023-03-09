@@ -205,8 +205,8 @@ function restoreFilterOpts(projId) {
             keywords: [],
             logicalOp: 'or',
             sorter: {
-                order: 'asc',
-                orderBy: 'created_at'
+                order: 'desc',
+                orderBy: 'cve_count'
             }
         };
 }
