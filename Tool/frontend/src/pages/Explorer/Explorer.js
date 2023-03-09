@@ -4,7 +4,6 @@ import React, {useEffect, useRef, useState} from "react";
 import {useLocation, useNavigate, useSearchParams} from "react-router-dom";
 import CommitsService from "../../services/CommitsService";
 import {parsePatch} from "../../utils/diffUtils";
-import Typography from "@mui/material/Typography";
 import {getCvss3Severity, isObjEmpty, mod, normalizeText} from "../../utils/common";
 import useHotkeys from "./useHotkeys";
 import CveViewer from "./CveViewer";
@@ -16,6 +15,7 @@ import VotesService from "../../services/VotesService";
 import ArrayIterator from "../../utils/ArrayIterator";
 import CommitTimelineDialog from "./CommitTimeline";
 import {VULN_KEYWORDS} from "../../constants";
+import TextWrapper from "../../components/TextWrapper";
 
 
 // store as global constant to avoid unnecessary useEffect call (in useHotkeys)
@@ -34,10 +34,9 @@ function MessageWindow({message, setWinRef}) {
         <Box sx={{flex: '1 1 0', display: 'flex', flexDirection: 'column'}}>
             <WindowTitle title="Message"/>
             <Box ref={setWinRef} tabIndex="1" sx={{flex: '1 1 0', overflowY: 'auto'}}>
-                <Typography
-                    sx={{padding: '10px 15px', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', fontSize: '14px'}}>
+                <TextWrapper sx={{padding: '10px 15px', fontSize: '14px'}}>
                     {normalizeText(message)}
-                </Typography>
+                </TextWrapper>
             </Box>
         </Box>
     );

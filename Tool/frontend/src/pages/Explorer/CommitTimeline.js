@@ -14,6 +14,8 @@ import IconButton from "@mui/material/IconButton";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import Box from "@mui/material/Box";
+import {normalizeText} from "../../utils/common";
+import TextWrapper from "../../components/TextWrapper";
 
 
 function hasNonEmptyLine(lines, ix=0) {
@@ -43,15 +45,13 @@ function CommitTimelineItem({author, date, message, dotStyle}) {
                 <TimelineConnector/>
             </TimelineSeparator>
             <TimelineContent>
-                <pre style={{margin: 0, padding: 0}}>
-                    <Typography>
+                    <TextWrapper>
                     {
                         expanded
-                            ? message
+                            ? normalizeText(message)
                             : messageLines[0]
                     }
-                    </Typography>
-                </pre>
+                    </TextWrapper>
                 {
                     hasMoreText && (
                         <IconButton
