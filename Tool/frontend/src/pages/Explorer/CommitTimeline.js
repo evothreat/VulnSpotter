@@ -13,6 +13,7 @@ import {TimelineOppositeContent} from "@mui/lab";
 import IconButton from "@mui/material/IconButton";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import Box from "@mui/material/Box";
 
 
 function hasNonEmptyLine(lines, ix=0) {
@@ -87,7 +88,8 @@ function CommitTimeline({data}) {
     );
 }
 
-function CommitTimelineDialog({data, closeHandler}) {
+
+function CommitTimelineDialog({data, closeHandler, loadMoreHandler}) {
     const contentRef = useRef(null);
 
     useEffect(() => {
@@ -101,6 +103,9 @@ function CommitTimelineDialog({data, closeHandler}) {
             <DialogTitle sx={{p: '12px 24px'}}>History</DialogTitle>
             <DialogContent dividers ref={contentRef} tabIndex="1" sx={{overflowX: 'hidden', p: '0 20px 0 0'}}>
                 <CommitTimeline data={data}/>
+                <Box sx={{textAlign: 'center'}}>
+                    <Button onClick={loadMoreHandler}>Load more</Button>
+                </Box>
             </DialogContent>
             <DialogActions disableSpacing>
                 <Button onClick={closeHandler} color="primary">Close</Button>

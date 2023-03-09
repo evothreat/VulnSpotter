@@ -40,7 +40,7 @@ export default function Explorer() {
     const {state: locState} = useLocation();
     const [queryArgs,] = useSearchParams();
 
-    const commitHistory = useRef(null);
+    const [commitHistory, setCommitHistory] = useState(null);
     const [openCommitTimeline, setOpenCommitTimeline] = useState(false);
 
     const [commitIdsIt, setCommitIdsIt] = useState(null);
@@ -116,7 +116,7 @@ export default function Explorer() {
             });
         return () => {
             voteUpdates.current = {};   // not necessary, but useful to save memory
-            commitHistory.current = null;
+            setCommitHistory(null);
         };
     }, [commitIdsIt]);
 
@@ -172,6 +172,17 @@ export default function Explorer() {
         }
     };
 
+    const getMoreHistory = () => {
+        CommitsService.getHistory(curCommit.id, commitHistory.parents.length)
+            .then(data => {
+                setCommitHistory((curHistory) => {
+                    const newHistory = {...curHistory};
+                    newHistory.parents = newHistory.parents.concat(data.parents);
+                    return newHistory;
+                })
+            });
+    };
+
     const switchWindow = e => {
         e.preventDefault();
         let ix = windowRefs.findIndex(ref => ref.current === document.activeElement);
@@ -185,8 +196,6 @@ export default function Explorer() {
         e.preventDefault();
 
         const selectedWin = windowRefs[parseInt(key) - 1].current;
-        console.log('next window is ' + (parseInt(key) - 1))
-        console.log('selected win:', selectedWin)
         if (selectedWin) {
             selectedWin.focus();
         }
@@ -242,13 +251,13 @@ export default function Explorer() {
             setOpenCommitTimeline(false);
             return;
         }
-        if (commitHistory.current) {
+        if (commitHistory) {
             setOpenCommitTimeline(true);
         }
         else {
             CommitsService.getHistory(curCommit.id)
                 .then((data) => {
-                    commitHistory.current = data;
+                    setCommitHistory(data);
                     setOpenCommitTimeline(true);
                 });
         }
@@ -297,7 +306,9 @@ export default function Explorer() {
             </Box>
             {
                 openCommitTimeline &&
-                <CommitTimelineDialog data={commitHistory.current} closeHandler={() => setOpenCommitTimeline(false)}/>
+                <CommitTimelineDialog data={commitHistory}
+                                      loadMoreHandler={getMoreHistory}
+                                      closeHandler={() => setOpenCommitTimeline(false)}/>
             }
         </Box>
     );
