@@ -684,25 +684,25 @@ def get_commit_file(commit_id):
 
 
 # TODO: put all constants into separate file/variables
-@app.route('/api/users/me/commits/<int:commit_id>/context')
-def get_commit_ctx(commit_id):
+@app.route('/api/users/me/commits/<int:commit_id>/history')
+def get_commit_history(commit_id):
     data = db_conn.execute('SELECT c.hash,p.repository FROM commits c '
                            'JOIN projects p ON c.id=? AND p.id=c.project_id LIMIT 1', (commit_id,)).fetchone()
     if not data:
         return '', 404
 
-    ctx_size = request.args.get('ctx_size', 5, int)
+    ctx_size = request.args.get('size', 10, int)
 
     with git.Repo(pathjoin(config.REPOS_DIR, data['repository'])) as repo:
         commit = repo.commit(data['hash'])
 
         parents = [extract_commit_info(c) for c in commit.iter_parents(max_count=ctx_size)]
-        children = [extract_commit_info(c) for _, c in zip(range(ctx_size), commit.traverse())]
-
+        
+        # we can't retrieve children, because they aren't referenced by parents, and we don't have their hashes :(
+        
         return {
             'commit': extract_commit_info(commit),
             'parents': parents,
-            'children': children
         }
 
 
