@@ -6,9 +6,9 @@ import {Autocomplete, Collapse, ToggleButton, ToggleButtonGroup} from "@mui/mate
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 import * as Utils from "../../utils/common";
+import {createComparator} from "../../utils/common";
 import TableBody from "@mui/material/TableBody";
 import {Waypoint} from "react-waypoint";
 import TableContainer from "@mui/material/TableContainer";
@@ -24,28 +24,25 @@ import FastFilter from "../../utils/FastFilter";
 import SimpleCheckbox from "../../components/SimpleCheckbox";
 import MainActionButton from "../../components/MainActionButton";
 import PageHeader from "../../components/PageHeader";
-import {createComparator} from "../../utils/common";
 import {VULN_KEYWORDS} from "../../constants";
 
-
-const cveDetailUrl = 'https://nvd.nist.gov/vuln/detail/';
 
 const headCells = [
     {
         content: 'Description',
-        width: '68%'
+        width: '66%'
     },
     {
-        content: 'CVEs',
+        content: 'CVE-Count',
         sortable: true,
-        key: 'cve',
-        width: '15%'
+        key: 'cve_count',
+        width: '16%',
     },
     {
         content: 'Created',
         sortable: true,
         key: 'created_at',
-        width: '16%'
+        width: '18%'
     }
 ];
 
@@ -98,19 +95,8 @@ function CommitRow({item, checkHandler, checked}) {
                         </Box>
                     }
                 </TableCell>
-                <TableCell>
-                    {
-                        item.cve.length > 0
-                            ? item.cve.map((cve, i) =>
-                                <Fragment key={i}>
-                                    <Link target="_blank" underline="hover" href={cveDetailUrl + cve}>
-                                        {cve}
-                                    </Link>
-                                    {item.cve.length > i + 1 ? <br/> : null}
-                                </Fragment>
-                            )
-                            : <Typography variant="body2" sx={{color: 'lightgray'}}>N/A</Typography>
-                    }
+                <TableCell align="center">
+                    {item.cve.length}
                 </TableCell>
                 <TableCell>
                     {Utils.fmtTimeSince(item.created_at) + ' ago'}
@@ -254,6 +240,7 @@ export default function Commits() {
                 data.forEach(c => {
                     c.message = c.message.trim();
                     c.cve = Utils.findCVEs(c.message);
+                    c.cve_count = c.cve.length;
                 });
 
                 filterRef.current = new FastFilter(data);
