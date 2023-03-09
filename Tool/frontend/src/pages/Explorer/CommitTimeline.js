@@ -12,6 +12,8 @@ import Button from "@mui/material/Button";
 import {TimelineOppositeContent} from "@mui/lab";
 import IconButton from "@mui/material/IconButton";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+
 
 function hasNonEmptyLine(lines, ix=0) {
     const lineN = lines.length - ix;
@@ -50,13 +52,17 @@ function CommitTimelineItem({author, date, message, dotStyle}) {
                     </Typography>
                 </pre>
                 {
-                    hasMoreText && !expanded && (
+                    hasMoreText && (
                         <IconButton
-                            onClick={() => setExpanded(true)}
+                            onClick={() => setExpanded(!expanded)}
                             size="small"
                             sx={{mt: 1, color: '#bdbdbd'}}
                         >
-                            <ExpandMoreIcon/>
+                            {
+                                expanded
+                                    ? <ExpandLessIcon/>
+                                    : <ExpandMoreIcon/>
+                            }
                         </IconButton>
                     )
                 }
@@ -64,6 +70,7 @@ function CommitTimelineItem({author, date, message, dotStyle}) {
         </TimelineItem>
     );
 }
+
 
 function CommitTimeline({data}) {
     return (
