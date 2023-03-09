@@ -15,6 +15,7 @@ import DiffViewerBody from "./DiffViewer/DiffViewerBody";
 import VotesService from "../../services/VotesService";
 import ArrayIterator from "../../utils/ArrayIterator";
 import CommitTimelineDialog from "./CommitTimeline";
+import {VULN_KEYWORDS} from "../../constants";
 
 
 // store as global constant to avoid unnecessary useEffect call (in useHotkeys)
@@ -22,12 +23,19 @@ const SWITCH_KEYS = ['1', '2', '3', '4'];
 const RATE_KEYS = ['v', 'b', 'n'];
 
 
+function highlightSecTerms(text) {
+    const kws = ['CVE-\\d{4}-\\d{4,7}'].concat(VULN_KEYWORDS);
+    const regex = new RegExp(`\\b(${kws.join('|')})\\b`, 'gi');
+    return text.replace(regex, '<span style="background-color: yellow;">$1</span>');
+}
+
 function MessageWindow({message, setWinRef}) {
     return (
         <Box sx={{flex: '1 1 0', display: 'flex', flexDirection: 'column'}}>
             <WindowTitle title="Message"/>
             <Box ref={setWinRef} tabIndex="1" sx={{flex: '1 1 0', overflowY: 'auto'}}>
-                <Typography sx={{padding: '10px 15px', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', fontSize: '14px'}}>
+                <Typography
+                    sx={{padding: '10px 15px', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', fontSize: '14px'}}>
                     {normalizeText(message)}
                 </Typography>
             </Box>
@@ -253,8 +261,7 @@ export default function Explorer() {
         }
         if (commitHistory) {
             setOpenCommitTimeline(true);
-        }
-        else {
+        } else {
             CommitsService.getHistory(curCommit.id)
                 .then((data) => {
                     setCommitHistory(data);

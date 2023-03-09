@@ -22,15 +22,20 @@ const VULN_KEYWORDS = [
     'race', 'racy',
     'buffer', 'overflow', 'stack',
     'integer', 'signedness', 'widthness', 'underflow',
-    'improper', 'unauthenticated', 'gain access', 'permission',
-    'cross site', 'CSS', 'XSS', 'htmlspecialchar',
-    'denial service', 'DOS', 'crash',
+    'improper', 'unauthenticated', 'access', 'permission',
+    'cross site', 'CSS', 'XSS',
+    'denial', 'DOS', 'crash',
     'deadlock',
     'SQL', 'SQLI', 'injection',
-    'format', 'string', 'printf', 'scanf',
+    'format string', 'printf', 'scanf',
     'request forgery', 'CSRF', 'XSRF', 'forged',
-    'security', 'vulnerability', 'vulnerable', 'hole', 'exploit', 'attack', 'bypass', 'backdoor',
-    'threat', 'expose', 'breach', 'violate', 'fatal', 'blacklist', 'overrun', 'insecure'
+    'security flaw', 'security bug', 'vulnerability', 'vulnerable', 'hole', 'exploit', 'attack', 'attacker',
+    'bypass', 'backdoor', 'threat', 'expose', 'breach', 'violate', 'fatal', 'blacklist', 'overrun', 'insecure',
+    'control', 'authentication', 'authorization', 'command',
+    'scripting', 'denial of service', 'escalation', 'privilege', 'inclusion', 'configuration', 'config',
+    'cryptography',
+    'memory', 'leak', 'corruption', 'traversal', 'redirect', 'replay',
+    'unvalidated', 'zero-day', 'CVE', 'TLS', 'SSL', 'auth', 'cert', 'certificate', 'risk', 'password'
 ];
 
 export {
