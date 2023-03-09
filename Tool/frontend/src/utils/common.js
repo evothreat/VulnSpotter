@@ -176,6 +176,15 @@ function isValidGitRepoUrl(url) {
     return GIT_HTTP_URL_RE.test(url);
 }
 
+function hasNonEmptyLine(lines, ix = 0) {
+    for (let i = ix; i < lines.length; i++) {
+        if (/\S/.test(lines[i])) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // requires 'id'-key
 function complement(a, b) {
     return a.filter(v1 => !b.some(v2 => v1.id === v2.id));
@@ -209,6 +218,7 @@ export {
     isValidEmail,
     checkUrlExists,
     isValidGitRepoUrl,
+    hasNonEmptyLine,
     complement,
     equals,
     remove

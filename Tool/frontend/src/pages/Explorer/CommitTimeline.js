@@ -14,19 +14,9 @@ import IconButton from "@mui/material/IconButton";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import Box from "@mui/material/Box";
-import {normalizeText} from "../../utils/common";
+import {hasNonEmptyLine, normalizeText} from "../../utils/common";
 import TextWrapper from "../../components/TextWrapper";
 
-
-function hasNonEmptyLine(lines, ix=0) {
-    const lineN = lines.length - ix;
-    while (lineN > ix) {
-        if (!/\S/.test(lines[ix++])) {
-            return true;
-        }
-    }
-    return false;
-}
 
 function CommitTimelineItem({author, date, message, dotStyle}) {
     const [expanded, setExpanded] = useState(false);
