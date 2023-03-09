@@ -692,9 +692,10 @@ def get_commit_history(commit_id):
         return '', 404
 
     ctx_size = request.args.get('size', 10, int)
+    start = request.args.get('start', 0, int)
 
     with git.Repo(pathjoin(config.REPOS_DIR, data['repository'])) as repo:
-        commit = repo.commit(data['hash'])
+        commit = repo.commit(f'{data["hash"]}~{start}')
 
         parents = [extract_commit_info(c) for c in commit.iter_parents(max_count=ctx_size)]
         
