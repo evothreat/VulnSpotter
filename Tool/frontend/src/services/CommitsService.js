@@ -18,6 +18,10 @@ class CommitsService {
         return api.get(urlPath);
     }
 
+    getHistory(id) {
+        return api.get(`${this.basePath}/${id}/history`);
+    }
+
     getCveList(id) {
         return api.get(`${this.basePath}/${id}/cve`);
     }

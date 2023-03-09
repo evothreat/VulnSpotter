@@ -14,6 +14,7 @@ import DiffViewerHeader from "./DiffViewer/DiffViewerHeader";
 import DiffViewerBody from "./DiffViewer/DiffViewerBody";
 import VotesService from "../../services/VotesService";
 import ArrayIterator from "../../utils/ArrayIterator";
+import CommitTimelineDialog from "./CommitTimeline";
 
 
 // store as global constant to avoid unnecessary useEffect call (in useHotkeys)
@@ -38,6 +39,9 @@ export default function Explorer() {
     const navigate = useNavigate();
     const {state: locState} = useLocation();
     const [queryArgs,] = useSearchParams();
+
+    const commitHistory = useRef(null);
+    const [openCommitTimeline, setOpenCommitTimeline] = useState(false);
 
     const [commitIdsIt, setCommitIdsIt] = useState(null);
     const [commitInfo, setCommitInfo] = useState({
@@ -112,6 +116,7 @@ export default function Explorer() {
             });
         return () => {
             voteUpdates.current = {};   // not necessary, but useful to save memory
+            commitHistory.current = null;
         };
     }, [commitIdsIt]);
 
@@ -231,6 +236,24 @@ export default function Explorer() {
         gotoNextDiff();
     };
 
+    const openHistory = () => {
+        if (openCommitTimeline) {
+            setOpenCommitTimeline(false);
+            return;
+        }
+        if (commitHistory.current) {
+            setOpenCommitTimeline(true);
+        }
+        else {
+            CommitsService.getHistory(curCommit.id)
+                .then((data) => {
+                    commitHistory.current = data;
+                    setOpenCommitTimeline(true);
+                });
+        }
+    };
+
+    useHotkeys('h', openHistory);
     useHotkeys('shift+left', gotoPrevDiff);
     useHotkeys('shift+right', gotoNextDiff);
     useHotkeys('tab', switchWindow);
@@ -271,6 +294,10 @@ export default function Explorer() {
                     )
                 }
             </Box>
+            {
+                openCommitTimeline &&
+                <CommitTimelineDialog data={commitHistory.current} closeHandler={() => setOpenCommitTimeline(false)}/>
+            }
         </Box>
     );
 }
