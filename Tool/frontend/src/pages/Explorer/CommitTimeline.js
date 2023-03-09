@@ -11,14 +11,23 @@ import {Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/material";
 import Button from "@mui/material/Button";
 import {TimelineOppositeContent} from "@mui/lab";
 import IconButton from "@mui/material/IconButton";
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
+function hasNonEmptyLine(lines, ix=0) {
+    const lineN = lines.length - ix;
+    while (lineN > ix) {
+        if (!/\S/.test(lines[ix++])) {
+            return true;
+        }
+    }
+    return false;
+}
 
 function CommitTimelineItem({author, date, message, dotStyle}) {
     const [expanded, setExpanded] = useState(false);
 
     const messageLines = message.split('\n');
-    const hasMoreText = messageLines.length > 1 && messageLines[1];
+    const hasMoreText = messageLines.length > 1 && hasNonEmptyLine(messageLines, 1);
 
     return (
         <TimelineItem>
@@ -45,8 +54,9 @@ function CommitTimelineItem({author, date, message, dotStyle}) {
                         <IconButton
                             onClick={() => setExpanded(true)}
                             size="small"
+                            sx={{mt: 1, color: '#bdbdbd'}}
                         >
-                            <MoreHorizIcon/>
+                            <ExpandMoreIcon/>
                         </IconButton>
                     )
                 }
