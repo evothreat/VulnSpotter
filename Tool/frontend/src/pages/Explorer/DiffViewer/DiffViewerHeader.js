@@ -1,4 +1,4 @@
-import cssStyle from "./DiffViewer.module.css";
+import diffCss from "./DiffViewer.module.css";
 import {
     CheckCircleOutlineIcon,
     HelpOutlineIcon,
@@ -8,28 +8,28 @@ import {
 
 export default function DiffViewerHeader({stats, oldFileName, newFileName, diffState}) {
     return (
-        <div className={cssStyle.diffHeader}>
-            <div className={cssStyle.diffInfo}>
+        <div className={diffCss.diffHeader}>
+            <div className={diffCss.diffInfo}>
                 {
                     diffState != null
                         ? (
                             diffState === 1
-                                ? <CheckCircleOutlineIcon className={cssStyle.accepted}/>
+                                ? <CheckCircleOutlineIcon className={diffCss.accepted}/>
                                 : (
                                     diffState === -1
-                                        ? <HighlightOffIcon className={cssStyle.refused}/>
-                                        : <RemoveCircleOutlineIcon className={cssStyle.ignored}/>
+                                        ? <HighlightOffIcon className={diffCss.refused}/>
+                                        : <RemoveCircleOutlineIcon className={diffCss.ignored}/>
                                 )
                         )
-                        : <HelpOutlineIcon className={cssStyle.unknown}/>
+                        : <HelpOutlineIcon className={diffCss.unknown}/>
                 }
                 <strong>
                     {oldFileName !== newFileName ? `${oldFileName} → ${newFileName}` : oldFileName}
                 </strong>
             </div>
-            <div className={cssStyle.diffStats}>
-                <span className={cssStyle.deletion}>-{stats.deletions + stats.updates}</span>
-                <span className={cssStyle.addition}>+{stats.additions + stats.updates}</span>
+            <div className={diffCss.diffStats}>
+                <span className={diffCss.deletion}>-{stats.deletions + stats.updates}</span>
+                <span className={diffCss.addition}>+{stats.additions + stats.updates}</span>
             </div>
         </div>
     );

@@ -1,6 +1,6 @@
 import Prism from "prismjs";
 import "../../../prism.css";
-import cssStyle from "./DiffViewer.module.css"
+import diffCss from "./DiffViewer.module.css"
 import classnames from "classnames";
 import {Fragment, useEffect, useState} from "react";
 import {areHunksSequent, calcHunks, createLineDiff, DiffType} from "../../../utils/diffUtils";
@@ -25,7 +25,7 @@ function highlight(str) {
     return (
         typeof str === 'string'
             ? <pre
-                className={cssStyle.highlighter}
+                className={diffCss.highlighter}
                 dangerouslySetInnerHTML={{
                     __html: Prism.highlight(str, Prism.languages.clike, 'clike'),
                 }}
@@ -45,24 +45,24 @@ function renderDiffRow({linenoLeft, linenoRight, diffType, value}, hunkId) {
 
     if (diffType === DiffType.REMOVED) {
         leftLine.push(<>{lineVal}</>);
-        lStyle = cssStyle.removed;
+        lStyle = diffCss.removed;
 
     } else if (diffType === DiffType.ADDED) {
         rightLine.push(<>{lineVal}</>);
-        rStyle = cssStyle.added;
+        rStyle = diffCss.added;
 
     } else if (diffType === DiffType.UPDATED) {
-        lStyle = cssStyle.removed;
-        rStyle = cssStyle.added;
+        lStyle = diffCss.removed;
+        rStyle = diffCss.added;
 
         value.forEach(w => {
             // maybe extract to renderDiffWord
             const wordVal = highlight(w.value);
             if (w.diffType === DiffType.REMOVED) {
-                leftLine.push(<span className={cssStyle.removedWord}>{wordVal}</span>);
+                leftLine.push(<span className={diffCss.removedWord}>{wordVal}</span>);
 
             } else if (w.diffType === DiffType.ADDED) {
-                rightLine.push(<span className={cssStyle.addedWord}>{wordVal}</span>);
+                rightLine.push(<span className={diffCss.addedWord}>{wordVal}</span>);
 
             } else {
                 leftLine.push(<>{wordVal}</>);
@@ -76,14 +76,14 @@ function renderDiffRow({linenoLeft, linenoRight, diffType, value}, hunkId) {
     const rowId = hunkId + linenoLeft + linenoRight;
     return [
         <tr key={rowId}>
-            <td className={classnames(cssStyle.linenoBox, lStyle)}>{diffType === DiffType.ADDED ? null : linenoLeft}</td>
-            <td className={classnames(cssStyle.content, lStyle)}>
+            <td className={classnames(diffCss.linenoBox, lStyle)}>{diffType === DiffType.ADDED ? null : linenoLeft}</td>
+            <td className={classnames(diffCss.content, lStyle)}>
                 {leftLine}
             </td>
         </tr>,
         <tr key={rowId}>
-            <td className={classnames(cssStyle.linenoBox, rStyle)}>{diffType === DiffType.REMOVED ? null : linenoRight}</td>
-            <td className={classnames(cssStyle.content, rStyle)}>
+            <td className={classnames(diffCss.linenoBox, rStyle)}>{diffType === DiffType.REMOVED ? null : linenoRight}</td>
+            <td className={classnames(diffCss.content, rStyle)}>
                 {rightLine}
             </td>
         </tr>
@@ -92,15 +92,15 @@ function renderDiffRow({linenoLeft, linenoRight, diffType, value}, hunkId) {
 
 function renderExpander(direction, hunkId, expandHandler) {
     return (
-        <tr key={hunkId + direction} className={cssStyle.expander}>
-            <td className={cssStyle.expButton} onClick={() => expandHandler(direction, hunkId)}>
+        <tr key={hunkId + direction} className={diffCss.expander}>
+            <td className={diffCss.expButton} onClick={() => expandHandler(direction, hunkId)}>
                 {
                     direction > 0
                         ? <VerticalExpandLessIcon/>
                         : <VerticalExpandMoreIcon/>
                 }
             </td>
-            <td className={cssStyle.expTextBox}/>
+            <td className={diffCss.expTextBox}/>
         </tr>
     );
 }
@@ -182,17 +182,17 @@ function DiffWindow({lineHunks, expandHandler, hasBottomExpander, setWinRef}) {
     };
 
     return lines && (
-        <div className={cssStyle.tablesContainer}>
-            <div ref={setLeftWinRefs} className={classnames(cssStyle.tableBox, cssStyle.hideScrollbar)} tabIndex="1">
-                <table className={cssStyle.diffTable}>
+        <div className={diffCss.tablesContainer}>
+            <div ref={setLeftWinRefs} className={classnames(diffCss.tableBox, diffCss.hideScrollbar)} tabIndex="1">
+                <table className={diffCss.diffTable}>
                     <tbody>
                     {lines.left}
                     </tbody>
                 </table>
             </div>
-            <div className={cssStyle.tableSep}></div>
-            <div ref={setRightWinRefs} className={cssStyle.tableBox} tabIndex="1">
-                <table className={cssStyle.diffTable}>
+            <div className={diffCss.tableSep}></div>
+            <div ref={setRightWinRefs} className={diffCss.tableBox} tabIndex="1">
+                <table className={diffCss.diffTable}>
                     <tbody>
                     {lines.right}
                     </tbody>
@@ -278,7 +278,7 @@ export default function DiffViewerBody({codeLines, getMoreLines, setWinRef}) {
     };
 
     return (
-        <div className={cssStyle.diffBody}>
+        <div className={diffCss.diffBody}>
             {
                 lineHunks && <DiffWindow lineHunks={lineHunks} expandHandler={handleExpand} setWinRef={setWinRef}
                                          hasBottomExpander={hasBottomExpander}/>

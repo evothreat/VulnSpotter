@@ -1,9 +1,9 @@
-import cssStyle from "./DiffViewer.module.css"
+import diffCss from "./DiffViewer.module.css"
 
 
 export default function DiffViewer({children}) {
     return (
-        <div className={cssStyle.diffViewer}>
+        <div className={diffCss.diffViewer}>
             {children}
         </div>
     );

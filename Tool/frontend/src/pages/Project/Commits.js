@@ -17,7 +17,7 @@ import EnhancedTableHead from "../../components/EnhancedTableHead";
 import ProjectsService from "../../services/ProjectsService";
 import {useNavigate, useParams} from "react-router-dom";
 import FindInPageIcon from "@mui/icons-material/FindInPage";
-import cssStyle from "./Commits.module.css"
+import commitsCss from "./Commits.module.css"
 import RouterLink from "../../components/RouterLink";
 import TextField from "@mui/material/TextField";
 import FastFilter from "../../utils/FastFilter";
@@ -106,7 +106,7 @@ function CommitRow({item, checkHandler, checked}) {
                 <TableCell colSpan="100%" sx={{pb: 0, pt: 0}}>
                     <Collapse in={detailsOpen} timeout="auto" unmountOnExit>
                         <Box>
-                            <pre className={cssStyle.commitMessage}>
+                            <pre className={commitsCss.commitMessage}>
                                 {item.message}
                             </pre>
                         </Box>
