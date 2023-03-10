@@ -183,7 +183,7 @@ function DiffWindow({lineHunks, expandHandler, hasBottomExpander, setWinRef}) {
 
     return lines && (
         <div className={cssStyle.tablesContainer}>
-            <div ref={setLeftWinRefs} className={cssStyle.tableBox} tabIndex="1">
+            <div ref={setLeftWinRefs} className={classnames(cssStyle.tableBox, cssStyle.hideScrollbar)} tabIndex="1">
                 <table className={cssStyle.diffTable}>
                     <tbody>
                     {lines.left}
