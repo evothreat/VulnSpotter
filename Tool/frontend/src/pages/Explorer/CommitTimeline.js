@@ -14,7 +14,8 @@ import IconButton from "@mui/material/IconButton";
 import Box from "@mui/material/Box";
 import {hasNonEmptyLine, normalizeText} from "../../utils/common";
 import TextWrapper from "../../components/TextWrapper";
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 
 
 function CommitTimelineItem({author, date, message, dotStyle}) {
@@ -47,10 +48,13 @@ function CommitTimelineItem({author, date, message, dotStyle}) {
                         <IconButton
                             onClick={() => setExpanded(!expanded)}
                             size="small"
-                            sx={{color: 'white', background: '#ddd', height: '15px', width: '25px', borderRadius: 0}}
+                            sx={{color: '#aaa'}}
                         >
                             {
-                                <MoreHorizIcon fontSize="small"/>
+                                expanded
+                                    ? <ExpandLessIcon fontSize="small"/>
+                                    : <ExpandMoreIcon fontSize="small"/>
+
                             }
                         </IconButton>
                     )
