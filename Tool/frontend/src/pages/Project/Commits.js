@@ -80,7 +80,7 @@ function CommitRow({item, checkHandler, checked}) {
                         <Box sx={{display: 'flex', alignItems: 'flex-end'}}>
                             <RouterLink to={`./explorer?commitId=${item.id}`} underline="hover" color="inherit">
                                 {
-                                    item.message.substring(0, 70).replace('\n', ' ⤶ ')
+                                    item.message.substring(0, 65).replace('\n', ' ⤶ ')
                                 }
                             </RouterLink>
                             {
