@@ -11,11 +11,10 @@ import {Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/material";
 import Button from "@mui/material/Button";
 import {TimelineOppositeContent} from "@mui/lab";
 import IconButton from "@mui/material/IconButton";
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import Box from "@mui/material/Box";
 import {hasNonEmptyLine, normalizeText} from "../../utils/common";
 import TextWrapper from "../../components/TextWrapper";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 
 
 function CommitTimelineItem({author, date, message, dotStyle}) {
@@ -35,6 +34,7 @@ function CommitTimelineItem({author, date, message, dotStyle}) {
                 <TimelineConnector/>
             </TimelineSeparator>
             <TimelineContent>
+                <Box sx={{display: 'flex', alignItems: 'start', justifyContent: 'space-between'}}>
                     <TextWrapper>
                     {
                         expanded
@@ -47,16 +47,15 @@ function CommitTimelineItem({author, date, message, dotStyle}) {
                         <IconButton
                             onClick={() => setExpanded(!expanded)}
                             size="small"
-                            sx={{mt: 1, color: '#bdbdbd'}}
+                            sx={{color: '#bdbdbd', background: '#f1f1f1', height: '18px', width: '28px', borderRadius: 0}}
                         >
                             {
-                                expanded
-                                    ? <ExpandLessIcon/>
-                                    : <ExpandMoreIcon/>
+                                <MoreHorizIcon fontSize="small"/>
                             }
                         </IconButton>
                     )
                 }
+                </Box>
             </TimelineContent>
         </TimelineItem>
     );
