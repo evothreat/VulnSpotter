@@ -47,7 +47,7 @@ function CommitTimelineItem({author, date, message, dotStyle}) {
                         <IconButton
                             onClick={() => setExpanded(!expanded)}
                             size="small"
-                            sx={{color: 'white', background: '#dcdcdc', height: '15px', width: '25px', borderRadius: 0}}
+                            sx={{color: 'white', background: '#ddd', height: '15px', width: '25px', borderRadius: 0}}
                         >
                             {
                                 <MoreHorizIcon fontSize="small"/>
