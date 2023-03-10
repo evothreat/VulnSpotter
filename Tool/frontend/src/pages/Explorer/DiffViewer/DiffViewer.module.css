@@ -111,7 +111,12 @@
 .tablesContainer {
     flex: 1;
     display: flex;
-    gap: 2px;
+    gap: 1px;
+}
+
+.tableSep {
+    flex: none;
+    border-left: thin solid #dbdbdb;
 }
 
 .diffHeader {

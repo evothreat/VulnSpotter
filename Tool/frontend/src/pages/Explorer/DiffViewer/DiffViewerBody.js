@@ -190,7 +190,7 @@ function DiffWindow({lineHunks, expandHandler, hasBottomExpander, setWinRef}) {
                     </tbody>
                 </table>
             </div>
-
+            <div className={cssStyle.tableSep}></div>
             <div ref={setRightWinRefs} className={cssStyle.tableBox} tabIndex="1">
                 <table className={cssStyle.diffTable}>
                     <tbody>
