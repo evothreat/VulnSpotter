@@ -24,6 +24,10 @@ ArrayIterator.prototype.begin = function () {
     return this.array[0];
 };
 
+ArrayIterator.prototype.size = function () {
+    return this.array.length;
+};
+
 ArrayIterator.prototype.seek = function (ix) {
     if (ix >= 0) {
         this.currIx = Math.min(this.array.length - 1, ix);

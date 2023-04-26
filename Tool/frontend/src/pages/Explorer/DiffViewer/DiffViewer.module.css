@@ -149,9 +149,13 @@
 .diffInfo {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 8px;
 }
-
+/*
+.diffIndexInfo {
+    color: gray;
+}
+*/
 .accepted {
     fill: #00b000;
 }

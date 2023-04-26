@@ -299,7 +299,14 @@ export default function Explorer() {
                         <DiffViewer>
                             <DiffViewerHeader stats={curDiffInfo.content.stats} diffState={curDiffInfo.vote?.choice}
                                               oldFileName={curDiffInfo.content.oldFileName}
-                                              newFileName={curDiffInfo.content.newFileName}/>
+                                              newFileName={curDiffInfo.content.newFileName}
+                                              diffIndex={
+                                {
+                                    index: commitInfo.diffsInfoIt.currIx + 1,
+                                    total: commitInfo.diffsInfoIt.size()
+                                }
+                            }
+                            />
 
                             <DiffViewerBody codeLines={curDiffInfo.content.lines} getMoreLines={getMoreLines}
                                             setWinRef={{

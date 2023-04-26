@@ -6,7 +6,7 @@ import {
     RemoveCircleOutlineIcon
 } from "../Icons";
 
-export default function DiffViewerHeader({stats, oldFileName, newFileName, diffState}) {
+export default function DiffViewerHeader({stats, oldFileName, newFileName, diffState, diffIndex}) {
     return (
         <div className={diffCss.diffHeader}>
             <div className={diffCss.diffInfo}>
@@ -24,8 +24,13 @@ export default function DiffViewerHeader({stats, oldFileName, newFileName, diffS
                         : <HelpOutlineIcon className={diffCss.unknown}/>
                 }
                 <strong>
-                    {oldFileName !== newFileName ? `${oldFileName} → ${newFileName}` : oldFileName}
+                    {
+                        (oldFileName !== newFileName ? `${oldFileName} → ${newFileName}` : oldFileName)
+                    }
                 </strong>
+                <span>
+                    {`(${diffIndex.index} of ${diffIndex.total})`}
+                </span>
             </div>
             <div className={diffCss.diffStats}>
                 <span className={diffCss.deletion}>-{stats.deletions + stats.updates}</span>
