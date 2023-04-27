@@ -21,7 +21,7 @@ function createHunk(lines, visible) {
     };
 }
 
-function highlight(str) {
+function highlightSyntax(str) {
     return (
         typeof str === 'string'
             ? <pre
@@ -41,7 +41,7 @@ function renderDiffRow({linenoLeft, linenoRight, diffType, value}, hunkId) {
 
     let lStyle, rStyle;
 
-    const lineVal = highlight(value);
+    const lineVal = highlightSyntax(value);
 
     if (diffType === DiffType.REMOVED) {
         leftLine.push(<>{lineVal}</>);
@@ -57,7 +57,7 @@ function renderDiffRow({linenoLeft, linenoRight, diffType, value}, hunkId) {
 
         value.forEach(w => {
             // maybe extract to renderDiffWord
-            const wordVal = highlight(w.value);
+            const wordVal = highlightSyntax(w.value);
             if (w.diffType === DiffType.REMOVED) {
                 leftLine.push(<span className={diffCss.removedWord}>{wordVal}</span>);
 
