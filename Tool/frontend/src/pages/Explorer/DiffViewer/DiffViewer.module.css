@@ -118,12 +118,12 @@
     flex: 1 1 0;
     overflow: auto;
     position: relative;
+    margin: 1px;
 }
 
 .tablesContainer {
     flex: 1;
     display: flex;
-    gap: 1px;
 }
 
 .tableSep {

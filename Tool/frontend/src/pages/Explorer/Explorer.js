@@ -36,7 +36,7 @@ function MessageWindow({message, setWinRef}) {
     return (
         <Box sx={{flex: '1 1 0', display: 'flex', flexDirection: 'column'}}>
             <WindowTitle title="Message"/>
-            <Box ref={setWinRef} tabIndex="1" sx={{flex: '1 1 0', overflowY: 'auto', m: '2px'}}>
+            <Box ref={setWinRef} tabIndex="1" sx={{flex: '1 1 0', overflowY: 'auto', m: '1px'}}>
                 <TextWrapper sx={{padding: '10px 15px', fontSize: '14px'}}>
                     {normalizeText(message)}
                 </TextWrapper>
