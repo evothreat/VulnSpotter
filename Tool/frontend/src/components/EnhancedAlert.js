@@ -5,7 +5,7 @@ const FakeComponent = ({children}) => children;
 
 export default function EnhancedAlert({msg, severity, closeHandler}) {
     return (
-        <Snackbar open autoHideDuration={5000} onClose={closeHandler}
+        <Snackbar open autoHideDuration={3500} onClose={closeHandler}
                   TransitionComponent={FakeComponent}>
             <Alert onClose={closeHandler} severity={severity || "info"}>
                 {msg}

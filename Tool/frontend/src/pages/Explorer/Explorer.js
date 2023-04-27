@@ -8,7 +8,7 @@ import {getCvss3Severity, isObjEmpty, mod, normalizeText} from "../../utils/comm
 import useHotkeys from "./useHotkeys";
 import CveViewer from "./CveViewer";
 import WindowTitle from "./WindowTitle";
-import {Divider} from "@mui/material";
+import {Divider, Tooltip} from "@mui/material";
 import DiffViewerHeader from "./DiffViewer/DiffViewerHeader";
 import DiffViewerBody from "./DiffViewer/DiffViewerBody";
 import VotesService from "../../services/VotesService";
@@ -16,6 +16,9 @@ import ArrayIterator from "../../utils/ArrayIterator";
 import CommitTimelineDialog from "./CommitTimeline";
 import {VULN_KEYWORDS} from "../../constants";
 import TextWrapper from "../../components/TextWrapper";
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
 
 
 // store as global constant to avoid unnecessary useEffect call (in useHotkeys)
@@ -47,6 +50,7 @@ export default function Explorer() {
     const {state: locState} = useLocation();
     const [queryArgs,] = useSearchParams();
 
+    const [showCopyTooltip, setShowCopyTooltip] = useState(false);
     const [commitHistory, setCommitHistory] = useState(null);
     const [openCommitTimeline, setOpenCommitTimeline] = useState(false);
 
@@ -269,6 +273,11 @@ export default function Explorer() {
         }
     };
 
+    const copyHashToClipboard = () => {
+        navigator.clipboard.writeText(curCommit.hash);
+        setShowCopyTooltip(true);
+    };
+
     useHotkeys('h', openHistory);
     useHotkeys('shift+left', gotoPrevDiff);
     useHotkeys('shift+right', gotoNextDiff);
@@ -280,6 +289,32 @@ export default function Explorer() {
     return (
         <Box sx={{display: 'flex', gap: '1px'}}>
             <Box sx={{flex: '1', display: 'flex', flexDirection: 'column', gap: '2px'}}>
+                {
+                    curCommit &&
+                    <Box sx={
+                        {
+                            display: 'flex',
+                            alignItems: 'center',
+                            height: '35px', pl: '12px', pr: '5px', backgroundColor: '#fafafa',
+                            borderBottom: '1px solid #dbdbdb'
+                        }
+                    }>
+                        <Typography variant="subtitle2" sx={{fontWeight: 'bold'}}>
+                            {
+                                curCommit.hash.substring(0, 10)
+                            }
+                        </Typography>
+                        <Tooltip title="Copied!" open={showCopyTooltip}
+                                 disableHoverListener disableInteractive disableFocusListener>
+                            <IconButton size="small"
+                                        onClick={copyHashToClipboard}
+                                        onMouseLeave={() => setShowCopyTooltip(false)}
+                            >
+                                <ContentCopyIcon fontSize="16px"/>
+                            </IconButton>
+                        </Tooltip>
+                    </Box>
+                }
                 {
                     // render message
                     curCommit &&
@@ -301,11 +336,11 @@ export default function Explorer() {
                                               oldFileName={curDiffInfo.content.oldFileName}
                                               newFileName={curDiffInfo.content.newFileName}
                                               diffIndex={
-                                {
-                                    index: commitInfo.diffsInfoIt.currIx + 1,
-                                    total: commitInfo.diffsInfoIt.size()
-                                }
-                            }
+                                                  {
+                                                      index: commitInfo.diffsInfoIt.currIx + 1,
+                                                      total: commitInfo.diffsInfoIt.size()
+                                                  }
+                                              }
                             />
 
                             <DiffViewerBody codeLines={curDiffInfo.content.lines} getMoreLines={getMoreLines}
