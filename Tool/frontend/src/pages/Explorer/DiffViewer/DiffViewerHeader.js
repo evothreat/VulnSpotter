@@ -29,7 +29,7 @@ export default function DiffViewerHeader({stats, oldFileName, newFileName, diffS
                     }
                 </strong>
                 <span>
-                    {`(${diffIndex.index} of ${diffIndex.total})`}
+                    {`(File ${diffIndex.index} of ${diffIndex.total})`}
                 </span>
             </div>
             <div className={diffCss.diffStats}>

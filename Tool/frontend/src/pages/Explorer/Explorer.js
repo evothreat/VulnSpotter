@@ -296,23 +296,31 @@ export default function Explorer() {
                             display: 'flex',
                             alignItems: 'center',
                             height: '35px', pl: '12px', pr: '5px', backgroundColor: '#fafafa',
-                            borderBottom: '1px solid #dbdbdb'
+                            borderBottom: '1px solid #dbdbdb',
+                            justifyContent: 'space-between'
                         }
                     }>
-                        <Typography variant="subtitle2" sx={{fontWeight: 'bold'}}>
+                        <Typography variant="subtitle2" >
                             {
-                                curCommit.hash.substring(0, 10)
+                                `Commit ${commitIdsIt.currIx + 1} of ${commitIdsIt.size()}`
                             }
                         </Typography>
-                        <Tooltip title="Copied ✓" open={showCopyTooltip}
-                                 disableHoverListener disableInteractive disableFocusListener>
-                            <IconButton size="small"
-                                        onClick={copyHashToClipboard}
-                                        onMouseLeave={() => setShowCopyTooltip(false)}
-                            >
-                                <ContentCopyIcon fontSize="16px"/>
-                            </IconButton>
-                        </Tooltip>
+                        <Box sx={{display: 'flex', alignItems: 'center'}}>
+                            <Typography variant="subtitle2" sx={{fontWeight: 'bold'}}>
+                                {
+                                    curCommit.hash.substring(0, 8)
+                                }
+                            </Typography>
+                            <Tooltip title="Copied ✓" open={showCopyTooltip}
+                                     disableHoverListener disableInteractive disableFocusListener>
+                                <IconButton size="small"
+                                            onClick={copyHashToClipboard}
+                                            onMouseLeave={() => setShowCopyTooltip(false)}
+                                >
+                                    <ContentCopyIcon fontSize="16px"/>
+                                </IconButton>
+                            </Tooltip>
+                        </Box>
                     </Box>
                 }
                 {
