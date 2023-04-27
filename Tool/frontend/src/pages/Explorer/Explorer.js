@@ -307,7 +307,7 @@ export default function Explorer() {
                         <Box sx={{display: 'flex', alignItems: 'center'}}>
                             <Typography variant="subtitle2" sx={{fontWeight: 'bold'}}>
                                 {
-                                    curCommit.hash.substring(0, 8)
+                                    curCommit.hash.substring(0, 8) + '...'
                                 }
                             </Typography>
                             <Tooltip title="Copied ✓" open={showCopyTooltip}
