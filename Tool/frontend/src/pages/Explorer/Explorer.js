@@ -36,7 +36,7 @@ function MessageWindow({message, setWinRef}) {
     return (
         <Box sx={{flex: '1 1 0', display: 'flex', flexDirection: 'column'}}>
             <WindowTitle title="Message"/>
-            <Box ref={setWinRef} tabIndex="1" sx={{flex: '1 1 0', overflowY: 'auto'}}>
+            <Box ref={setWinRef} tabIndex="1" sx={{flex: '1 1 0', overflowY: 'auto', m: '2px'}}>
                 <TextWrapper sx={{padding: '10px 15px', fontSize: '14px'}}>
                     {normalizeText(message)}
                 </TextWrapper>
@@ -287,8 +287,8 @@ export default function Explorer() {
     useHotkeys('esc', () => navigate(-1));
 
     return (
-        <Box sx={{display: 'flex', gap: '1px'}}>
-            <Box sx={{flex: '1', display: 'flex', flexDirection: 'column', gap: '2px'}}>
+        <Box sx={{display: 'flex'}}>
+            <Box sx={{flex: '1', display: 'flex', flexDirection: 'column'}}>
                 {
                     curCommit &&
                     <Box sx={
@@ -296,7 +296,6 @@ export default function Explorer() {
                             display: 'flex',
                             alignItems: 'center',
                             height: '35px', pl: '12px', pr: '5px', backgroundColor: '#fafafa',
-                            borderBottom: '1px solid #dbdbdb',
                             justifyContent: 'space-between'
                         }
                     }>
