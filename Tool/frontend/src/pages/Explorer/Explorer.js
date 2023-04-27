@@ -304,7 +304,7 @@ export default function Explorer() {
                                 curCommit.hash.substring(0, 10)
                             }
                         </Typography>
-                        <Tooltip title="Copied!" open={showCopyTooltip}
+                        <Tooltip title="Copied ✓" open={showCopyTooltip}
                                  disableHoverListener disableInteractive disableFocusListener>
                             <IconButton size="small"
                                         onClick={copyHashToClipboard}
