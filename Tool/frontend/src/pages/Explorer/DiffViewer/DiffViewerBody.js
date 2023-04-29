@@ -9,13 +9,17 @@ import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "../Icons";
 import useSyncScroller from "../useSyncScroller";
 
 
+function generateId() {
+    return nanoid(10);
+}
+
 function isNotConstant(l) {
     return l.diffType !== DiffType.CONSTANT;
 }
 
 function createHunk(lines, visible) {
     return {
-        id: nanoid(10),
+        id: generateId(),
         lines: lines,
         visible: visible
     };
@@ -117,15 +121,17 @@ function renderBiExpander(prevHunkId, curHunkId, expandHandler) {
 
 function renderExpanderPh(bi = false) {
     const ph = (
-        <tr className={diffCss.expander}>
+        <tr key={generateId()} className={diffCss.expander}>
             <td className={diffCss.expTextBox} colSpan="100%">&#0;</td>
         </tr>
     );
     return bi
         ? (
-            <Fragment>
+            <Fragment key={generateId()}>
                 {ph}
-                {ph}
+                <tr key={generateId()} className={diffCss.expander}>
+                    <td className={diffCss.expTextBox} colSpan="100%">&#0;</td>
+                </tr>
             </Fragment>
         )
         : ph;
