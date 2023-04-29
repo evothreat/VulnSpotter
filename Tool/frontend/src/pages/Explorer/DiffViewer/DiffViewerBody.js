@@ -115,6 +115,22 @@ function renderBiExpander(prevHunkId, curHunkId, expandHandler) {
     );
 }
 
+function renderExpanderPh(bi = false) {
+    const ph = (
+        <tr className={diffCss.expander}>
+            <td className={diffCss.expTextBox} colSpan="100%">&#0;</td>
+        </tr>
+    );
+    return bi
+        ? (
+            <Fragment>
+                {ph}
+                {ph}
+            </Fragment>
+        )
+        : ph;
+}
+
 function renderDiffRows(lineHunks, expandHandler, hasBottomExpander) {
     const leftLines = [];
     const rightLines = [];
@@ -123,18 +139,16 @@ function renderDiffRows(lineHunks, expandHandler, hasBottomExpander) {
     for (let i = 0; lineHunks.length > i; i++) {
         if (lineHunks[i].visible) {
             const cur = lineHunks[i];
-            let expander;
 
             if (!prevVisible && cur.lines[0].linenoLeft > 1) {
-                expander = renderExpander(1, cur.id, expandHandler);
+                leftLines.push(renderExpander(1, cur.id, expandHandler));
+                rightLines.push(renderExpanderPh())
 
             } else if (prevVisible && !areHunksSequent(prevVisible, cur)) {
-                expander = renderBiExpander(prevVisible.id, cur.id, expandHandler);
+                leftLines.push(renderBiExpander(prevVisible.id, cur.id, expandHandler));
+                rightLines.push(renderExpanderPh(true));
             }
-            if (expander) {
-                leftLines.push(expander);
-                rightLines.push(expander);
-            }
+
             for (const l of cur.lines) {
                 const diffLines = renderDiffRow(l, cur.id);
                 leftLines.push(diffLines[0]);
@@ -146,7 +160,7 @@ function renderDiffRows(lineHunks, expandHandler, hasBottomExpander) {
     if (hasBottomExpander && lineHunks.length > 0) {
         const expander = renderExpander(-1, lineHunks.at(-1).id, expandHandler);
         leftLines.push(expander);
-        rightLines.push(expander);
+        rightLines.push(renderExpanderPh())
     }
     return [leftLines, rightLines];
 }

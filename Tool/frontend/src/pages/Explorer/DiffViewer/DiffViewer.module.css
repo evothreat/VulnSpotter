@@ -46,8 +46,11 @@
     color: rgb(185, 185, 185);
 }
 
+
 .expander > td {
-    line-height: 0.9 !important;
+    line-height: 0 !important;
+    height: 21px;
+    padding: 0;
 }
 
 .expButton {
@@ -58,7 +61,7 @@
 }
 
 .expButton > svg {
-    height: 17px;
+    height: 16px;
 }
 
 .expButton:hover {
