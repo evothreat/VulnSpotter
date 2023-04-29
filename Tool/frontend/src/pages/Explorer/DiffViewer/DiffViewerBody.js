@@ -2,7 +2,7 @@ import Prism from "prismjs";
 import "../../../prism.css";
 import diffCss from "./DiffViewer.module.css"
 import classnames from "classnames";
-import {Fragment, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {areHunksSequent, calcHunks, createLineDiff, DiffType} from "../../../utils/diffUtils";
 import {nanoid} from "nanoid";
 import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "../Icons";
@@ -110,30 +110,25 @@ function renderExpander(direction, hunkId, expandHandler) {
 }
 
 function renderBiExpander(prevHunkId, curHunkId, expandHandler) {
-    return (
-        // 0 means both directions
-        <Fragment key={curHunkId + 0}>
-            {renderExpander(-1, prevHunkId, expandHandler)}
-            {renderExpander(1, curHunkId, expandHandler)}
-        </Fragment>
-    );
+    return [
+        renderExpander(-1, prevHunkId, expandHandler),
+        renderExpander(1, curHunkId, expandHandler)
+    ];
 }
 
-function renderExpanderPh(bi = false) {
+function renderPlaceholder(bi = false) {
     const ph = (
         <tr key={generateId()} className={diffCss.expander}>
             <td className={diffCss.expTextBox} colSpan="100%">&#0;</td>
         </tr>
     );
     return bi
-        ? (
-            <Fragment key={generateId()}>
-                {ph}
-                <tr key={generateId()} className={diffCss.expander}>
-                    <td className={diffCss.expTextBox} colSpan="100%">&#0;</td>
-                </tr>
-            </Fragment>
-        )
+        ? [
+            ph,
+            <tr key={generateId()} className={diffCss.expander}>
+                <td className={diffCss.expTextBox} colSpan="100%">&#0;</td>
+            </tr>
+        ]
         : ph;
 }
 
@@ -148,11 +143,11 @@ function renderDiffRows(lineHunks, expandHandler, hasBottomExpander) {
 
             if (!prevVisible && cur.lines[0].linenoLeft > 1) {
                 leftLines.push(renderExpander(1, cur.id, expandHandler));
-                rightLines.push(renderExpanderPh())
+                rightLines.push(renderPlaceholder())
 
             } else if (prevVisible && !areHunksSequent(prevVisible, cur)) {
-                leftLines.push(renderBiExpander(prevVisible.id, cur.id, expandHandler));
-                rightLines.push(renderExpanderPh(true));
+                leftLines.push(...renderBiExpander(prevVisible.id, cur.id, expandHandler));
+                rightLines.push(...renderPlaceholder(true));
             }
 
             for (const l of cur.lines) {
@@ -164,9 +159,8 @@ function renderDiffRows(lineHunks, expandHandler, hasBottomExpander) {
         }
     }
     if (hasBottomExpander && lineHunks.length > 0) {
-        const expander = renderExpander(-1, lineHunks.at(-1).id, expandHandler);
-        leftLines.push(expander);
-        rightLines.push(renderExpanderPh())
+        leftLines.push(renderExpander(-1, lineHunks.at(-1).id, expandHandler));
+        rightLines.push(renderPlaceholder())
     }
     return [leftLines, rightLines];
 }

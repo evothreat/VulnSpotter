@@ -10,7 +10,7 @@
 
 .content.removed::before, .content.added::before {
     position: absolute;
-    left: 0.6em;
+    left: 0.5em;
     color: #9bb0a1;
 }
 
