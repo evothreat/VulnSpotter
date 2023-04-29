@@ -1,17 +1,12 @@
-import Prism from "prismjs";
 import "../../../prism.css";
 import diffCss from "./DiffViewer.module.css"
 import classnames from "classnames";
 import {useEffect, useState} from "react";
 import {areHunksSequent, calcHunks, createLineDiff, DiffType} from "../../../utils/diffUtils";
-import {nanoid} from "nanoid";
-import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "../Icons";
 import useSyncScroller from "../useSyncScroller";
+import {generateId} from "./common";
+import {renderSplitDiffRows} from "./splitDiff";
 
-
-function generateId() {
-    return nanoid(10);
-}
 
 function isNotConstant(l) {
     return l.diffType !== DiffType.CONSTANT;
@@ -25,146 +20,6 @@ function createHunk(lines, visible) {
     };
 }
 
-function highlightSyntax(str) {
-    return (
-        typeof str === 'string'
-            ? <pre
-                className={diffCss.highlighter}
-                dangerouslySetInnerHTML={{
-                    __html: Prism.highlight(str, Prism.languages.clike, 'clike'),
-                }}
-            />
-            : str
-    );
-}
-
-function renderDiffRow({linenoLeft, linenoRight, diffType, value}, hunkId) {
-    // NULL-character, cause React doesn't render element if it doesn't have any valid value
-    let leftLine = [<>&#0;</>];
-    let rightLine = [<>&#0;</>];
-
-    let lStyle, rStyle;
-
-    const lineVal = highlightSyntax(value);
-
-    if (diffType === DiffType.REMOVED) {
-        leftLine.push(<>{lineVal}</>);
-        lStyle = diffCss.removed;
-
-    } else if (diffType === DiffType.ADDED) {
-        rightLine.push(<>{lineVal}</>);
-        rStyle = diffCss.added;
-
-    } else if (diffType === DiffType.UPDATED) {
-        lStyle = diffCss.removed;
-        rStyle = diffCss.added;
-
-        value.forEach(w => {
-            // maybe extract to renderDiffWord
-            const wordVal = highlightSyntax(w.value);
-            if (w.diffType === DiffType.REMOVED) {
-                leftLine.push(<span className={diffCss.removedWord}>{wordVal}</span>);
-
-            } else if (w.diffType === DiffType.ADDED) {
-                rightLine.push(<span className={diffCss.addedWord}>{wordVal}</span>);
-
-            } else {
-                leftLine.push(<>{wordVal}</>);
-                rightLine.push(<>{wordVal}</>);
-            }
-        });
-    } else {
-        leftLine.push(<>{lineVal}</>);
-        rightLine.push(<>{lineVal}</>);
-    }
-    const rowId = hunkId + linenoLeft + linenoRight;
-    return [
-        <tr key={rowId}>
-            <td className={classnames(diffCss.linenoBox, lStyle)}>{diffType === DiffType.ADDED ? null : linenoLeft}</td>
-            <td className={classnames(diffCss.content, lStyle)}>
-                {leftLine}
-            </td>
-        </tr>,
-        <tr key={rowId}>
-            <td className={classnames(diffCss.linenoBox, rStyle)}>{diffType === DiffType.REMOVED ? null : linenoRight}</td>
-            <td className={classnames(diffCss.content, rStyle)}>
-                {rightLine}
-            </td>
-        </tr>
-    ];
-}
-
-function renderExpander(direction, hunkId, expandHandler) {
-    return (
-        <tr key={hunkId + direction} className={diffCss.expander}>
-            <td className={diffCss.expButton} onClick={() => expandHandler(direction, hunkId)}>
-                {
-                    direction > 0
-                        ? <VerticalExpandLessIcon/>
-                        : <VerticalExpandMoreIcon/>
-                }
-            </td>
-            <td className={diffCss.expTextBox}/>
-        </tr>
-    );
-}
-
-function renderBiExpander(prevHunkId, curHunkId, expandHandler) {
-    return [
-        renderExpander(-1, prevHunkId, expandHandler),
-        renderExpander(1, curHunkId, expandHandler)
-    ];
-}
-
-function renderPlaceholder(bi = false) {
-    const ph = (
-        <tr key={generateId()} className={diffCss.expander}>
-            <td className={diffCss.expTextBox} colSpan="100%">&#0;</td>
-        </tr>
-    );
-    return bi
-        ? [
-            ph,
-            <tr key={generateId()} className={diffCss.expander}>
-                <td className={diffCss.expTextBox} colSpan="100%">&#0;</td>
-            </tr>
-        ]
-        : ph;
-}
-
-function renderDiffRows(lineHunks, expandHandler, hasBottomExpander) {
-    const leftLines = [];
-    const rightLines = [];
-
-    let prevVisible;
-    for (let i = 0; lineHunks.length > i; i++) {
-        if (lineHunks[i].visible) {
-            const cur = lineHunks[i];
-
-            if (!prevVisible && cur.lines[0].linenoLeft > 1) {
-                leftLines.push(renderExpander(1, cur.id, expandHandler));
-                rightLines.push(renderPlaceholder())
-
-            } else if (prevVisible && !areHunksSequent(prevVisible, cur)) {
-                leftLines.push(...renderBiExpander(prevVisible.id, cur.id, expandHandler));
-                rightLines.push(...renderPlaceholder(true));
-            }
-
-            for (const l of cur.lines) {
-                const diffLines = renderDiffRow(l, cur.id);
-                leftLines.push(diffLines[0]);
-                rightLines.push(diffLines[1]);
-            }
-            prevVisible = cur;
-        }
-    }
-    if (hasBottomExpander && lineHunks.length > 0) {
-        leftLines.push(renderExpander(-1, lineHunks.at(-1).id, expandHandler));
-        rightLines.push(renderPlaceholder())
-    }
-    return [leftLines, rightLines];
-}
-
 function DiffWindow({lineHunks, expandHandler, hasBottomExpander, setWinRef}) {
     const [lines, setLines] = useState(null);
 
@@ -172,7 +27,7 @@ function DiffWindow({lineHunks, expandHandler, hasBottomExpander, setWinRef}) {
     const setScrollRefRight = useSyncScroller('diffScroll');
 
     useEffect(() => {
-        const diffLines = renderDiffRows(lineHunks, expandHandler, hasBottomExpander);
+        const diffLines = renderSplitDiffRows(lineHunks, expandHandler, hasBottomExpander);
         if (diffLines.length > 0) {
             setLines({
                 left: diffLines[0],
