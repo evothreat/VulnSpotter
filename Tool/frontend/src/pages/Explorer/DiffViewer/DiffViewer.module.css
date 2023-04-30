@@ -5,6 +5,7 @@
 
 .content {
     padding: 0 1.5em;
+    white-space: pre-wrap;
     position: relative;
 }
 
@@ -46,13 +47,6 @@
     color: rgb(185, 185, 185);
 }
 
-
-.expander > td {
-    line-height: 0 !important;
-    height: 21px;
-    padding: 0;
-}
-
 .expButton {
     background-color: #CFE6FD;
     color: #CFE6FD;
@@ -62,6 +56,7 @@
 
 .expButton > svg {
     height: 16px;
+    vertical-align: middle;
 }
 
 .expButton:hover {
@@ -90,6 +85,13 @@
     inset: 0;
 }
 
+.diffTable > tbody > tr > td {
+    font-size: 14px;
+    height: 21px;
+    font-family: "Consolas", "Monaco", "Lucida Console", "Liberation Mono", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace;
+}
+
+
 .hideScrollbar {
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none;  /* Internet Explorer 10+ */
@@ -108,12 +110,6 @@
     position: sticky;
     /* Displayed on top of other rows when scrolling */
     z-index: 1;
-}
-
-.diffTable > tbody > tr > td {
-    font-size: 14px;
-    line-height: 1.6;
-    font-family: "Consolas", "Monaco", "Lucida Console", "Liberation Mono", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace;
 }
 
 .tableBox {

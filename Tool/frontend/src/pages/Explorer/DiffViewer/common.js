@@ -31,7 +31,7 @@ export function renderExpander(direction, hunkId, expandHandler) {
                         : <VerticalExpandMoreIcon/>
                 }
             </td>
-            <td className={diffCss.expTextBox}/>
+            <td className={diffCss.expTextBox} colSpan="100%"/>
         </tr>
     );
 }
@@ -47,14 +47,14 @@ export function renderBiExpander(prevHunkId, curHunkId, expandHandler) {
 export function renderPlaceholder(bi = false) {
     const ph = (
         <tr key={generateId()} className={diffCss.expander}>
-            <td className={diffCss.expTextBox} colSpan="100%">&#0;</td>
+            <td className={diffCss.expTextBox} colSpan="100%"/>
         </tr>
     );
     return bi
         ? [
             ph,
             <tr key={generateId()} className={diffCss.expander}>
-                <td className={diffCss.expTextBox} colSpan="100%">&#0;</td>
+                <td className={diffCss.expTextBox} colSpan="100%"/>
             </tr>
         ]
         : ph;
