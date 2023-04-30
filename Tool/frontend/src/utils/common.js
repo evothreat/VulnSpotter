@@ -1,5 +1,6 @@
 const EMAIL_RE = /^\S+@\S+\.\S+$/;
 const GIT_HTTP_URL_RE = /^(https?|git):\/\/(www\.)?(github|gitlab|bitbucket)\.com\/([\w-]+\/){1,2}([\w-]+)(\.git)?$/;
+const COMMIT_CVE_RE = /CVE-\d{4}-\d{4,}/gmi;
 
 function fmtTimeSince(time) {
     const date = typeof time === 'number' ? new Date(time * 1000) : time;
@@ -40,7 +41,7 @@ function capitalize(str) {
 }
 
 function findCVEs(str) {
-    return [...new Set(str.match(/CVE-\d{4}-\d{4,7}/gmi))].map(v => v.toUpperCase());
+    return [...new Set(str.match(COMMIT_CVE_RE)?.map(v => v.toUpperCase()))];
 }
 
 function hashStrings() {
