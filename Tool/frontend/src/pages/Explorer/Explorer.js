@@ -45,12 +45,54 @@ function MessageWindow({message, setWinRef}) {
     );
 }
 
+function CommitInfoHeader({hashId, position}) {
+    const [showCopyTooltip, setShowCopyTooltip] = useState(false);
+
+    const copyHashToClipboard = () => {
+        navigator.clipboard.writeText(hashId);
+        setShowCopyTooltip(true);
+    };
+
+    return (
+        <Box sx={
+            {
+                display: 'flex',
+                alignItems: 'center',
+                height: '35px', pl: '12px', pr: '5px', backgroundColor: '#fafafa',
+                justifyContent: 'space-between'
+            }
+        }>
+            <Typography variant="subtitle2">
+                {
+                    `Commit ${position.index + 1} of ${position.total}`
+                }
+            </Typography>
+            <Box sx={{display: 'flex', alignItems: 'center'}}>
+                <Typography variant="subtitle2" sx={{fontWeight: 'bold'}}>
+                    {
+                        hashId.substring(0, 8)
+                    }
+                </Typography>
+                <span>...</span>
+                <Tooltip title="Copied ✓" open={showCopyTooltip}
+                         disableHoverListener disableInteractive disableFocusListener>
+                    <IconButton size="small"
+                                onClick={copyHashToClipboard}
+                                onMouseLeave={() => setShowCopyTooltip(false)}
+                    >
+                        <ContentCopyIcon fontSize="16px"/>
+                    </IconButton>
+                </Tooltip>
+            </Box>
+        </Box>
+    );
+}
+
 export default function Explorer() {
     const navigate = useNavigate();
     const {state: locState} = useLocation();
     const [queryArgs,] = useSearchParams();
 
-    const [showCopyTooltip, setShowCopyTooltip] = useState(false);
     const [commitHistory, setCommitHistory] = useState(null);
     const [openCommitTimeline, setOpenCommitTimeline] = useState(false);
 
@@ -273,11 +315,6 @@ export default function Explorer() {
         }
     };
 
-    const copyHashToClipboard = () => {
-        navigator.clipboard.writeText(curCommit.hash);
-        setShowCopyTooltip(true);
-    };
-
     useHotkeys('h', openHistory);
     useHotkeys('shift+left', gotoPrevDiff);
     useHotkeys('shift+right', gotoNextDiff);
@@ -291,36 +328,12 @@ export default function Explorer() {
             <Box sx={{flex: '1', display: 'flex', flexDirection: 'column'}}>
                 {
                     curCommit &&
-                    <Box sx={
+                    <CommitInfoHeader hashId={curCommit.hash} position={
                         {
-                            display: 'flex',
-                            alignItems: 'center',
-                            height: '35px', pl: '12px', pr: '5px', backgroundColor: '#fafafa',
-                            justifyContent: 'space-between'
+                            index: commitIdsIt.currIx,
+                            total: commitIdsIt.size()
                         }
-                    }>
-                        <Typography variant="subtitle2" >
-                            {
-                                `Commit ${commitIdsIt.currIx + 1} of ${commitIdsIt.size()}`
-                            }
-                        </Typography>
-                        <Box sx={{display: 'flex', alignItems: 'center'}}>
-                            <Typography variant="subtitle2" sx={{fontWeight: 'bold'}}>
-                                {
-                                    curCommit.hash.substring(0, 8) + '...'
-                                }
-                            </Typography>
-                            <Tooltip title="Copied ✓" open={showCopyTooltip}
-                                     disableHoverListener disableInteractive disableFocusListener>
-                                <IconButton size="small"
-                                            onClick={copyHashToClipboard}
-                                            onMouseLeave={() => setShowCopyTooltip(false)}
-                                >
-                                    <ContentCopyIcon fontSize="16px"/>
-                                </IconButton>
-                            </Tooltip>
-                        </Box>
-                    </Box>
+                    }/>
                 }
                 {
                     // render message
@@ -342,9 +355,9 @@ export default function Explorer() {
                             <DiffViewerHeader stats={curDiffInfo.content.stats} diffState={curDiffInfo.vote?.choice}
                                               oldFileName={curDiffInfo.content.oldFileName}
                                               newFileName={curDiffInfo.content.newFileName}
-                                              diffIndex={
+                                              position={
                                                   {
-                                                      index: commitInfo.diffsInfoIt.currIx + 1,
+                                                      index: commitInfo.diffsInfoIt.currIx,
                                                       total: commitInfo.diffsInfoIt.size()
                                                   }
                                               }

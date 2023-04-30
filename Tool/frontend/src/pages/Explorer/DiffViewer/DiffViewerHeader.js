@@ -6,7 +6,7 @@ import {
     RemoveCircleOutlineIcon
 } from "../Icons";
 
-export default function DiffViewerHeader({stats, oldFileName, newFileName, diffState, diffIndex}) {
+export default function DiffViewerHeader({stats, oldFileName, newFileName, diffState, position}) {
     return (
         <div className={diffCss.diffHeader}>
             <div className={diffCss.diffInfo}>
@@ -29,7 +29,7 @@ export default function DiffViewerHeader({stats, oldFileName, newFileName, diffS
                     }
                 </strong>
                 <span>
-                    {`(File ${diffIndex.index} of ${diffIndex.total})`}
+                    {`(File ${position.index + 1} of ${position.total})`}
                 </span>
             </div>
             <div className={diffCss.diffStats}>
