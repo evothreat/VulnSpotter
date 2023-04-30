@@ -137,7 +137,7 @@ function FileInfoHeader({stats, oldFileName, newFileName, position, rating, view
                                 sx={{color: '#dd2b0e'}}>-{stats.deletions + stats.updates}</Typography>
                 </Box>
             </Box>
-            <ToggleButtonGroup size="small" sx={{height: '26px'}} value={viewMode} exclusive
+            <ToggleButtonGroup color="primary" size="small" sx={{height: '26px'}} value={viewMode} exclusive
                                onChange={handleViewModeChange}
             >
                 <ToggleButton disableRipple sx={{textTransform: 'none'}} value={DiffViewMode.SPLIT}>
