@@ -4,52 +4,43 @@ import diffCss from "./DiffViewer.module.css"
 import classnames from "classnames";
 
 
-function renderUnifiedDiffRow({linenoLeft, linenoRight, diffType, value}, hunkId) {
-    const rowId = hunkId + linenoLeft + linenoRight;
-    const lineVal = value ? highlightSyntax(value) : <>&#0;</>;
+const diffClass = {
+    [DiffType.ADDED]: [diffCss.added, diffCss.added, diffCss.added],
+    [DiffType.REMOVED]: [diffCss.removed, diffCss.removed, diffCss.removed],
+    [DiffType.UPDATED]: [diffCss.removed, diffCss.added, diffCss.removed],
+    default: ['', '', ''],
+};
 
-    switch (diffType) {
-        case DiffType.ADDED:
-            return [
-                <tr key={rowId}>
-                    <td className={classnames(diffCss.linenoBox, diffCss.added)}>&#0;</td>
-                    <td className={classnames(diffCss.linenoBox, diffCss.added)}>{linenoRight}</td>
-                    <td className={classnames(diffCss.content, diffCss.added)}>{lineVal}</td>
-                </tr>
-            ];
-        case DiffType.REMOVED:
-            return [
-                <tr key={rowId}>
-                    <td className={classnames(diffCss.linenoBox, diffCss.removed)}>{linenoLeft}</td>
-                    <td className={classnames(diffCss.linenoBox, diffCss.removed)}>&#0;</td>
-                    <td className={classnames(diffCss.content, diffCss.removed)}>{lineVal}</td>
-                </tr>
-            ];
-        case DiffType.UPDATED:
-            const [oldLine, newLine] = renderUpdatedLine(value);
-            return [
-                <tr key={rowId + '_old'}>
-                    <td className={classnames(diffCss.linenoBox, diffCss.removed)}>{linenoLeft}</td>
-                    <td className={classnames(diffCss.linenoBox, diffCss.removed)}>&#0;</td>
-                    <td className={classnames(diffCss.content, diffCss.removed)}>{oldLine}</td>
-                </tr>,
-                <tr key={rowId + '_new'}>
-                    <td className={classnames(diffCss.linenoBox, diffCss.added)}></td>
-                    <td className={classnames(diffCss.linenoBox, diffCss.added)}>{linenoRight}</td>
-                    <td className={classnames(diffCss.content, diffCss.added)}>{newLine}</td>
-                </tr>
-            ];
-        default:
-            return [
-                <tr key={rowId}>
-                    <td className={diffCss.linenoBox}>{linenoLeft}</td>
-                    <td className={diffCss.linenoBox}>{linenoRight}</td>
-                    <td className={diffCss.content}>{lineVal}</td>
-                </tr>
-            ];
-    }
+function renderDiffRow(id, diffClass, linenoLeft, linenoRight, value) {
+    return (
+        <tr key={id}>
+            <td className={classnames(diffCss.linenoBox, diffClass[0])}>{linenoLeft}</td>
+            <td className={classnames(diffCss.linenoBox, diffClass[1])}>{linenoRight}</td>
+            <td className={classnames(diffCss.content, diffClass[2])}>{value}</td>
+        </tr>
+    );
 }
 
+function renderUnifiedDiffRow({linenoLeft, linenoRight, diffType, value}, hunkId) {
+    const rowId = hunkId + linenoLeft + linenoRight;
+
+    if (diffType === DiffType.UPDATED) {
+        const [oldLine, newLine] = renderUpdatedLine(value);
+        return [
+            renderDiffRow(rowId + `_old`, diffClass[DiffType.REMOVED], linenoLeft, null, oldLine),
+            renderDiffRow(rowId + `_new`, diffClass[DiffType.ADDED], null, linenoRight, newLine),
+        ];
+    }
+    return [
+        renderDiffRow(
+            rowId,
+            diffClass[diffType] || diffClass.default,
+            diffType === DiffType.ADDED ? null : linenoLeft,
+            diffType === DiffType.REMOVED ? null : linenoRight,
+            value ? highlightSyntax(value) : <>&#0;</>
+        )
+    ];
+}
 
 function splitPairs(arr) {
     const res = [];
