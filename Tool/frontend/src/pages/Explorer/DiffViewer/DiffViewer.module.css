@@ -130,60 +130,6 @@
     border-left: thin solid #dbdbdb;
 }
 
-.diffHeader {
-    flex: none;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background-color: #fafafa;
-    border-bottom: 1px solid #dbdbdb;
-    margin: 0;
-    padding: 0 10px;
-    line-height: 35px;
-    font-size: 14px;
-    color: rgb(30, 30, 30);
-    font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-}
-
-.diffInfo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-/*
-.diffIndexInfo {
-    color: gray;
-}
-*/
-.accepted {
-    fill: #00b000;
-}
-
-.refused {
-    fill: #e70000;
-}
-
-.ignored {
-    fill: #ff9c00;
-}
-
-.unknown {
-    fill: lightgray;
-}
-
-.diffStats {
-    display: flex;
-    gap: 8px;
-}
-
-.diffStats > .deletion {
-    color: #dd2b0e;
-}
-
-.diffStats > .addition {
-    color: #217645;
-}
-
 .diffViewer {
     display: flex;
     flex-direction: column;
@@ -193,11 +139,6 @@
 
 .diffViewer * {
     box-sizing: border-box;
-}
-
-.diffBody {
-    flex: 1;
-    display: flex;
 }
 
 :global(.token.operator) {

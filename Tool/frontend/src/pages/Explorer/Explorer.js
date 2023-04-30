@@ -1,5 +1,4 @@
 import Box from "@mui/material/Box";
-import DiffViewer from "./DiffViewer/DiffViewer";
 import React, {useEffect, useRef, useState} from "react";
 import {useLocation, useNavigate, useSearchParams} from "react-router-dom";
 import CommitsService from "../../services/CommitsService";
@@ -9,8 +8,6 @@ import useHotkeys from "./useHotkeys";
 import CveViewer from "./CveViewer";
 import WindowTitle from "./WindowTitle";
 import {Divider, Tooltip} from "@mui/material";
-import DiffViewerHeader from "./DiffViewer/DiffViewerHeader";
-import DiffViewerBody from "./DiffViewer/DiffViewerBody";
 import VotesService from "../../services/VotesService";
 import ArrayIterator from "../../utils/ArrayIterator";
 import CommitTimelineDialog from "./CommitTimeline";
@@ -19,6 +16,10 @@ import TextWrapper from "../../components/TextWrapper";
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
+import GppGoodIcon from '@mui/icons-material/GppGood';
+import GppMaybeIcon from '@mui/icons-material/GppMaybe';
+import GppBadIcon from '@mui/icons-material/GppBad';
+import DiffViewer from "./DiffViewer/DiffViewer";
 
 
 // store as global constant to avoid unnecessary useEffect call (in useHotkeys)
@@ -30,6 +31,21 @@ function highlightSecTerms(text) {
     const kws = ['CVE-\\d{4}-\\d{4,7}'].concat(VULN_KEYWORDS);
     const regex = new RegExp(`\\b(${kws.join('|')})\\b`, 'gi');
     return text.replace(regex, '<span style="background-color: yellow;">$1</span>');
+}
+
+function InfoHeader({children}) {
+    return (
+        <Box sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            height: '35px',
+            p: '0 12px',
+            backgroundColor: '#fafafa'
+        }}>
+            {children}
+        </Box>
+    );
 }
 
 function MessageWindow({message, setWinRef}) {
@@ -54,14 +70,7 @@ function CommitInfoHeader({hashId, position}) {
     };
 
     return (
-        <Box sx={
-            {
-                display: 'flex',
-                alignItems: 'center',
-                height: '35px', pl: '12px', pr: '5px', backgroundColor: '#fafafa',
-                justifyContent: 'space-between'
-            }
-        }>
+        <InfoHeader>
             <Typography variant="subtitle2">
                 {
                     `Commit ${position.index + 1} of ${position.total}`
@@ -73,7 +82,7 @@ function CommitInfoHeader({hashId, position}) {
                         hashId.substring(0, 8)
                     }
                 </Typography>
-                <span>...</span>
+                ...
                 <Tooltip title="Copied ✓" open={showCopyTooltip}
                          disableHoverListener disableInteractive disableFocusListener>
                     <IconButton size="small"
@@ -84,7 +93,44 @@ function CommitInfoHeader({hashId, position}) {
                     </IconButton>
                 </Tooltip>
             </Box>
-        </Box>
+        </InfoHeader>
+    );
+}
+
+function FileInfoHeader({stats, oldFileName, newFileName, position, rating}) {
+    return (
+        <InfoHeader>
+            <Box sx={{display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px'}}>
+                <Typography variant="subtitle2">
+                    File {position.index + 1} of {position.total}:
+                </Typography>
+
+                <Typography variant="subtitle2" sx={{fontWeight: 'bold', display: 'flex', gap: '4px'}}>
+                    {
+                        rating != null && (
+                            rating === 1
+                                ? <GppBadIcon fontSize="small" sx={{color: '#dd2b0e'}}/>
+                                : (
+                                    rating === -1
+                                        ? <GppGoodIcon fontSize="small" sx={{color: '#217645'}}/>
+                                        : <GppMaybeIcon fontSize="small" sx={{color: '#f19300'}}/>
+                                )
+                        )
+                    }
+                    {
+                        oldFileName !== newFileName ? `${oldFileName} → ${newFileName}` : oldFileName
+                    }
+                </Typography>
+
+                <Box sx={{display: 'flex', gap: '6px'}}>
+                    <Typography variant="subtitle2"
+                                sx={{color: '#217645'}}>+{stats.additions + stats.updates}</Typography>
+                    |
+                    <Typography variant="subtitle2"
+                                sx={{color: '#dd2b0e'}}>-{stats.deletions + stats.updates}</Typography>
+                </Box>
+            </Box>
+        </InfoHeader>
     );
 }
 
@@ -351,24 +397,24 @@ export default function Explorer() {
                 {
                     // we need this flexbox because if diffs is null, the left column will stretch
                     curDiffInfo && (
-                        <DiffViewer>
-                            <DiffViewerHeader stats={curDiffInfo.content.stats} diffState={curDiffInfo.vote?.choice}
-                                              oldFileName={curDiffInfo.content.oldFileName}
-                                              newFileName={curDiffInfo.content.newFileName}
-                                              position={
-                                                  {
-                                                      index: commitInfo.diffsInfoIt.currIx,
-                                                      total: commitInfo.diffsInfoIt.size()
-                                                  }
-                                              }
+                        <Box sx={{flex: '1 1 0', display: 'flex', flexDirection: 'column'}}>
+                            <FileInfoHeader stats={curDiffInfo.content.stats} rating={curDiffInfo.vote?.choice}
+                                            oldFileName={curDiffInfo.content.oldFileName}
+                                            newFileName={curDiffInfo.content.newFileName}
+                                            position={
+                                                {
+                                                    index: commitInfo.diffsInfoIt.currIx,
+                                                    total: commitInfo.diffsInfoIt.size()
+                                                }
+                                            }
                             />
 
-                            <DiffViewerBody codeLines={curDiffInfo.content.lines} getMoreLines={getMoreLines}
-                                            setWinRef={{
-                                                setLeftRef: el => windowRefs[2].current = el,
-                                                setRightRef: el => windowRefs[3].current = el
-                                            }}/>
-                        </DiffViewer>
+                            <DiffViewer codeLines={curDiffInfo.content.lines} getMoreLines={getMoreLines}
+                                        setWinRef={{
+                                            setLeftRef: el => windowRefs[2].current = el,
+                                            setRightRef: el => windowRefs[3].current = el
+                                        }}/>
+                        </Box>
                     )
                 }
             </Box>
