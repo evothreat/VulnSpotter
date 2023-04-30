@@ -140,10 +140,10 @@ function FileInfoHeader({stats, oldFileName, newFileName, position, rating, view
             <ToggleButtonGroup size="small" sx={{height: '26px'}} value={viewMode} exclusive
                                onChange={handleViewModeChange}
             >
-                <ToggleButton disableRipple value={DiffViewMode.SPLIT}>
+                <ToggleButton disableRipple sx={{textTransform: 'none'}} value={DiffViewMode.SPLIT}>
                     Split
                 </ToggleButton>,
-                <ToggleButton disableRipple value={DiffViewMode.UNIFIED}>
+                <ToggleButton disableRipple sx={{textTransform: 'none'}} value={DiffViewMode.UNIFIED}>
                     Unified
                 </ToggleButton>
             </ToggleButtonGroup>
