@@ -1,7 +1,6 @@
-import LayoutHeader from "./LayoutHeader";
+import LayoutHeader, {HEADER_HEIGHT} from "./LayoutHeader";
 import {Outlet} from "react-router-dom";
 import Box from "@mui/material/Box";
-import {HEADER_HEIGHT} from "./constants";
 
 
 export default function Layout() {

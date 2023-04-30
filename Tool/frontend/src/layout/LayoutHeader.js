@@ -12,10 +12,11 @@ import PolicyIcon from '@mui/icons-material/Policy';
 import Notifications from "./features/Notifications";
 import Invites from "./features/Invites";
 import RouterLink from "../components/RouterLink";
-import {HEADER_HEIGHT} from "./constants";
 import AuthService from "../services/AuthService";
 import {useNavigate} from "react-router-dom";
 
+// define later in theme
+const HEADER_HEIGHT = '56px';
 
 function UserMenu() {
     const navigate = useNavigate();
@@ -91,3 +92,4 @@ export default function LayoutHeader() {
         </AppBar>
     );
 };
+export {HEADER_HEIGHT};
