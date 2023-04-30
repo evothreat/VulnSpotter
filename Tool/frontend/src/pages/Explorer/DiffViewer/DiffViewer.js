@@ -1,12 +1,18 @@
 import "../../../prism.css";
 import diffCss from "./DiffViewer.module.css"
 import classnames from "classnames";
-import {useEffect, useState} from "react";
+import {Fragment, useEffect, useState} from "react";
 import {areHunksSequent, calcHunks, createLineDiff, DiffType} from "../../../utils/diffUtils";
 import useSyncScroller from "../useSyncScroller";
 import {generateId} from "./common";
 import {renderSplitDiffRows} from "./splitDiff";
+import {renderUnifiedDiffRows} from "./unifiedDiff";
 
+
+const DiffViewMode = Object.freeze({
+    SPLIT: 'split',
+    UNIFIED: 'unified'
+});
 
 function isNotConstant(l) {
     return l.diffType !== DiffType.CONSTANT;
@@ -20,21 +26,28 @@ function createHunk(lines, visible) {
     };
 }
 
-function DiffWindow({lineHunks, expandHandler, hasBottomExpander, setWinRef}) {
+function DiffWindow({lineHunks, expandHandler, hasBottomExpander, setWinRef, viewMode}) {
     const [lines, setLines] = useState(null);
 
     const setScrollRefLeft = useSyncScroller('diffScroll');
     const setScrollRefRight = useSyncScroller('diffScroll');
 
     useEffect(() => {
-        const diffLines = renderSplitDiffRows(lineHunks, expandHandler, hasBottomExpander);
-        if (diffLines.length > 0) {
+        if (viewMode === DiffViewMode.SPLIT) {
+            const diffLines = renderSplitDiffRows(lineHunks, expandHandler, hasBottomExpander);
             setLines({
                 left: diffLines[0],
                 right: diffLines[1]
             });
         }
-    }, [lineHunks, expandHandler, hasBottomExpander]);
+        else {
+            const diffLines = renderUnifiedDiffRows(lineHunks, expandHandler, hasBottomExpander);
+            setLines({
+                left: diffLines,
+                right: null
+            });
+        }
+    }, [lineHunks, expandHandler, hasBottomExpander, viewMode]);
 
     const setLeftWinRefs = node => {
         setScrollRefLeft(node);
@@ -59,14 +72,20 @@ function DiffWindow({lineHunks, expandHandler, hasBottomExpander, setWinRef}) {
                     </tbody>
                 </table>
             </div>
-            <div className={diffCss.tableSep}></div>
-            <div ref={setRightWinRefs} className={diffCss.tableBox} tabIndex="1">
-                <table className={diffCss.diffTable}>
-                    <tbody>
-                    {lines.right}
-                    </tbody>
-                </table>
-            </div>
+            {
+                viewMode === DiffViewMode.SPLIT && (
+                    <Fragment>
+                        <div className={diffCss.tableSep}></div>
+                        <div ref={setRightWinRefs} className={diffCss.tableBox} tabIndex="1">
+                            <table className={diffCss.diffTable}>
+                                <tbody>
+                                {lines.right}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Fragment>
+                )
+            }
         </div>
     );
 }
@@ -82,7 +101,7 @@ function toLineDiffs(lines, beginLeft, beginRight, direction) {
     return lines.map(l => createLineDiff(beginLeft++, beginRight++, DiffType.CONSTANT, l));
 }
 
-export default function DiffViewer({codeLines, getMoreLines, setWinRef}) {
+export default function DiffViewer({codeLines, getMoreLines, setWinRef, viewMode}) {
 
     const [lineHunks, setLineHunks] = useState(null);
     const [hasBottomExpander, setHasBottomExpander] = useState(true);
@@ -150,8 +169,9 @@ export default function DiffViewer({codeLines, getMoreLines, setWinRef}) {
         <div className={diffCss.diffViewer}>
             {
                 lineHunks && <DiffWindow lineHunks={lineHunks} expandHandler={handleExpand} setWinRef={setWinRef}
-                                         hasBottomExpander={hasBottomExpander}/>
+                                         hasBottomExpander={hasBottomExpander} viewMode={viewMode}/>
             }
         </div>
     );
 }
+export {DiffViewMode};

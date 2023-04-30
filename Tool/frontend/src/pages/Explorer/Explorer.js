@@ -7,7 +7,7 @@ import {getCvss3Severity, isObjEmpty, mod, normalizeText} from "../../utils/comm
 import useHotkeys from "./useHotkeys";
 import CveViewer from "./CveViewer";
 import WindowTitle from "./WindowTitle";
-import {Divider, Tooltip} from "@mui/material";
+import {Divider, ToggleButton, ToggleButtonGroup, Tooltip} from "@mui/material";
 import VotesService from "../../services/VotesService";
 import ArrayIterator from "../../utils/ArrayIterator";
 import CommitTimelineDialog from "./CommitTimeline";
@@ -19,7 +19,7 @@ import Typography from "@mui/material/Typography";
 import GppGoodIcon from '@mui/icons-material/GppGood';
 import GppMaybeIcon from '@mui/icons-material/GppMaybe';
 import GppBadIcon from '@mui/icons-material/GppBad';
-import DiffViewer from "./DiffViewer/DiffViewer";
+import DiffViewer, {DiffViewMode} from "./DiffViewer/DiffViewer";
 
 
 // store as global constant to avoid unnecessary useEffect call (in useHotkeys)
@@ -97,7 +97,14 @@ function CommitInfoHeader({hashId, position}) {
     );
 }
 
-function FileInfoHeader({stats, oldFileName, newFileName, position, rating}) {
+function FileInfoHeader({stats, oldFileName, newFileName, position, rating, viewMode, setViewMode}) {
+
+    const handleViewModeChange = (event, value) => {
+        if (value !== null) {
+            setViewMode(value);
+        }
+    };
+
     return (
         <InfoHeader>
             <Box sx={{display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px'}}>
@@ -130,6 +137,16 @@ function FileInfoHeader({stats, oldFileName, newFileName, position, rating}) {
                                 sx={{color: '#dd2b0e'}}>-{stats.deletions + stats.updates}</Typography>
                 </Box>
             </Box>
+            <ToggleButtonGroup size="small" sx={{height: '26px'}} value={viewMode} exclusive
+                               onChange={handleViewModeChange}
+            >
+                <ToggleButton disableRipple value={DiffViewMode.SPLIT}>
+                    Split
+                </ToggleButton>,
+                <ToggleButton disableRipple value={DiffViewMode.UNIFIED}>
+                    Unified
+                </ToggleButton>
+            </ToggleButtonGroup>
         </InfoHeader>
     );
 }
@@ -148,6 +165,9 @@ export default function Explorer() {
         diffsInfoIt: null,
         cveList: null,
     });
+
+    const [diffViewMode, setDiffViewMode] = useState(DiffViewMode.SPLIT);
+
     const backwards = useRef(false);
     const voteUpdates = useRef({});
 
@@ -374,12 +394,14 @@ export default function Explorer() {
             <Box sx={{flex: '1', display: 'flex', flexDirection: 'column'}}>
                 {
                     curCommit &&
-                    <CommitInfoHeader hashId={curCommit.hash} position={
-                        {
-                            index: commitIdsIt.currIx,
-                            total: commitIdsIt.size()
-                        }
-                    }/>
+                    <CommitInfoHeader hashId={curCommit.hash}
+                                      position={
+                                          {
+                                              index: commitIdsIt.currIx,
+                                              total: commitIdsIt.size()
+                                          }
+                                      }
+                    />
                 }
                 {
                     // render message
@@ -407,13 +429,17 @@ export default function Explorer() {
                                                     total: commitInfo.diffsInfoIt.size()
                                                 }
                                             }
+                                            viewMode={diffViewMode}
+                                            setViewMode={setDiffViewMode}
                             />
 
                             <DiffViewer codeLines={curDiffInfo.content.lines} getMoreLines={getMoreLines}
                                         setWinRef={{
                                             setLeftRef: el => windowRefs[2].current = el,
                                             setRightRef: el => windowRefs[3].current = el
-                                        }}/>
+                                        }}
+                                        viewMode={diffViewMode}
+                            />
                         </Box>
                     )
                 }
