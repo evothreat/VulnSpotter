@@ -8,39 +8,39 @@ function renderSplitDiffRow({linenoLeft, linenoRight, diffType, value}, hunkId) 
     // NULL-character, cause React doesn't render element if it doesn't have any valid value
     let leftLine = [<>&#0;</>];
     let rightLine = [<>&#0;</>];
+    let leftStyle, rightStyle;
 
-    let lStyle, rStyle;
+    const hglValue = highlightSyntax(value);
 
-    const lineVal = highlightSyntax(value);
-
-    if (diffType === DiffType.REMOVED) {
-        leftLine.push(<>{lineVal}</>);
-        lStyle = diffCss.removed;
-
-    } else if (diffType === DiffType.ADDED) {
-        rightLine.push(<>{lineVal}</>);
-        rStyle = diffCss.added;
-
-    } else if (diffType === DiffType.UPDATED) {
-        lStyle = diffCss.removed;
-        rStyle = diffCss.added;
-
-        [leftLine, rightLine] = renderUpdatedLine(value);
-    } else {
-        leftLine.push(<>{lineVal}</>);
-        rightLine.push(<>{lineVal}</>);
+    switch (diffType) {
+        case DiffType.REMOVED:
+            leftLine.push(<>{hglValue}</>);
+            leftStyle = diffCss.removed;
+            break;
+        case DiffType.ADDED:
+            rightLine.push(<>{hglValue}</>);
+            rightStyle = diffCss.added;
+            break;
+        case DiffType.UPDATED:
+            leftStyle = diffCss.removed;
+            rightStyle = diffCss.added;
+            [leftLine, rightLine] = renderUpdatedLine(value);
+            break;
+        default:
+            leftLine.push(<>{hglValue}</>);
+            rightLine.push(<>{hglValue}</>);
     }
     const rowId = hunkId + linenoLeft + linenoRight;
     return [
-        <tr key={rowId}>
-            <td className={classnames(diffCss.linenoBox, lStyle)}>{diffType === DiffType.ADDED ? null : linenoLeft}</td>
-            <td className={classnames(diffCss.content, lStyle)}>
+        <tr key={rowId + '_old'}>
+            <td className={classnames(diffCss.linenoBox, leftStyle)}>{diffType === DiffType.ADDED ? null : linenoLeft}</td>
+            <td className={classnames(diffCss.content, leftStyle)}>
                 {leftLine}
             </td>
         </tr>,
-        <tr key={rowId}>
-            <td className={classnames(diffCss.linenoBox, rStyle)}>{diffType === DiffType.REMOVED ? null : linenoRight}</td>
-            <td className={classnames(diffCss.content, rStyle)}>
+        <tr key={rowId + '_new'}>
+            <td className={classnames(diffCss.linenoBox, rightStyle)}>{diffType === DiffType.REMOVED ? null : linenoRight}</td>
+            <td className={classnames(diffCss.content, rightStyle)}>
                 {rightLine}
             </td>
         </tr>
