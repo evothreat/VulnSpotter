@@ -258,12 +258,12 @@ export default function Explorer() {
 
         if (commitInfo.diffsInfoIt.prev()) {
             refreshData();
-        } else if (commitIdsIt.prev()) {
+        }
+        else if (commitIdsIt.prev()) {
             backwards.current = true;
             setCommitIdsIt(commitIdsIt.clone());
-        } else {
-            console.log('no more commits available')
         }
+        // else, no more commits available
     };
 
     const gotoNextDiff = e => {
@@ -271,11 +271,11 @@ export default function Explorer() {
 
         if (commitInfo.diffsInfoIt.next()) {
             refreshData();
-        } else if (commitIdsIt.next()) {
-            setCommitIdsIt(commitIdsIt.clone());
-        } else {
-            console.log('no more commits available');
         }
+        else if (commitIdsIt.next()) {
+            setCommitIdsIt(commitIdsIt.clone());
+        }
+        // else, no more commits available
     };
 
     const getMoreLines = async (prevLineno, curLineno, dir) => {
