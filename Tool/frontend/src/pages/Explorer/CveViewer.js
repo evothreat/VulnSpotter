@@ -37,7 +37,7 @@ function renderDetail(title, content, vertical, style) {
 function renderDetails(cve) {
     return (
         <Box sx={{flex: '1', display: 'flex', flexDirection: 'column', gap: '12px', padding: '10px 16px'}}>
-            {renderDetail('Name:', cve.cve_id)}
+            {renderDetail('ID:', cve.cve_id)}
             {
                 renderDetail('Severity:', `${cve.cvss_score} ${cve.severity}`, false,
                     {
@@ -77,7 +77,14 @@ export default function CveViewer({cveList, setWinRef}) {
         <Box sx={{flex: '1 1 0', display: 'flex', flexDirection: 'column'}}>
             <WindowTitle title="CVE"/>
 
-            <Box ref={setWinRef} tabIndex="1" sx={{flex: '1 1 0', display: 'flex', flexDirection: 'column', position: 'relative', overflowY: 'auto', m: '1px'}}
+            <Box ref={setWinRef} tabIndex="1" sx={{
+                flex: '1 1 0',
+                display: 'flex',
+                flexDirection: 'column',
+                position: 'relative',
+                overflowY: 'auto',
+                m: '1px'
+            }}
                  onFocus={bindHotkeys} onBlur={unbindHotkeys}>
                 {
                     cveList.length === 0
@@ -90,7 +97,14 @@ export default function CveViewer({cveList, setWinRef}) {
                 }
                 {
                     cveList.length > 1 && (
-                        <Box sx={{display: 'flex', justifyContent: 'center', position: 'sticky', bottom: '0', zIndex: '1', bgcolor: 'white'}}>
+                        <Box sx={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            position: 'sticky',
+                            bottom: '0',
+                            zIndex: '1',
+                            bgcolor: 'white'
+                        }}>
                             {
                                 cveList.map((_, i) => (
                                     <IconButton key={i} disableRipple sx={{padding: '8px 3px'}} onClick={() => setCveIx(i)}>
