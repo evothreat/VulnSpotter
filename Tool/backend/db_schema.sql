@@ -130,7 +130,8 @@ CREATE TABLE cve_info
     cve_id      TEXT UNIQUE,
     summary     TEXT,
     description TEXT,
-    cvss_score  REAL
+    cvss_score  REAL,
+    cwe_list    TEXT
 );
 
 CREATE TABLE commit_cve

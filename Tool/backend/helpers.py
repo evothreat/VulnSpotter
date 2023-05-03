@@ -78,10 +78,11 @@ def get_commit_diffs(repo, commit_hash):
 def create_cve_records(repo_name, cve_list):
     # NOTE: maybe check with IN-clause which cve's already exist/not exist
     cve_info = get_cve_info(repo_name, list(cve_list))
-    rows = ((k, v['summary'], v['description'], v['score']) for k, v in cve_info.items())
+    rows = ((k, v['summary'], v['description'], v['score'], ','.join(v['cwe_list'])) for k, v in cve_info.items())
 
     with open_db_transaction() as conn:
-        conn.executemany('INSERT OR IGNORE INTO cve_info(cve_id,summary,description,cvss_score) VALUES (?,?,?,?)', rows)
+        conn.executemany('INSERT OR IGNORE INTO cve_info(cve_id,summary,description,cvss_score,cwe_list) '
+                         'VALUES (?,?,?,?,?)', rows)
 
 
 @profile

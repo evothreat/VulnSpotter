@@ -50,15 +50,24 @@ def get_cve_details(hint, cve_ids, max_tries=3, start_index=0):
             continue
 
         description = cve['descriptions'][0]['value']
+
         try:
             metrics = cve['metrics'][sorted(cve['metrics'].keys())[-1]]
             score = metrics[0]['cvssData']['baseScore']
         except IndexError:
             score = None
 
+        cwe_list = []
+        for w in cve['weaknesses']:
+            for d in w['description']:
+                cwe = d['value'].lstrip('CWE-')
+                if cwe.isdigit() and cwe not in cwe_list:
+                    cwe_list.append(cwe)
+
         res[cve_id] = {
             'description': description,
-            'score': score
+            'score': score,
+            'cwe_list': cwe_list
         }
 
     total_seen = start_index + data['resultsPerPage']
@@ -111,11 +120,13 @@ def get_cve_details_redhat(cve_ids):
 
         cvss = data.get('cvss3', data.get('cvss'))
         score = float(next(v for k, v in cvss.items() if k.endswith('_base_score'))) if cvss else None
+        cwe = data.get('cwe', '').lstrip('CWE-')
 
         res[cid] = {
             'summary': summary,
             'description': description,
-            'score': score
+            'score': score,
+            'cwe_list': [cwe] if cwe.isdigit() else []
         }
         sleep(DELAY_SECS_REDHAT)
 
