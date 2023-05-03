@@ -399,6 +399,13 @@ export default function Explorer() {
         }
     };
 
+    const toggleFullscreen = () => {
+        setIsFullscreenOpen((isOpen) => !isOpen);
+    };
+
+    useHotkeys('f', toggleFullscreen);
+    useHotkeys('s', () => setDiffViewMode(DiffViewMode.SPLIT));
+    useHotkeys('u', () => setDiffViewMode(DiffViewMode.UNIFIED));
     useHotkeys('h', openHistory);
     useHotkeys('shift+left', gotoPrevDiff);
     useHotkeys('shift+right', gotoNextDiff);
@@ -453,9 +460,7 @@ export default function Explorer() {
                                             viewMode={diffViewMode}
                                             changeViewModeHandler={setDiffViewMode}
                                             isFullscreenOpen={isFullscreenOpen}
-                                            toggleFullscreenHandler={() => {
-                                                setIsFullscreenOpen((isOpen) => !isOpen)
-                                            }}
+                                            toggleFullscreenHandler={toggleFullscreen}
                             />
 
                             <DiffViewer codeLines={curDiffInfo.content.lines} getMoreLines={getMoreLines}
