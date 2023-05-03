@@ -11,7 +11,6 @@ import {Divider, ToggleButton, ToggleButtonGroup, Tooltip} from "@mui/material";
 import VotesService from "../../services/VotesService";
 import ArrayIterator from "../../utils/ArrayIterator";
 import CommitTimelineDialog from "./CommitTimeline";
-import {VULN_KEYWORDS} from "../../constants";
 import TextWrapper from "../../components/TextWrapper";
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import IconButton from "@mui/material/IconButton";
@@ -20,6 +19,8 @@ import GppGoodIcon from '@mui/icons-material/GppGood';
 import GppMaybeIcon from '@mui/icons-material/GppMaybe';
 import GppBadIcon from '@mui/icons-material/GppBad';
 import DiffViewer, {DiffViewMode} from "./DiffViewer/DiffViewer";
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
 
 
 // store as global constant to avoid unnecessary useEffect call (in useHotkeys)
@@ -27,11 +28,11 @@ const SWITCH_KEYS = ['1', '2', '3', '4'];
 const RATE_KEYS = ['v', 'b', 'n'];
 
 
-function highlightSecTerms(text) {
+/*function highlightSecTerms(text) {
     const kws = ['CVE-\\d{4}-\\d{4,7}'].concat(VULN_KEYWORDS);
     const regex = new RegExp(`\\b(${kws.join('|')})\\b`, 'gi');
     return text.replace(regex, '<span style="background-color: yellow;">$1</span>');
-}
+}*/
 
 function InfoHeader({children}) {
     return (
@@ -97,11 +98,20 @@ function CommitInfoHeader({hashId, position}) {
     );
 }
 
-function FileInfoHeader({stats, oldFileName, newFileName, position, rating, viewMode, setViewMode}) {
+function FileInfoHeader({
+                            stats,
+                            filepath,
+                            position,
+                            rating,
+                            viewMode,
+                            changeViewModeHandler,
+                            isFullscreenOpen,
+                            toggleFullscreenHandler
+                        }) {
 
     const handleViewModeChange = (event, value) => {
         if (value !== null) {
-            setViewMode(value);
+            changeViewModeHandler(value);
         }
     };
 
@@ -125,7 +135,7 @@ function FileInfoHeader({stats, oldFileName, newFileName, position, rating, view
                         )
                     }
                     {
-                        oldFileName !== newFileName ? `${oldFileName} → ${newFileName}` : oldFileName
+                        filepath.old !== filepath.new ? `${filepath.old} → ${filepath.new}` : filepath.old
                     }
                 </Typography>
 
@@ -137,16 +147,25 @@ function FileInfoHeader({stats, oldFileName, newFileName, position, rating, view
                                 sx={{color: '#dd2b0e'}}>-{stats.deletions + stats.updates}</Typography>
                 </Box>
             </Box>
-            <ToggleButtonGroup color="primary" size="small" sx={{height: '26px'}} value={viewMode} exclusive
-                               onChange={handleViewModeChange}
-            >
-                <ToggleButton disableRipple sx={{textTransform: 'none'}} value={DiffViewMode.SPLIT}>
-                    Split
-                </ToggleButton>,
-                <ToggleButton disableRipple sx={{textTransform: 'none'}} value={DiffViewMode.UNIFIED}>
-                    Unified
-                </ToggleButton>
-            </ToggleButtonGroup>
+            <Box sx={{display: 'flex', alignItems: 'center', gap: '6px'}}>
+                <ToggleButtonGroup color="primary" size="small" sx={{height: '26px'}} value={viewMode} exclusive
+                                   onChange={handleViewModeChange}
+                >
+                    <ToggleButton disableRipple sx={{textTransform: 'none'}} value={DiffViewMode.SPLIT}>
+                        Split
+                    </ToggleButton>,
+                    <ToggleButton disableRipple sx={{textTransform: 'none'}} value={DiffViewMode.UNIFIED}>
+                        Unified
+                    </ToggleButton>
+                </ToggleButtonGroup>
+                <IconButton size="small" onClick={toggleFullscreenHandler}>
+                    {
+                        isFullscreenOpen
+                            ? <FullscreenExitIcon fontSize="small"/>
+                            : <FullscreenIcon fontSize="small"/>
+                    }
+                </IconButton>
+            </Box>
         </InfoHeader>
     );
 }
@@ -167,6 +186,7 @@ export default function Explorer() {
     });
 
     const [diffViewMode, setDiffViewMode] = useState(DiffViewMode.SPLIT);
+    const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
 
     const backwards = useRef(false);
     const voteUpdates = useRef({});
@@ -258,8 +278,7 @@ export default function Explorer() {
 
         if (commitInfo.diffsInfoIt.prev()) {
             refreshData();
-        }
-        else if (commitIdsIt.prev()) {
+        } else if (commitIdsIt.prev()) {
             backwards.current = true;
             setCommitIdsIt(commitIdsIt.clone());
         }
@@ -271,8 +290,7 @@ export default function Explorer() {
 
         if (commitInfo.diffsInfoIt.next()) {
             refreshData();
-        }
-        else if (commitIdsIt.next()) {
+        } else if (commitIdsIt.next()) {
             setCommitIdsIt(commitIdsIt.clone());
         }
         // else, no more commits available
@@ -281,7 +299,7 @@ export default function Explorer() {
     const getMoreLines = async (prevLineno, curLineno, dir) => {
         try {
             const {lines} = await CommitsService.getFileLines(
-                curCommit.id, curDiffInfo.content.newFileName,
+                curCommit.id, curDiffInfo.content.filepath.new,
                 prevLineno, curLineno, dir
             );
             return lines;
@@ -391,29 +409,33 @@ export default function Explorer() {
 
     return (
         <Box sx={{display: 'flex'}}>
-            <Box sx={{flex: '1', display: 'flex', flexDirection: 'column'}}>
-                {
-                    curCommit &&
-                    <CommitInfoHeader hashId={curCommit.hash}
-                                      position={
-                                          {
-                                              index: commitIdsIt.currIx,
-                                              total: commitIdsIt.size()
-                                          }
-                                      }
-                    />
-                }
-                {
-                    // render message
-                    curCommit &&
-                    <MessageWindow message={curCommit.message} setWinRef={el => windowRefs[0].current = el}/>
-                }
-                {
-                    // render cve-list
-                    commitInfo.cveList &&
-                    <CveViewer cveList={commitInfo.cveList} setWinRef={el => windowRefs[1].current = el}/>
-                }
-            </Box>
+            {
+                !isFullscreenOpen && (
+                    <Box sx={{flex: '1', display: 'flex', flexDirection: 'column'}}>
+                        {
+                            curCommit &&
+                            <CommitInfoHeader hashId={curCommit.hash}
+                                              position={
+                                                  {
+                                                      index: commitIdsIt.currIx,
+                                                      total: commitIdsIt.size()
+                                                  }
+                                              }
+                            />
+                        }
+                        {
+                            // render message
+                            curCommit &&
+                            <MessageWindow message={curCommit.message} setWinRef={el => windowRefs[0].current = el}/>
+                        }
+                        {
+                            // render cve-list
+                            commitInfo.cveList &&
+                            <CveViewer cveList={commitInfo.cveList} setWinRef={el => windowRefs[1].current = el}/>
+                        }
+                    </Box>
+                )
+            }
             <Divider orientation="vertical" flexItem/>
             <Box sx={{flex: '2.5', display: 'flex'}}>
                 {
@@ -421,8 +443,7 @@ export default function Explorer() {
                     curDiffInfo && (
                         <Box sx={{flex: '1 1 0', display: 'flex', flexDirection: 'column'}}>
                             <FileInfoHeader stats={curDiffInfo.content.stats} rating={curDiffInfo.vote?.choice}
-                                            oldFileName={curDiffInfo.content.oldFileName}
-                                            newFileName={curDiffInfo.content.newFileName}
+                                            filepath={curDiffInfo.content.filepath}
                                             position={
                                                 {
                                                     index: commitInfo.diffsInfoIt.currIx,
@@ -430,7 +451,11 @@ export default function Explorer() {
                                                 }
                                             }
                                             viewMode={diffViewMode}
-                                            setViewMode={setDiffViewMode}
+                                            changeViewModeHandler={(mode) => setDiffViewMode(mode)}
+                                            isFullscreenOpen={isFullscreenOpen}
+                                            toggleFullscreenHandler={() => {
+                                                setIsFullscreenOpen((isOpen) => !isOpen)
+                                            }}
                             />
 
                             <DiffViewer codeLines={curDiffInfo.content.lines} getMoreLines={getMoreLines}
