@@ -451,7 +451,7 @@ export default function Explorer() {
                                                 }
                                             }
                                             viewMode={diffViewMode}
-                                            changeViewModeHandler={(mode) => setDiffViewMode(mode)}
+                                            changeViewModeHandler={setDiffViewMode}
                                             isFullscreenOpen={isFullscreenOpen}
                                             toggleFullscreenHandler={() => {
                                                 setIsFullscreenOpen((isOpen) => !isOpen)
