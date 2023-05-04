@@ -21,6 +21,10 @@ import GppBadIcon from '@mui/icons-material/GppBad';
 import DiffViewer, {DiffViewMode} from "./DiffViewer/DiffViewer";
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import Modal from '@mui/material/Modal';
 
 
 // store as global constant to avoid unnecessary useEffect call (in useHotkeys)
@@ -33,6 +37,90 @@ const RATE_KEYS = ['v', 'b', 'n'];
     const regex = new RegExp(`\\b(${kws.join('|')})\\b`, 'gi');
     return text.replace(regex, '<span style="background-color: yellow;">$1</span>');
 }*/
+
+// TODO: avoid duplicate-code!
+function ShorcutsHelpModal({closeHandler}) {
+    return (
+            <Modal
+                open={true}
+                onClose={closeHandler}
+            >
+                <Box sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    bgcolor: 'background.paper',
+                    boxShadow: 24,
+                    p: 2,
+                    maxWidth: '80vw',
+                    maxHeight: '80vh',
+                    overflow: 'auto'
+                }}>
+                    <Typography variant="h5" mb={2}>
+                        Keyboard Shortcuts
+                    </Typography>
+                    <List>
+                        <ListItem>
+                            <ListItemText primary="Esc" secondary="Go back to main page." />
+                        </ListItem>
+                        <ListItem>
+                            <ListItemText primary="Shift + →" secondary="Go to next changes." />
+                        </ListItem>
+                        <ListItem>
+                            <ListItemText primary="Shift + ←" secondary="Go to previous changes." />
+                        </ListItem>
+                        <ListItem>
+                            <ListItemText primary="Alt + →" secondary="Go to next commit." />
+                        </ListItem>
+                        <ListItem>
+                            <ListItemText primary="Alt + ←" secondary="Go to previous commit." />
+                        </ListItem>
+                        <ListItem>
+                            <ListItemText primary="1,2,3,4" secondary="Switch to specific window." />
+                        </ListItem>
+                        <ListItem>
+                            <ListItemText primary="Tab" secondary="Switch to specific window (cyclic)." />
+                        </ListItem>
+                        <ListItem>
+                            <ListItemText primary="V, B, N" secondary="Rate current changes: V - vulnerable, B - not vulnerable, N - neutral." />
+                        </ListItem>
+                        <ListItem>
+                            <ListItemText primary="F" secondary="Show changes in fullscreen-mode." />
+                        </ListItem>
+                        <ListItem>
+                            <ListItemText primary="S" secondary="Show changes in split-mode." />
+                        </ListItem>
+                        <ListItem>
+                            <ListItemText primary="U" secondary="Show changes in unified-mode." />
+                        </ListItem>
+                        <ListItem>
+                            <ListItemText primary="H" secondary="Show history of commit." />
+                        </ListItem>
+                        <ListItem>
+                            <ListItemText primary="Q" secondary="Open shortcuts-help." />
+                        </ListItem>
+                    </List>
+                </Box>
+            </Modal>
+    );
+}
+
+/*
+* useHotkeys('f', toggleFullscreen);
+    useHotkeys('s', () => setDiffViewMode(DiffViewMode.SPLIT));
+    useHotkeys('u', () => setDiffViewMode(DiffViewMode.UNIFIED));
+    useHotkeys('h', openHistory);
+    useHotkeys('shift+left', gotoPrevDiff);
+    useHotkeys('shift+right', gotoNextDiff);
+    useHotkeys('alt+left', gotoPrevCommit);
+    useHotkeys('alt+right', gotoNextCommit);
+    useHotkeys('tab', switchWindow);
+    useHotkeys('q', () => setOpenShortcutsHelp(isOpen => !isOpen));
+    useHotkeys(SWITCH_KEYS, gotoWindow);
+    useHotkeys(RATE_KEYS, rateDiff);
+    useHotkeys('esc', () => navigate(-1));
+* */
 
 function InfoHeader({children}) {
     return (
@@ -187,6 +275,7 @@ export default function Explorer() {
 
     const [diffViewMode, setDiffViewMode] = useState(DiffViewMode.SPLIT);
     const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
+    const [openShortcutsHelp, setOpenShortcutsHelp] = useState(false);
 
     const backwards = useRef(false);
     const voteUpdates = useRef({});
@@ -430,6 +519,7 @@ export default function Explorer() {
     useHotkeys('alt+left', gotoPrevCommit);
     useHotkeys('alt+right', gotoNextCommit);
     useHotkeys('tab', switchWindow);
+    useHotkeys('q', () => setOpenShortcutsHelp(isOpen => !isOpen));
     useHotkeys(SWITCH_KEYS, gotoWindow);
     useHotkeys(RATE_KEYS, rateDiff);
     useHotkeys('esc', () => navigate(-1));
@@ -499,6 +589,9 @@ export default function Explorer() {
                 <CommitTimelineDialog data={commitHistory}
                                       loadMoreHandler={getMoreHistory}
                                       closeHandler={() => setOpenCommitTimeline(false)}/>
+            }
+            {
+                openShortcutsHelp && <ShorcutsHelpModal closeHandler={() => setOpenShortcutsHelp(false)}/>
             }
         </Box>
     );
