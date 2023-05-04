@@ -1,5 +1,6 @@
 import os
 import traceback
+from datetime import datetime
 from threading import Thread, Timer
 from uuid import uuid4
 
@@ -707,6 +708,21 @@ def get_commit_history(commit_id):
         }
 
 
+@app.route('/api/info_opened', methods=['POST'])
+def protocol_info_opened():
+    data = request.json
+    # experiment_data
+    root_dir = r'D:\Documents\experiment_data'
+    user_dir = pathjoin(root_dir, data['username'])
+    if not os.path.exists(user_dir):
+        os.makedirs(user_dir)
+
+    fmt_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open(pathjoin(user_dir, data['commit_hash'] + '.txt'), 'a') as f:
+        f.write(f"{fmt_time}, {data['info_name']}\n")
+    return '', 201
+
+
 if __name__ == '__main__':
     # setup_db()
-    app.run()
+    app.run(host='0.0.0.0', port=8080)
