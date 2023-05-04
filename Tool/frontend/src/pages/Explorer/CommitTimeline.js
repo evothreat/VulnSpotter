@@ -7,7 +7,7 @@ import TimelineConnector from '@mui/lab/TimelineConnector';
 import TimelineContent from '@mui/lab/TimelineContent';
 import TimelineDot from '@mui/lab/TimelineDot';
 import Typography from "@mui/material/Typography";
-import {Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/material";
+import {Dialog, DialogContent, DialogTitle} from "@mui/material";
 import Button from "@mui/material/Button";
 import {TimelineOppositeContent} from "@mui/lab";
 import IconButton from "@mui/material/IconButton";
@@ -93,16 +93,13 @@ function CommitTimelineDialog({data, closeHandler, loadMoreHandler}) {
 
     return (
         <Dialog open={true} onClose={closeHandler} maxWidth="md" fullWidth>
-            <DialogTitle sx={{p: '12px 24px'}}>History</DialogTitle>
+            <DialogTitle sx={{p: '10px 24px'}}>History</DialogTitle>
             <DialogContent dividers ref={contentRef} tabIndex="1" sx={{overflowX: 'hidden', p: '0 20px 0 0'}}>
                 <CommitTimeline data={data}/>
                 <Box sx={{textAlign: 'center'}}>
                     <Button onClick={loadMoreHandler}>Load more</Button>
                 </Box>
             </DialogContent>
-            <DialogActions disableSpacing>
-                <Button onClick={closeHandler} color="primary">Close</Button>
-            </DialogActions>
         </Dialog>
     );
 }
