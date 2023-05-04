@@ -27,6 +27,22 @@ import ListItemText from '@mui/material/ListItemText';
 import Modal from '@mui/material/Modal';
 
 
+const SHORTCUTS = [
+    { hotkey: 'Esc', description: 'Go back to main page.' },
+    { hotkey: 'Shift + →', description: 'Go to next changes.' },
+    { hotkey: 'Shift + ←', description: 'Go to previous changes.' },
+    { hotkey: 'Alt + →', description: 'Go to next commit.' },
+    { hotkey: 'Alt + ←', description: 'Go to previous commit.' },
+    { hotkey: '1,2,3,4', description: 'Switch to specific window.' },
+    { hotkey: 'Tab', description: 'Switch to specific window (cyclic).' },
+    { hotkey: 'V, B, N', description: 'Rate current changes: V - vulnerable, B - not vulnerable, N - neutral.' },
+    { hotkey: 'F', description: 'Show changes in fullscreen-mode.' },
+    { hotkey: 'S', description: 'Show changes in split-mode.' },
+    { hotkey: 'U', description: 'Show changes in unified-mode.' },
+    { hotkey: 'H', description: 'Show history of commit.' },
+    { hotkey: 'Q', description: 'Open shortcuts-help.' },
+]
+
 // store as global constant to avoid unnecessary useEffect call (in useHotkeys)
 const SWITCH_KEYS = ['1', '2', '3', '4'];
 const RATE_KEYS = ['v', 'b', 'n'];
@@ -38,89 +54,38 @@ const RATE_KEYS = ['v', 'b', 'n'];
     return text.replace(regex, '<span style="background-color: yellow;">$1</span>');
 }*/
 
-// TODO: avoid duplicate-code!
-function ShorcutsHelpModal({closeHandler}) {
+function ShortcutsHelpModal({closeHandler}) {
     return (
-            <Modal
-                open={true}
-                onClose={closeHandler}
-            >
-                <Box sx={{
+        <Modal open={true} onClose={closeHandler}>
+            <Box
+                sx={{
                     position: 'absolute',
                     top: '50%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
                     bgcolor: 'background.paper',
                     boxShadow: 24,
-                    p: 2,
+                    p: '20px',
                     maxWidth: '80vw',
                     maxHeight: '80vh',
-                    overflow: 'auto'
-                }}>
-                    <Typography variant="h5" mb={2}>
-                        Keyboard Shortcuts
-                    </Typography>
-                    <List>
-                        <ListItem>
-                            <ListItemText primary="Esc" secondary="Go back to main page." />
+                    overflow: 'auto',
+                }}
+            >
+                <Typography variant="h5" mb="8px">
+                    Shortcuts
+                </Typography>
+                <Divider/>
+                <List>
+                    {SHORTCUTS.map(({ hotkey, description }, i) => (
+                        <ListItem key={i}>
+                            <ListItemText primary={hotkey} secondary={description} />
                         </ListItem>
-                        <ListItem>
-                            <ListItemText primary="Shift + →" secondary="Go to next changes." />
-                        </ListItem>
-                        <ListItem>
-                            <ListItemText primary="Shift + ←" secondary="Go to previous changes." />
-                        </ListItem>
-                        <ListItem>
-                            <ListItemText primary="Alt + →" secondary="Go to next commit." />
-                        </ListItem>
-                        <ListItem>
-                            <ListItemText primary="Alt + ←" secondary="Go to previous commit." />
-                        </ListItem>
-                        <ListItem>
-                            <ListItemText primary="1,2,3,4" secondary="Switch to specific window." />
-                        </ListItem>
-                        <ListItem>
-                            <ListItemText primary="Tab" secondary="Switch to specific window (cyclic)." />
-                        </ListItem>
-                        <ListItem>
-                            <ListItemText primary="V, B, N" secondary="Rate current changes: V - vulnerable, B - not vulnerable, N - neutral." />
-                        </ListItem>
-                        <ListItem>
-                            <ListItemText primary="F" secondary="Show changes in fullscreen-mode." />
-                        </ListItem>
-                        <ListItem>
-                            <ListItemText primary="S" secondary="Show changes in split-mode." />
-                        </ListItem>
-                        <ListItem>
-                            <ListItemText primary="U" secondary="Show changes in unified-mode." />
-                        </ListItem>
-                        <ListItem>
-                            <ListItemText primary="H" secondary="Show history of commit." />
-                        </ListItem>
-                        <ListItem>
-                            <ListItemText primary="Q" secondary="Open shortcuts-help." />
-                        </ListItem>
-                    </List>
-                </Box>
-            </Modal>
+                    ))}
+                </List>
+            </Box>
+        </Modal>
     );
 }
-
-/*
-* useHotkeys('f', toggleFullscreen);
-    useHotkeys('s', () => setDiffViewMode(DiffViewMode.SPLIT));
-    useHotkeys('u', () => setDiffViewMode(DiffViewMode.UNIFIED));
-    useHotkeys('h', openHistory);
-    useHotkeys('shift+left', gotoPrevDiff);
-    useHotkeys('shift+right', gotoNextDiff);
-    useHotkeys('alt+left', gotoPrevCommit);
-    useHotkeys('alt+right', gotoNextCommit);
-    useHotkeys('tab', switchWindow);
-    useHotkeys('q', () => setOpenShortcutsHelp(isOpen => !isOpen));
-    useHotkeys(SWITCH_KEYS, gotoWindow);
-    useHotkeys(RATE_KEYS, rateDiff);
-    useHotkeys('esc', () => navigate(-1));
-* */
 
 function InfoHeader({children}) {
     return (
@@ -591,7 +556,7 @@ export default function Explorer() {
                                       closeHandler={() => setOpenCommitTimeline(false)}/>
             }
             {
-                openShortcutsHelp && <ShorcutsHelpModal closeHandler={() => setOpenShortcutsHelp(false)}/>
+                openShortcutsHelp && <ShortcutsHelpModal closeHandler={() => setOpenShortcutsHelp(false)}/>
             }
         </Box>
     );
