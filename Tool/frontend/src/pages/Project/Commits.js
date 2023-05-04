@@ -129,6 +129,9 @@ function CommitsTable({commits, selectedIds, checkHandler, sortReqHandler, order
 
     const containerRef = useRef(null);
     const commitsRef = useRef(commits);
+    const params = useParams();
+    const projId = parseInt(params.projId);
+    const isNotExperiment1 = projId !== 1;
 
     if (commitsRef.current !== commits) {
         if (containerRef.current) {
@@ -171,7 +174,7 @@ function CommitsTable({commits, selectedIds, checkHandler, sortReqHandler, order
                             orderedItems.length > 0
                                 ? <Fragment>
                                     {
-                                        orderedItems.map(it =>
+                                        isNotExperiment1 && orderedItems.map(it =>
                                             <PureCommitRow item={it} key={it.id} checked={selectedIds.has(it.id)}
                                                            checkHandler={checkHandler}/>
                                         )

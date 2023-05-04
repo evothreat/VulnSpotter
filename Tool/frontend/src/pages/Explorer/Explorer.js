@@ -1,6 +1,6 @@
 import Box from "@mui/material/Box";
 import React, {useEffect, useRef, useState} from "react";
-import {useLocation, useNavigate, useSearchParams} from "react-router-dom";
+import {useLocation, useNavigate, useParams, useSearchParams} from "react-router-dom";
 import CommitsService from "../../services/CommitsService";
 import {parsePatch} from "../../utils/diffUtils";
 import {getCvss3Severity, isObjEmpty, mod, normalizeText} from "../../utils/common";
@@ -11,7 +11,6 @@ import {Divider, ToggleButton, ToggleButtonGroup, Tooltip} from "@mui/material";
 import VotesService from "../../services/VotesService";
 import ArrayIterator from "../../utils/ArrayIterator";
 import CommitTimelineDialog from "./CommitTimeline";
-import {VULN_KEYWORDS} from "../../constants";
 import TextWrapper from "../../components/TextWrapper";
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import IconButton from "@mui/material/IconButton";
@@ -20,18 +19,75 @@ import GppGoodIcon from '@mui/icons-material/GppGood';
 import GppMaybeIcon from '@mui/icons-material/GppMaybe';
 import GppBadIcon from '@mui/icons-material/GppBad';
 import DiffViewer, {DiffViewMode} from "./DiffViewer/DiffViewer";
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import Modal from '@mui/material/Modal';
+import api from "../../services/api";
+import AuthService from "../../services/AuthService";
 
+const SHORTCUTS = [
+    { hotkey: 'Esc', description: 'Go back to main page.' },
+    { hotkey: 'Shift + →', description: 'Go to next changes.' },
+    { hotkey: 'Shift + ←', description: 'Go to previous changes.' },
+    { hotkey: 'Alt + →', description: 'Go to next commit.' },
+    { hotkey: 'Alt + ←', description: 'Go to previous commit.' },
+    { hotkey: '1,2,3,4', description: 'Switch to specific window.' },
+    { hotkey: 'Tab', description: 'Switch to specific window (cyclic).' },
+    { hotkey: 'V, B, N', description: 'Rate current changes: V - vulnerable, B - not vulnerable, N - neutral.' },
+    { hotkey: 'F', description: 'Show changes in fullscreen-mode.' },
+    { hotkey: 'S', description: 'Show changes in split-mode.' },
+    { hotkey: 'U', description: 'Show changes in unified-mode.' },
+    { hotkey: 'H', description: 'Show history of commit.' },
+    { hotkey: 'Q', description: 'Open shortcuts-help.' },
+]
 
 // store as global constant to avoid unnecessary useEffect call (in useHotkeys)
 const SWITCH_KEYS = ['1', '2', '3', '4'];
 const RATE_KEYS = ['v', 'b', 'n'];
 
 
-function highlightSecTerms(text) {
+/*function highlightSecTerms(text) {
     const kws = ['CVE-\\d{4}-\\d{4,7}'].concat(VULN_KEYWORDS);
     const regex = new RegExp(`\\b(${kws.join('|')})\\b`, 'gi');
     return text.replace(regex, '<span style="background-color: yellow;">$1</span>');
+}*/
+
+function ShortcutsHelpModal({closeHandler}) {
+    return (
+        <Modal open={true} onClose={closeHandler}>
+            <Box
+                sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    bgcolor: 'background.paper',
+                    boxShadow: 24,
+                    p: '20px',
+                    maxWidth: '80vw',
+                    maxHeight: '80vh',
+                    overflow: 'auto',
+                }}
+            >
+                <Typography variant="h5" mb="8px">
+                    Shortcuts
+                </Typography>
+                <Divider/>
+                <List>
+                    {SHORTCUTS.map(({ hotkey, description }, i) => (
+                        <ListItem key={i}>
+                            <ListItemText primary={hotkey} secondary={description} />
+                        </ListItem>
+                    ))}
+                </List>
+            </Box>
+        </Modal>
+    );
 }
+
 
 function InfoHeader({children}) {
     return (
@@ -97,11 +153,20 @@ function CommitInfoHeader({hashId, position}) {
     );
 }
 
-function FileInfoHeader({stats, oldFileName, newFileName, position, rating, viewMode, setViewMode}) {
+function FileInfoHeader({
+                            stats,
+                            filepath,
+                            position,
+                            rating,
+                            viewMode,
+                            changeViewModeHandler,
+                            isFullscreenOpen,
+                            toggleFullscreenHandler
+                        }) {
 
     const handleViewModeChange = (event, value) => {
         if (value !== null) {
-            setViewMode(value);
+            changeViewModeHandler(value);
         }
     };
 
@@ -125,7 +190,7 @@ function FileInfoHeader({stats, oldFileName, newFileName, position, rating, view
                         )
                     }
                     {
-                        oldFileName !== newFileName ? `${oldFileName} → ${newFileName}` : oldFileName
+                        filepath.old !== filepath.new ? `${filepath.old} → ${filepath.new}` : filepath.old
                     }
                 </Typography>
 
@@ -137,16 +202,25 @@ function FileInfoHeader({stats, oldFileName, newFileName, position, rating, view
                                 sx={{color: '#dd2b0e'}}>-{stats.deletions + stats.updates}</Typography>
                 </Box>
             </Box>
-            <ToggleButtonGroup color="primary" size="small" sx={{height: '26px'}} value={viewMode} exclusive
-                               onChange={handleViewModeChange}
-            >
-                <ToggleButton disableRipple sx={{textTransform: 'none'}} value={DiffViewMode.SPLIT}>
-                    Split
-                </ToggleButton>,
-                <ToggleButton disableRipple sx={{textTransform: 'none'}} value={DiffViewMode.UNIFIED}>
-                    Unified
-                </ToggleButton>
-            </ToggleButtonGroup>
+            <Box sx={{display: 'flex', alignItems: 'center', gap: '6px'}}>
+                <ToggleButtonGroup color="primary" size="small" sx={{height: '26px'}} value={viewMode} exclusive
+                                   onChange={handleViewModeChange}
+                >
+                    <ToggleButton disableRipple sx={{textTransform: 'none'}} value={DiffViewMode.SPLIT}>
+                        Split
+                    </ToggleButton>,
+                    <ToggleButton disableRipple sx={{textTransform: 'none'}} value={DiffViewMode.UNIFIED}>
+                        Unified
+                    </ToggleButton>
+                </ToggleButtonGroup>
+                <IconButton size="small" onClick={toggleFullscreenHandler}>
+                    {
+                        isFullscreenOpen
+                            ? <FullscreenExitIcon fontSize="small"/>
+                            : <FullscreenIcon fontSize="small"/>
+                    }
+                </IconButton>
+            </Box>
         </InfoHeader>
     );
 }
@@ -155,6 +229,9 @@ export default function Explorer() {
     const navigate = useNavigate();
     const {state: locState} = useLocation();
     const [queryArgs,] = useSearchParams();
+    const params = useParams();
+    const projId = parseInt(params.projId);
+    const isNotExperiment1 = projId !== 1;
 
     const [commitHistory, setCommitHistory] = useState(null);
     const [openCommitTimeline, setOpenCommitTimeline] = useState(false);
@@ -166,7 +243,16 @@ export default function Explorer() {
         cveList: null,
     });
 
+    const [messageVisible, setMessageVisible] = useState(isNotExperiment1);
+    const [cveVisible, setCveVisible] = useState(isNotExperiment1);
+    const [diffVisible, setDiffVisible] = useState(isNotExperiment1);
+    const historyAlreadyOpened = useRef(isNotExperiment1);
+
+    const [curUser, setCurUser] = useState(null);
+
     const [diffViewMode, setDiffViewMode] = useState(DiffViewMode.SPLIT);
+    const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
+    const [openShortcutsHelp, setOpenShortcutsHelp] = useState(false);
 
     const backwards = useRef(false);
     const voteUpdates = useRef({});
@@ -191,6 +277,10 @@ export default function Explorer() {
                     : locState?.commitIds || []
             )
         );
+
+        AuthService.getCurrentUser()
+            .then(user => setCurUser(user));
+
     }, [queryArgs, locState]);
 
     useEffect(() => {
@@ -236,6 +326,10 @@ export default function Explorer() {
         return () => {
             voteUpdates.current = {};   // not necessary, but useful to save memory
             setCommitHistory(null);
+
+            setCveVisible(isNotExperiment1);
+            setDiffVisible(isNotExperiment1);
+            setMessageVisible(isNotExperiment1);
         };
     }, [commitIdsIt]);
 
@@ -271,17 +365,34 @@ export default function Explorer() {
 
         if (commitInfo.diffsInfoIt.next()) {
             refreshData();
-        } else if (commitIdsIt.next()) {
+        }
+        // use .hasNext() for clarity?
+        else if (commitIdsIt.next()) {
             setCommitIdsIt(commitIdsIt.clone());
-        } else {
-            console.log('no more commits available');
         }
     };
+
+    const gotoPrevCommit = e => {
+        e?.preventDefault();
+
+        if (commitIdsIt.prev()) {
+            setCommitIdsIt(commitIdsIt.clone());
+        }
+    };
+
+    const gotoNextCommit = e => {
+        e?.preventDefault();
+
+        if (commitIdsIt.next()) {
+            setCommitIdsIt(commitIdsIt.clone());
+        }
+        // else, no more commits available
+    }
 
     const getMoreLines = async (prevLineno, curLineno, dir) => {
         try {
             const {lines} = await CommitsService.getFileLines(
-                curCommit.id, curDiffInfo.content.newFileName,
+                curCommit.id, curDiffInfo.content.filepath.new,
                 prevLineno, curLineno, dir
             );
             return lines;
@@ -381,48 +492,96 @@ export default function Explorer() {
         }
     };
 
+    const toggleFullscreen = () => {
+        setIsFullscreenOpen((isOpen) => !isOpen);
+    };
+
+    const notifyInfoOpened = (infoName) => {
+        api.post('/info_opened', {
+                commit_hash: curCommit.hash,
+                info_name: infoName,
+                username: curUser.username,
+            }
+        );
+    }
+
+    useHotkeys('f', toggleFullscreen);
+    useHotkeys('s', () => setDiffViewMode(DiffViewMode.SPLIT));
+    useHotkeys('u', () => setDiffViewMode(DiffViewMode.UNIFIED));
     useHotkeys('h', openHistory);
     useHotkeys('shift+left', gotoPrevDiff);
     useHotkeys('shift+right', gotoNextDiff);
+    useHotkeys('alt+left', gotoPrevCommit);
+    useHotkeys('alt+right', gotoNextCommit);
     useHotkeys('tab', switchWindow);
+    useHotkeys('q', () => setOpenShortcutsHelp(isOpen => !isOpen));
     useHotkeys(SWITCH_KEYS, gotoWindow);
     useHotkeys(RATE_KEYS, rateDiff);
     useHotkeys('esc', () => navigate(-1));
 
+    useHotkeys('shift+m', () => {
+            setMessageVisible(true);
+            notifyInfoOpened('message');
+        }
+    );
+    useHotkeys('shift+c', () => {
+            setCveVisible(true);
+            notifyInfoOpened('cve');
+        }
+    );
+    useHotkeys('shift+d', () => {
+            setDiffVisible(true);
+            notifyInfoOpened('diff');
+        }
+    );
+
+    useHotkeys('shift+h', () => {
+            openHistory();
+            // stop
+            if (openCommitTimeline && !historyAlreadyOpened.current) {
+                notifyInfoOpened('history');
+                historyAlreadyOpened.current = true;
+            }
+        }
+    );
+
     return (
         <Box sx={{display: 'flex'}}>
-            <Box sx={{flex: '1', display: 'flex', flexDirection: 'column'}}>
-                {
-                    curCommit &&
-                    <CommitInfoHeader hashId={curCommit.hash}
-                                      position={
-                                          {
-                                              index: commitIdsIt.currIx,
-                                              total: commitIdsIt.size()
-                                          }
-                                      }
-                    />
-                }
-                {
-                    // render message
-                    curCommit &&
-                    <MessageWindow message={curCommit.message} setWinRef={el => windowRefs[0].current = el}/>
-                }
-                {
-                    // render cve-list
-                    commitInfo.cveList &&
-                    <CveViewer cveList={commitInfo.cveList} setWinRef={el => windowRefs[1].current = el}/>
-                }
-            </Box>
+            {
+                !isFullscreenOpen && (
+                    <Box sx={{flex: '1', display: 'flex', flexDirection: 'column'}}>
+                        {
+                            curCommit &&
+                            <CommitInfoHeader hashId={curCommit.hash}
+                                              position={
+                                                  {
+                                                      index: commitIdsIt.currIx,
+                                                      total: commitIdsIt.size()
+                                                  }
+                                              }
+                            />
+                        }
+                        {
+                            // render message
+                            messageVisible && curCommit &&
+                            <MessageWindow message={curCommit.message} setWinRef={el => windowRefs[0].current = el}/>
+                        }
+                        {
+                            // render cve-list
+                            cveVisible && commitInfo.cveList &&
+                            <CveViewer cveList={commitInfo.cveList} setWinRef={el => windowRefs[1].current = el}/>
+                        }
+                    </Box>
+                )
+            }
             <Divider orientation="vertical" flexItem/>
             <Box sx={{flex: '2.5', display: 'flex'}}>
                 {
                     // we need this flexbox because if diffs is null, the left column will stretch
-                    curDiffInfo && (
+                    diffVisible && curDiffInfo && (
                         <Box sx={{flex: '1 1 0', display: 'flex', flexDirection: 'column'}}>
                             <FileInfoHeader stats={curDiffInfo.content.stats} rating={curDiffInfo.vote?.choice}
-                                            oldFileName={curDiffInfo.content.oldFileName}
-                                            newFileName={curDiffInfo.content.newFileName}
+                                            filepath={curDiffInfo.content.filepath}
                                             position={
                                                 {
                                                     index: commitInfo.diffsInfoIt.currIx,
@@ -430,7 +589,9 @@ export default function Explorer() {
                                                 }
                                             }
                                             viewMode={diffViewMode}
-                                            setViewMode={setDiffViewMode}
+                                            changeViewModeHandler={setDiffViewMode}
+                                            isFullscreenOpen={isFullscreenOpen}
+                                            toggleFullscreenHandler={toggleFullscreen}
                             />
 
                             <DiffViewer codeLines={curDiffInfo.content.lines} getMoreLines={getMoreLines}
@@ -449,6 +610,9 @@ export default function Explorer() {
                 <CommitTimelineDialog data={commitHistory}
                                       loadMoreHandler={getMoreHistory}
                                       closeHandler={() => setOpenCommitTimeline(false)}/>
+            }
+            {
+                openShortcutsHelp && <ShortcutsHelpModal closeHandler={() => setOpenShortcutsHelp(isOpen => !isOpen)}/>
             }
         </Box>
     );
