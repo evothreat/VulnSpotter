@@ -290,11 +290,29 @@ export default function Explorer() {
 
         if (commitInfo.diffsInfoIt.next()) {
             refreshData();
-        } else if (commitIdsIt.next()) {
+        }
+        // use .hasNext() for clarity?
+        else if (commitIdsIt.next()) {
+            setCommitIdsIt(commitIdsIt.clone());
+        }
+    };
+
+    const gotoPrevCommit = e => {
+        e?.preventDefault();
+
+        if (commitIdsIt.prev()) {
+            setCommitIdsIt(commitIdsIt.clone());
+        }
+    };
+
+    const gotoNextCommit = e => {
+        e?.preventDefault();
+
+        if (commitIdsIt.next()) {
             setCommitIdsIt(commitIdsIt.clone());
         }
         // else, no more commits available
-    };
+    }
 
     const getMoreLines = async (prevLineno, curLineno, dir) => {
         try {
@@ -409,6 +427,8 @@ export default function Explorer() {
     useHotkeys('h', openHistory);
     useHotkeys('shift+left', gotoPrevDiff);
     useHotkeys('shift+right', gotoNextDiff);
+    useHotkeys('alt+left', gotoPrevCommit);
+    useHotkeys('alt+right', gotoNextCommit);
     useHotkeys('tab', switchWindow);
     useHotkeys(SWITCH_KEYS, gotoWindow);
     useHotkeys(RATE_KEYS, rateDiff);
