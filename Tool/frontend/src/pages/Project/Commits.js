@@ -209,7 +209,7 @@ function restoreFilterOpts(projId) {
             logicalOp: 'or',
             sorter: {
                 order: 'desc',
-                orderBy: 'cve_count'
+                orderBy: 'created_at'
             }
         };
 }
