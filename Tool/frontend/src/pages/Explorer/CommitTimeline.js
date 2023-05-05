@@ -93,16 +93,13 @@ function CommitTimelineDialog({data, closeHandler, loadMoreHandler}) {
 
     return (
         <Dialog open={true} onClose={closeHandler} maxWidth="md" fullWidth>
-            <DialogTitle sx={{p: '12px 24px'}}>History</DialogTitle>
+            <DialogTitle sx={{p: '10px 24px'}}>History</DialogTitle>
             <DialogContent dividers ref={contentRef} tabIndex="1" sx={{overflowX: 'hidden', p: '0 20px 0 0'}}>
                 <CommitTimeline data={data}/>
                 <Box sx={{textAlign: 'center'}}>
                     <Button onClick={loadMoreHandler}>Load more</Button>
                 </Box>
             </DialogContent>
-            <DialogActions disableSpacing>
-                <Button onClick={closeHandler} color="primary">Close</Button>
-            </DialogActions>
         </Dialog>
     );
 }

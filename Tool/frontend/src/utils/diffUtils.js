@@ -105,8 +105,10 @@ function parsePatch(patch) {
                 additions: 0,
                 updates: 0
             },
-            oldFileName: diff.oldFileName,
-            newFileName: diff.newFileName,
+            filepath: {
+                old: diff.oldFileName,
+                new: diff.newFileName
+            },
             lines: []
         };
         const parsedLines = parsedDiff.lines;
