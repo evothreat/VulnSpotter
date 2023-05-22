@@ -130,7 +130,7 @@ UPDATE_CURR_USER = {
         },
         'password': {
             'type': 'string',
-            'minLength': 4
+            'minLength': 6
         }
     },
     'minProperties': 1,
