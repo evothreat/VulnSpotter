@@ -25,10 +25,12 @@ import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import Modal from '@mui/material/Modal';
+import HelpIcon from '@mui/icons-material/Help';
 
 
 const SHORTCUTS = [
-    { hotkey: 'Esc', description: 'Go back to main page.' },
+    { hotkey: 'Q', description: 'Show shortcuts help.' },
+    { hotkey: 'Esc', description: 'Go back to project page.' },
     { hotkey: 'Shift + →', description: 'Go to next changes.' },
     { hotkey: 'Shift + ←', description: 'Go to previous changes.' },
     { hotkey: 'Alt + →', description: 'Go to next commit.' },
@@ -76,9 +78,9 @@ function ShortcutsHelpModal({closeHandler}) {
                 </Typography>
                 <Divider/>
                 <List>
-                    {SHORTCUTS.map(({ hotkey, description }, i) => (
+                    {SHORTCUTS.map(({hotkey, description}, i) => (
                         <ListItem key={i}>
-                            <ListItemText primary={hotkey} secondary={description} />
+                            <ListItemText primary={hotkey} secondary={description}/>
                         </ListItem>
                     ))}
                 </List>
@@ -159,7 +161,8 @@ function FileInfoHeader({
                             viewMode,
                             changeViewModeHandler,
                             isFullscreenOpen,
-                            toggleFullscreenHandler
+                            toggleFullscreenHandler,
+                            openHelpHandler
                         }) {
 
     const handleViewModeChange = (event, value) => {
@@ -218,6 +221,11 @@ function FileInfoHeader({
                             : <FullscreenIcon fontSize="small"/>
                     }
                 </IconButton>
+                <Tooltip title="Help (Q)">
+                    <IconButton size="small" onClick={openHelpHandler}>
+                        <HelpIcon fontSize="small" sx={{color: 'silver'}}/>
+                    </IconButton>
+                </Tooltip>
             </Box>
         </InfoHeader>
     );
@@ -536,6 +544,7 @@ export default function Explorer() {
                                             changeViewModeHandler={setDiffViewMode}
                                             isFullscreenOpen={isFullscreenOpen}
                                             toggleFullscreenHandler={toggleFullscreen}
+                                            openHelpHandler={() => setOpenShortcutsHelp(true)}
                             />
 
                             <DiffViewer codeLines={curDiffInfo.content.lines} getMoreLines={getMoreLines}
