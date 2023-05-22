@@ -55,18 +55,16 @@ If your Flask application requires any configuration, you can modify the `config
 ```python
 # config.py
 
-DB_PATH = 'data.db'
+DB_PATH = r'test_data\data.db'
 
 JWT_SECRET_KEY = 'super_secret_key'
 
 JWT_ACCESS_TOKEN_EXPIRES = 60 * 60 * 24  # 1 day
 JWT_REFRESH_TOKEN_EXPIRES = 60 * 60 * 24 * 30  # 1 month
 
-REPOS_DIR = r'D:\Documents\test\repos'
+REPOS_DIR = r'test_data\repos'
 
-SQL_SCHEMA_PATH = r'db_schema.sql'
-
-EXPORTS_DIR = r'D:\Documents\test\exports'
+EXPORTS_DIR = r'test_data\exports'
 EXPORT_LIFETIME = 60 * 2
 ```
 

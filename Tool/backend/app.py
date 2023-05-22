@@ -1,4 +1,5 @@
-import os
+from os.path import exists as path_exists, dirname
+from os import makedirs
 import traceback
 from threading import Thread, Timer
 from uuid import uuid4
@@ -21,6 +22,8 @@ from utils import pathjoin, unix_time, pad_list
 IN_CLAUSE_BINDVAR_N = 25
 IN_CLAUSE_BINDVARS = ('?,' * IN_CLAUSE_BINDVAR_N).rstrip(',')
 
+SQL_SCHEMA_PATH = r'db_schema.sql'
+
 app = Flask(__name__)
 jwt = JWTManager(app)
 
@@ -41,7 +44,7 @@ def setup_db():
     # to speed up row-deletions
     db_conn.execute('PRAGMA secure_delete=OFF')
 
-    with open(config.SQL_SCHEMA_PATH) as f:
+    with open(SQL_SCHEMA_PATH) as f:
         db_conn.executescript(f.read())
 
     # TEST DATA
@@ -713,8 +716,21 @@ def get_commit_history(commit_id):
         }
 
 
+def setup_dirs():
+    if not path_exists(config.REPOS_DIR):
+        makedirs(config.REPOS_DIR)
+
+    if not path_exists(config.EXPORTS_DIR):
+        makedirs(config.EXPORTS_DIR)
+
+    db_dir = dirname(config.DB_PATH)
+    if not path_exists(db_dir):
+        makedirs(db_dir)
+
+
 if __name__ == '__main__':
-    if not os.path.exists(config.DB_PATH):
+    setup_dirs()
+    if not path_exists(config.DB_PATH):
         connect_db()
         setup_db()
     else:
