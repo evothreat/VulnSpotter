@@ -36,6 +36,7 @@ export default function App() {
                         </Route>
                         <Route path="account" element={<Account/>}/>
                     </Route>
+                    <Route path="/" element={<Login/>}/>
                     <Route path="/login" element={<Login/>}/>
                     <Route path="/register" element={<Register/>}/>
                     <Route path="*" element={<NotFound/>}/>
