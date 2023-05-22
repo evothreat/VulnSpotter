@@ -28,17 +28,7 @@ app.config['JWT_SECRET_KEY'] = config.JWT_SECRET_KEY
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = config.JWT_ACCESS_TOKEN_EXPIRES
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = config.JWT_REFRESH_TOKEN_EXPIRES
 
-register_boolean_type()
-db_conn = sqlite3.connect(config.DB_PATH,
-                          check_same_thread=False, isolation_level=None,
-                          detect_types=sqlite3.PARSE_DECLTYPES, factory=SqliteGuard)
-db_conn.row_factory = sqlite3.Row
-
-# to enable foreign keys constraint
-# this constraint must be enabled on each connection
-db_conn.execute('PRAGMA foreign_keys=ON')
-# lazier synchronization
-db_conn.execute('PRAGMA synchronous=NORMAL')
+db_conn = None
 
 exports_map = {}
 
@@ -78,6 +68,22 @@ def setup_db():
                             # 9
                             ('dicaprio', 'Leonardo Di Caprio', 'dicaprio@gmail.com', generate_password_hash('dicaprio'))
                         ])
+
+
+def connect_db():
+    register_boolean_type()
+
+    global db_conn
+    db_conn = sqlite3.connect(config.DB_PATH,
+                              check_same_thread=False, isolation_level=None,
+                              detect_types=sqlite3.PARSE_DECLTYPES, factory=SqliteGuard)
+    db_conn.row_factory = sqlite3.Row
+
+    # to enable foreign keys constraint
+    # this constraint must be enabled on each connection
+    db_conn.execute('PRAGMA foreign_keys=ON')
+    # lazier synchronization
+    db_conn.execute('PRAGMA synchronous=NORMAL')
 
 
 def notify(users, actor_id, activity, proj_id):
@@ -698,9 +704,9 @@ def get_commit_history(commit_id):
         commit = repo.commit(f'{data["hash"]}~{start}')
 
         parents = [extract_commit_info(c) for c in commit.iter_parents(max_count=ctx_size)]
-        
+
         # we can't retrieve children, because they aren't referenced by parents, and we don't have their hashes :(
-        
+
         return {
             'commit': extract_commit_info(commit),
             'parents': parents,
@@ -708,5 +714,9 @@ def get_commit_history(commit_id):
 
 
 if __name__ == '__main__':
-    # setup_db()
+    if not os.path.exists(config.DB_PATH):
+        connect_db()
+        setup_db()
+    else:
+        connect_db()
     app.run()
