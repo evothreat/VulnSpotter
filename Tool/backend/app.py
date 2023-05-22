@@ -56,27 +56,26 @@ def setup_db():
 
     # TEST DATA
     # users
-    db_conn.executemany('INSERT INTO users(username,full_name,email,password) VALUES (?,?,?,?)',
+    db_conn.executemany('INSERT INTO users(username,full_name,password) VALUES (?,?,?)',
                         [
                             # 1
-                            ('admin', 'Johnny Cash', 'admin@vuln.com', generate_password_hash('admin')),
+                            ('admin', 'Johnny Cash', generate_password_hash('admin')),
                             # 2
-                            ('rambo', 'John Rambo', 'rambo@gmail.com', generate_password_hash('rambo')),
+                            ('rambo', 'John Rambo', generate_password_hash('rambo')),
                             # 3
-                            ('campbell', 'Bruce Campbell', 'campbell@gmail.com', generate_password_hash('campbell')),
+                            ('campbell', 'Bruce Campbell', generate_password_hash('campbell')),
                             # 4
-                            ('williams', 'Ash Williams', 'williams@gmail.com', generate_password_hash('williams')),
+                            ('williams', 'Ash Williams', generate_password_hash('williams')),
                             # 5
-                            ('nolan', 'Christopher Nolan', 'nolan@gmail.com', generate_password_hash('nolan')),
+                            ('nolan', 'Christopher Nolan', generate_password_hash('nolan')),
                             # 6
-                            ('chan', 'Jackie Chan', 'chan@gmail.com', generate_password_hash('chan')),
+                            ('chan', 'Jackie Chan', generate_password_hash('chan')),
                             # 7
-                            ('vandamme', 'Jean Claude Van Damme', 'vandamme@gmail.com',
-                             generate_password_hash('vandamme')),
+                            ('vandamme', 'Jean Claude Van Damme', generate_password_hash('vandamme')),
                             # 8
-                            ('cage', 'Nicolas Cage', 'cage@gmail.com', generate_password_hash('cage')),
+                            ('cage', 'Nicolas Cage', generate_password_hash('cage')),
                             # 9
-                            ('dicaprio', 'Leonardo Di Caprio', 'dicaprio@gmail.com', generate_password_hash('dicaprio'))
+                            ('dicaprio', 'Leonardo Di Caprio', generate_password_hash('dicaprio'))
                         ])
 
 
@@ -110,7 +109,7 @@ def register():
         with db_conn:
             record_id = db_conn.execute(
                 'INSERT INTO users(full_name,email,username,password) VALUES (?,?,?,?)',
-                (data['full_name'], data['email'], data['username'], generate_password_hash(data['password']))
+                (data['full_name'], data['username'], generate_password_hash(data['password']))
             ).lastrowid
 
             return {'resource_id': record_id}, 201
@@ -708,5 +707,5 @@ def get_commit_history(commit_id):
 
 
 if __name__ == '__main__':
-    # setup_db()
+    #setup_db()
     app.run()
