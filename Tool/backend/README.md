@@ -115,5 +115,3 @@ Once the installation is complete and the necessary configurations have been mad
 Congratulations! You have successfully installed the necessary requirements, configured the Flask server, and started it. You can now access your Flask application by opening a web browser and navigating to the provided URL.
 
 Remember to keep the terminal or command prompt open while the server is running. You can stop the server at any time by pressing `Ctrl + C` in the terminal.
-
-Enjoy developing your Flask application

@@ -61,5 +61,3 @@ If you want to build your React app for production deployment, follow these addi
 2. Once the build process completes, you can deploy the contents of the `build` directory to a web server or any hosting platform of your choice.
 
 Remember to update any necessary configurations, such as API endpoints, before building the app for production.
-
-Enjoy developing your React app!
