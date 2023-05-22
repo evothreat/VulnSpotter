@@ -18,8 +18,9 @@ class AuthService {
         TokenService.invalidate();
     }
 
-    register(username, email, password) {
+    register(full_name, username, email, password) {
         return api.post('/register', {
+            'full_name': full_name,
             'username': username,
             'email': email,
             'password': password
