@@ -7,10 +7,10 @@ REGISTER = {
         'full_name': {
             'type': 'string'
         },
-        # 'email': {
-        #     'type': 'string',
-        #     'format': 'email'
-        # },
+        'email': {
+            'type': 'string',
+            'format': 'email'
+        },
         'username': {
             'type': 'string'
         },

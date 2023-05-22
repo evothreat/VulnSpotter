@@ -3,6 +3,7 @@ CREATE TABLE users
     id        INTEGER PRIMARY KEY,
     username  TEXT UNIQUE,
     full_name TEXT,
+    email     TEXT,
     password  TEXT
 );
 
