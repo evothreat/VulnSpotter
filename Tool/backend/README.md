@@ -1,4 +1,4 @@
-# Flask Server Installation and Setup Guide
+# Starting Flask Server
 
 This guide will walk you through the process of installing the necessary requirements and starting a Flask server on your local machine. Flask is a popular Python web framework used for building web applications.
 
