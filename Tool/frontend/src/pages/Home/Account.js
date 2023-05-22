@@ -110,7 +110,7 @@ export default function Account() {
                 </Stack>
 
                 <Stack sx={{gap: '10px', flex: '1'}}>
-                    <FormTextField type="password" label="Password (min. 4 characters)" name="password1"
+                    <FormTextField type="password" label="Password (min. 6 characters)" name="password1"
                                    value={password1} onChange={e => setPassword1(e.target.value)}
                                    error={inputErrors.password1}/>
                     <FormTextField type="password" label="Confirm password" name="password2"
