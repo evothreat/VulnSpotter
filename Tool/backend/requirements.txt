@@ -1,0 +1,8 @@
+Flask==2.3.2
+Flask_JWT_Extended==4.4.4
+git_vuln_finder==1.4
+GitPython==3.1.31
+jsonschema==4.17.3
+psutil==5.9.5
+Requests==2.30.0
+Werkzeug==2.3.4
