@@ -16,7 +16,7 @@ REGISTER = {
         },
         'password': {
             'type': 'string',
-            'minLength': 4
+            'minLength': 6
         }
     },
     'minProperties': 4,
