@@ -7,7 +7,6 @@ import git
 
 import config
 from diff_parser import parse_diff_linenos
-from profiler import profile
 from utils import pathjoin, pad_list
 
 GET_CONTENT_BINDVAR_N = 250
@@ -15,7 +14,6 @@ GET_CONTENT_STMT = \
     f"SELECT diff_id,content FROM diff_content cd WHERE diff_id IN ({(GET_CONTENT_BINDVAR_N * '?,').rstrip(',')})"
 
 
-@profile
 def gen_export_file(proj_id):
     conn = sqlite3.connect(config.DB_PATH, isolation_level=None, detect_types=sqlite3.PARSE_DECLTYPES)
     conn.row_factory = sqlite3.Row

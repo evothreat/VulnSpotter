@@ -15,7 +15,6 @@ import config
 from cve_lookup import get_cve_info
 from enums import Role
 from diff_parser import parse_diff_file_ext
-from profiler import profile
 from utils import normpath, pathjoin, split_on_startswith, unix_time
 
 
@@ -85,7 +84,6 @@ def create_cve_records(repo_name, cve_list):
                          'VALUES (?,?,?,?,?)', rows)
 
 
-@profile
 def create_project_from_repo(user_id, repo_url, proj_name, extensions):
     parts = urlparse(repo_url)
     repo_loc = normpath(parts.netloc + parts.path.rstrip('.git'))
