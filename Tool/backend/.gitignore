@@ -187,7 +187,5 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# database
-*.db
-/data.db-shm
-/data.db-wal
+# test_data folder
+/test_data
