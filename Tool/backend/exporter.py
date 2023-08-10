@@ -49,8 +49,9 @@ def gen_export_file(proj_id):
     export_fpath = pathjoin(config.EXPORTS_DIR, gen_export_filename(proj_info['name'])) + '.json'
 
     with open(export_fpath, 'w') as f:
-        f.write('[\n')
-
+        f.write('{\n')
+        f.write('    "repository": "{}",\n'.format(proj_info['repository']))    # NOTE: maybe refactor later
+        f.write('    "commits": [\n')
         commit_obj = {}
 
         for i in range(0, len(diff_ids), GET_CONTENT_BINDVAR_N):
@@ -83,7 +84,8 @@ def gen_export_file(proj_id):
         if commit_obj:
             json.dump(commit_obj, f, indent=4)
 
-        f.write('\n]')
+        f.write('\n]\n')
+        f.write('\n}')
 
     conn.close()
 
