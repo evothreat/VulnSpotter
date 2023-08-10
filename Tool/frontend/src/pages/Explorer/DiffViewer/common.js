@@ -4,17 +4,29 @@ import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "../Icons";
 import Prism from "prismjs";
 import {DiffType} from "../../../utils/diffUtils";
 
+let viewedCodeLanguage;
+
+export function setViewedCodeLanguage(lang) {
+    viewedCodeLanguage = lang;
+}
+
+export function getViewedCodeLanguage() {
+    return viewedCodeLanguage;
+}
+
 export function generateId() {
     return nanoid(10);
 }
 
 export function highlightSyntax(str) {
+    const lang = viewedCodeLanguage || 'clike';
+
     return (
         typeof str === 'string'
             ? <pre
                 className={diffCss.highlighter}
                 dangerouslySetInnerHTML={{
-                    __html: Prism.highlight(str, Prism.languages.clike, 'clike'),
+                    __html: Prism.highlight(str, Prism.languages[lang], lang),
                 }}
             />
             : str

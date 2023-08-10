@@ -3,7 +3,7 @@ import React, {useEffect, useRef, useState} from "react";
 import {useLocation, useNavigate, useSearchParams} from "react-router-dom";
 import CommitsService from "../../services/CommitsService";
 import {parsePatch} from "../../utils/diffUtils";
-import {getCvss3Severity, isObjEmpty, mod, normalizeText} from "../../utils/common";
+import {getCvss3Severity, getFileCodeLang, getFileExt, isObjEmpty, mod, normalizeText} from "../../utils/common";
 import useHotkeys from "./useHotkeys";
 import CveViewer from "./CveViewer";
 import WindowTitle from "./WindowTitle";
@@ -553,6 +553,7 @@ export default function Explorer() {
                                             setRightRef: el => windowRefs[3].current = el
                                         }}
                                         viewMode={diffViewMode}
+                                        codeLang={getFileCodeLang(curDiffInfo.content.filepath.new)}
                             />
                         </Box>
                     )
