@@ -1,7 +1,8 @@
 import {nanoid} from "nanoid";
+import Prism from "prismjs";
+import 'prismjs/themes/prism.css';
 import diffCss from "./DiffViewer.module.css";
 import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "../Icons";
-import Prism from "prismjs";
 import {DiffType} from "../../../utils/diffUtils";
 
 let viewedCodeLanguage;
