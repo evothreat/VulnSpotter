@@ -1,5 +1,5 @@
 from os.path import exists as path_exists, dirname
-from os import makedirs
+from os import makedirs, remove as remove_file
 import traceback
 from threading import Thread, Timer
 from uuid import uuid4
@@ -606,7 +606,7 @@ def delete_member(proj_id, member_id):
 
 
 def delete_export(export_id):
-    os.remove(exports_map[export_id])
+    remove_file(exports_map[export_id])
     del exports_map[export_id]
 
 
