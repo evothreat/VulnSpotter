@@ -2,6 +2,36 @@ const EMAIL_RE = /^\S+@\S+\.\S+$/;
 const GIT_HTTP_URL_RE = /^(https?|git):\/\/(www\.)?(github|gitlab|bitbucket)\.com\/([\w-]+\/){1,2}([\w-]+)(\.git)?$/;
 const COMMIT_CVE_RE = /CVE-\d{4}-\d{4,}/gmi;
 
+const EXT_TO_CODE_LANG = Object.freeze({
+    py: 'python',
+    js: 'javascript',
+    java: 'java',
+    cpp: 'cpp',
+    cxx: 'cpp',
+    cc: 'cpp',
+    c: 'c',
+    h: 'c',
+    hpp: 'cpp',
+    hxx: 'cpp',
+    cs: 'csharp',
+    go: 'go',
+    rb: 'ruby',
+    rs: 'rust',
+    swift: 'swift',
+    m: 'objectivec',
+    mm: 'objectivec',
+    kt: 'kotlin',
+    ts: 'typescript',
+    scala: 'scala',
+    php: 'php',
+    pl: 'perl',
+    lua: 'lua',
+    r: 'r',
+    groovy: 'groovy',
+    sql: 'sql'
+});
+
+
 function fmtTimeSince(time) {
     const date = typeof time === 'number' ? new Date(time * 1000) : time;
     const seconds = Math.floor((new Date() - date) / 1000);
@@ -199,6 +229,19 @@ function remove(a, id) {
     return a.filter(v => v.id !== id);
 }
 
+function getFileExt(filepath) {
+    const parts = filepath.split('.');
+    return parts.length > 1 ? parts.pop() : '';
+}
+
+function fileExtToCodeLang(ext) {
+    return EXT_TO_CODE_LANG[ext] || '';
+}
+
+function getFileCodeLang(filepath) {
+    return fileExtToCodeLang(getFileExt(filepath));
+}
+
 export {
     fmtTimeSince,
     createComparator,
@@ -222,5 +265,8 @@ export {
     hasNonEmptyLine,
     complement,
     equals,
-    remove
+    remove,
+    getFileExt,
+    fileExtToCodeLang,
+    getFileCodeLang
 };

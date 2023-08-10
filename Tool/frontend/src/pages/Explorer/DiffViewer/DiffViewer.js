@@ -1,10 +1,11 @@
-import "../../../prism.css";
+import 'prismjs/themes/prism.css';
 import diffCss from "./DiffViewer.module.css"
 import classnames from "classnames";
 import {Fragment, useEffect, useState} from "react";
 import {areHunksSequent, calcHunks, createLineDiff, DiffType} from "../../../utils/diffUtils";
 import useSyncScroller from "../useSyncScroller";
 import {generateId} from "./common";
+//import {setViewedCodeLanguage, viewedCodeLanguage} from "./common";
 import {renderSplitDiffRows} from "./splitDiff";
 import {renderUnifiedDiffRows} from "./unifiedDiff";
 
@@ -101,7 +102,7 @@ function toLineDiffs(lines, beginLeft, beginRight, direction) {
     return lines.map(l => createLineDiff(beginLeft++, beginRight++, DiffType.CONSTANT, l));
 }
 
-export default function DiffViewer({codeLines, getMoreLines, setWinRef, viewMode}) {
+export default function DiffViewer({codeLines, getMoreLines, setWinRef, viewMode, codeLang}) {
 
     const [lineHunks, setLineHunks] = useState(null);
     const [hasBottomExpander, setHasBottomExpander] = useState(true);
@@ -111,6 +112,7 @@ export default function DiffViewer({codeLines, getMoreLines, setWinRef, viewMode
                 calcHunks(codeLines).map(h => createHunk(h, h.some(isNotConstant)))
             ),
         [codeLines]);
+    //setViewedCodeLanguage(codeLang); // NOTE: global variables are antipattern... maybe use context instead
 
     const handleExpand = async (direction, hunkId) => {
         const hunkIndex = lineHunks.findIndex(hunk => hunk.id === hunkId);
