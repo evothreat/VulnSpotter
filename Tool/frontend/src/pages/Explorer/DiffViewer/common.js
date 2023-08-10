@@ -19,14 +19,15 @@ export function generateId() {
 }
 
 export function highlightSyntax(str) {
-    const lang = viewedCodeLanguage || 'clike';
+    const langText = viewedCodeLanguage || 'clike';
+    const langGrammar = Prism.languages[langText] || Prism.languages.clike;
 
     return (
         typeof str === 'string'
             ? <pre
                 className={diffCss.highlighter}
                 dangerouslySetInnerHTML={{
-                    __html: Prism.highlight(str, Prism.languages[lang], lang),
+                    __html: Prism.highlight(str, langText, langGrammar),
                 }}
             />
             : str
