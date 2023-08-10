@@ -27,7 +27,7 @@ export function highlightSyntax(str) {
             ? <pre
                 className={diffCss.highlighter}
                 dangerouslySetInnerHTML={{
-                    __html: Prism.highlight(str, langText, langGrammar),
+                    __html: Prism.highlight(str, langGrammar, langText),
                 }}
             />
             : str
