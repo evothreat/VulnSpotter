@@ -15,7 +15,7 @@ import TableContainer from "@mui/material/TableContainer";
 import Table from "@mui/material/Table";
 import EnhancedTableHead from "@components/EnhancedTableHead";
 import ProjectsService from "@services/ProjectsService";
-import {useNavigate, useParams} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import FindInPageIcon from "@mui/icons-material/FindInPage";
 import commitsCss from "./Commits.module.css"
 import RouterLink from "@components/RouterLink";
@@ -25,6 +25,7 @@ import SimpleCheckbox from "@components/SimpleCheckbox";
 import MainActionButton from "@components/MainActionButton";
 import PageHeader from "@components/PageHeader";
 import {VULN_KEYWORDS} from "@root/constants";
+import {useProject} from "./useProject";
 
 
 const headCells = [
@@ -213,12 +214,11 @@ function restoreFilterOpts(projId) {
 
 export default function Commits() {
     const navigate = useNavigate();
-    const params = useParams();
-    const projId = parseInt(params.projId);
+    const [project,] = useProject();
 
     const [commits, setCommits] = useState(null);
 
-    const searchOpts = useMemo(() => restoreFilterOpts(projId), [projId]);
+    const searchOpts = useMemo(() => restoreFilterOpts(project.id), [project.id]);
     const [group, setGroup] = useState(searchOpts.group);
     const [keywords, setKeywords] = useState(searchOpts.keywords);
     const [logicalOp, setLogicalOp] = useState(searchOpts.logicalOp);
@@ -232,7 +232,7 @@ export default function Commits() {
         const groupCp = group;    // need this to avoid race conditions
         const reqOpts = groupCp === 'all' ? null : {rated: (groupCp === 'rated')};
 
-        ProjectsService.getCommits(projId, reqOpts)
+        ProjectsService.getCommits(project.id, reqOpts)
             .then(data => {
                 if (groupCp !== group) {
                     return;
@@ -248,17 +248,17 @@ export default function Commits() {
 
                 setCommits(data);
             });
-    }, [projId, group]);
+    }, [project.id, group]);
 
     useEffect(() => {
-        sessionStorage.setItem(`searchOpts_${projId}`, JSON.stringify({
+        sessionStorage.setItem(`searchOpts_${project.id}`, JSON.stringify({
                 group: group,
                 keywords: keywords,
                 logicalOp: logicalOp,
                 sorter: sorter
             })
         );
-    }, [projId, group, keywords, logicalOp, sorter]);
+    }, [project.id, group, keywords, logicalOp, sorter]);
 
     const handleGroupChange = (e, val) => {
         if (val) {

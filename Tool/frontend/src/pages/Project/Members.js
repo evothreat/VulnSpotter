@@ -20,11 +20,11 @@ import TextField from "@mui/material/TextField";
 import ProjectsService from "@services/ProjectsService";
 import EnhancedAlert from "@components/EnhancedAlert";
 import InvitesService from "@services/InvitesService";
-import {useParams} from "react-router-dom";
 import MainActionButton from "@components/MainActionButton";
 import ActionButton from "@components/ActionButton";
 import PageHeader from "@components/PageHeader";
 import {fmtTimeSince} from "@utils/common";
+import {useProject} from "./useProject";
 
 
 const headCells = [
@@ -87,8 +87,7 @@ function renderMemberRow(item, deleteHandler) {
 }
 
 function MembersTable({items, setItems}) {
-    const params = useParams();
-    const projId = parseInt(params.projId);
+    const [project,] = useProject();
 
     const [sorter, setSorter] = useState({
         order: 'asc',
@@ -114,7 +113,7 @@ function MembersTable({items, setItems}) {
         setItemToDelete(null);
 
         const req = item.active
-            ? ProjectsService.removeMember(projId, item.id)
+            ? ProjectsService.removeMember(project.id, item.id)
             : InvitesService.deleteSent(item.invite_id);
 
         req.then(() => setItems(curItems => Utils.remove(curItems, item.id)));
@@ -204,15 +203,14 @@ function InviteUsersDialog({members, inviteHandler, closeHandler}) {
 }
 
 export default function Members() {
-    const params = useParams();
-    const projId = parseInt(params.projId);
+    const [project,] = useProject();
 
     const [projMembers, setProjMembers] = useState(null);
     const [openInviteDlg, setOpenInviteDlg] = useState(false);
     const [alertMsg, setAlertMsg] = useState('');
 
     useEffect(() => {
-        Promise.all([ProjectsService.getMembers(projId), ProjectsService.getInvites(projId)])
+        Promise.all([ProjectsService.getMembers(project.id), ProjectsService.getInvites(project.id)])
             .then(data => {
                 const members = data[0];
                 const invitees = data[1].map(inv => {
@@ -229,12 +227,12 @@ export default function Members() {
                 members.forEach(m => m.active = true);
                 setProjMembers(members.concat(invitees));
             });
-    }, [projId]);
+    }, [project.id]);
 
     const handleInvite = selUsers => {
         setOpenInviteDlg(false);
 
-        Promise.all(selUsers.map(u => InvitesService.send(projId, u.id)))
+        Promise.all(selUsers.map(u => InvitesService.send(project.id, u.id)))
             .then(data => {
                 setAlertMsg('Invites were successfully sent to users.');
 

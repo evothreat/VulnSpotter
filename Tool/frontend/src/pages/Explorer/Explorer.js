@@ -27,7 +27,8 @@ import ListItemText from '@mui/material/ListItemText';
 import Modal from '@mui/material/Modal';
 import HelpIcon from '@mui/icons-material/Help';
 import Link from "@mui/material/Link";
-
+import {useProject} from "@pages/Project/useProject";
+import {getIssueBaseUrl} from "@utils/common";
 
 const SHORTCUTS = [
     { hotkey: 'Q', description: 'Show shortcuts help.' },
@@ -259,6 +260,8 @@ function FileInfoHeader({
 }
 
 export default function Explorer() {
+    //const [project,] = useProject();
+
     const navigate = useNavigate();
     const {state: locState} = useLocation();
     const [queryArgs,] = useSearchParams();
