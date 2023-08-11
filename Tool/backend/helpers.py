@@ -15,7 +15,7 @@ import config
 from cve_lookup import get_cve_info
 from enums import Role
 from diff_parser import parse_diff_file_ext
-from utils import normpath, pathjoin, split_on_startswith, unix_time
+from utils import normpath, pathjoin, split_on_startswith, unix_time, any_line_startswith
 
 
 def validate_request_json(schema):
@@ -70,8 +70,12 @@ def last_insert_rowid(conn):
 def get_commit_diffs(repo, commit_hash):
     patch = repo.git.diff(commit_hash + '~', commit_hash,
                           ignore_all_space=True, ignore_blank_lines=True,
-                          diff_filter='MA', no_prefix=True, binary=False)
-    return split_on_startswith(patch, 'diff')
+                          diff_filter='MA', no_prefix=True)
+
+    return [
+        diff for diff in split_on_startswith(patch, 'diff')
+        if not any_line_startswith(diff, 'Binary')  # Binary files
+    ]
 
 
 def create_cve_records(repo_name, cve_list):
@@ -122,8 +126,9 @@ def create_project_from_repo(user_id, repo_url, proj_name, extensions):
     create_cve_records(repo_name, found_cve_list)
 
     with open_db_transaction() as conn:
-        proj_id = conn.execute('INSERT INTO projects(owner_id,name,repository,extensions,created_at) VALUES (?,?,?,?,?)',
-                               (user_id, proj_name, repo_loc, ','.join(extensions), unix_time())).lastrowid
+        proj_id = conn.execute(
+            'INSERT INTO projects(owner_id,name,repository,extensions,created_at) VALUES (?,?,?,?,?)',
+            (user_id, proj_name, repo_loc, ','.join(extensions), unix_time())).lastrowid
 
         conn.execute('INSERT INTO membership(user_id,project_id,role,joined_at) VALUES (?,?,?,?)',
                      (user_id, proj_id, Role.OWNER, unix_time()))

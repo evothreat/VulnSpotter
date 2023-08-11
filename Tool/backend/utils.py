@@ -66,3 +66,7 @@ def split_on_startswith(s, delim):
 
 def pad_list(lis, size, elem=None):
     lis.extend([elem] * (size - len(lis)))
+
+
+def any_line_startswith(s, prefix):
+    return any(line.startswith(prefix) for line in s.splitlines())
