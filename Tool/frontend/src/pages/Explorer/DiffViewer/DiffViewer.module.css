@@ -120,25 +120,18 @@
     margin: 1px;
 }
 
-.tablesContainer {
+.diffWindow {
     flex: 1;
     display: flex;
+}
+
+.diffWindow * {
+    box-sizing: border-box;
 }
 
 .tableSep {
     flex: none;
     border-left: thin solid #dbdbdb;
-}
-
-.diffViewer {
-    display: flex;
-    flex-direction: column;
-    /* if in flex-container, take whole space */
-    flex: 1;
-}
-
-.diffViewer * {
-    box-sizing: border-box;
 }
 
 :global(.token.operator) {
