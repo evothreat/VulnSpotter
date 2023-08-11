@@ -26,6 +26,7 @@ import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import Modal from '@mui/material/Modal';
 import HelpIcon from '@mui/icons-material/Help';
+import Link from "@mui/material/Link";
 
 
 const SHORTCUTS = [
@@ -55,6 +56,32 @@ const RATE_KEYS = ['v', 'b', 'n'];
     const regex = new RegExp(`\\b(${kws.join('|')})\\b`, 'gi');
     return text.replace(regex, '<span style="background-color: yellow;">$1</span>');
 }*/
+
+function linkifyMUI(text) {
+    const urlRegex = /https?:\/\/[^\s]+/g;
+    const parts = [];
+    let lastIndex = 0;
+
+    text.replace(urlRegex, (url, index) => {
+        // Add text leading up to the URL.
+        parts.push(text.substring(lastIndex, index));
+
+        // Add the linkified URL.
+        parts.push(
+            <Link href={url} key={url} target="_blank" rel="noopener noreferrer">
+                {url}
+            </Link>
+        );
+
+        // Update the last index.
+        lastIndex = index + url.length;
+    });
+
+    // Add any remaining text.
+    parts.push(text.substring(lastIndex));
+
+    return parts;
+}
 
 function ShortcutsHelpModal({closeHandler}) {
     return (
@@ -110,7 +137,7 @@ function MessageWindow({message, setWinRef}) {
             <WindowTitle title="Message"/>
             <Box ref={setWinRef} tabIndex="1" sx={{flex: '1 1 0', overflowY: 'auto', m: '1px'}}>
                 <TextWrapper sx={{padding: '10px 15px', fontSize: '14px'}}>
-                    {normalizeText(message)}
+                    {linkifyMUI(normalizeText(message))}
                 </TextWrapper>
             </Box>
         </Box>
