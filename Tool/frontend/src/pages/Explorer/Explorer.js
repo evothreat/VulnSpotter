@@ -527,7 +527,7 @@ export default function Explorer() {
                 )
             }
             <Divider orientation="vertical" flexItem/>
-            <Box sx={{flex: '2.5', display: 'flex'}}>
+            <Box sx={{flex: '2.6', display: 'flex'}}>
                 {
                     // we need this flexbox because if diffs is null, the left column will stretch
                     curDiffInfo && (
