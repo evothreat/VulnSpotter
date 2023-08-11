@@ -63,7 +63,7 @@ function DiffWindow({lineHunks, expandHandler, hasBottomExpander, setWinRef, vie
     };
 
     return lines && (
-        <div className={diffCss.tablesContainer}>
+        <div className={diffCss.diffWindow}>
             <div ref={setLeftWinRefs} className={classnames(diffCss.tableBox, diffCss.hideScrollbar)} tabIndex="1">
                 <table className={diffCss.diffTable}>
                     <tbody>
@@ -167,12 +167,8 @@ export default function DiffViewer({codeLines, getMoreLines, setWinRef, viewMode
     };
 
     return (
-        <div className={diffCss.diffViewer}>
-            {
-                lineHunks && <DiffWindow lineHunks={lineHunks} expandHandler={handleExpand} setWinRef={setWinRef}
-                                         hasBottomExpander={hasBottomExpander} viewMode={viewMode}/>
-            }
-        </div>
+        lineHunks && <DiffWindow lineHunks={lineHunks} expandHandler={handleExpand} setWinRef={setWinRef}
+                                 hasBottomExpander={hasBottomExpander} viewMode={viewMode}/>
     );
 }
 export {DiffViewMode};
