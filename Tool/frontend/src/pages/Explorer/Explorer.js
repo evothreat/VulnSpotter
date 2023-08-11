@@ -553,7 +553,7 @@ export default function Explorer() {
                                             setRightRef: el => windowRefs[3].current = el
                                         }}
                                         viewMode={diffViewMode}
-                                        codeLang={getFileCodeLang(curDiffInfo.content.filepath.new)}
+                                        codeLang={getFileCodeLang(curDiffInfo.content.filepath.cur)}
                             />
                         </Box>
                     )
