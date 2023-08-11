@@ -242,6 +242,29 @@ function getFileCodeLang(filepath) {
     return fileExtToCodeLang(getFileExt(filepath));
 }
 
+function getIssueBaseUrl(urn) {
+    const parts = urn.split('/');
+
+    if (parts.length < 3) {
+        return '';
+    }
+
+    const platform = parts[0];
+    const username = parts[1];
+    const repository = parts[2];
+
+    switch (platform) {
+        case 'github.com':
+            return `https://github.com/${username}/${repository}/issues/`;
+        case 'gitlab.com':
+            return `https://gitlab.com/${username}/${repository}/-/issues/`;
+        case 'bitbucket.org':
+            return `https://bitbucket.org/${username}/${repository}/issues/`;
+        default:
+            return '';
+    }
+}
+
 export {
     fmtTimeSince,
     createComparator,
@@ -268,5 +291,6 @@ export {
     remove,
     getFileExt,
     fileExtToCodeLang,
-    getFileCodeLang
+    getFileCodeLang,
+    getIssueBaseUrl
 };

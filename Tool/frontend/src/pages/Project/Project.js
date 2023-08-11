@@ -1,4 +1,3 @@
-import {useParams} from "react-router-dom";
 import * as React from "react";
 import {useState} from "react";
 import Sidebar from "./Sidebar";
@@ -6,7 +5,6 @@ import Commits from "./Commits";
 import Members from "./Members";
 import LayoutBody from "@layout/LayoutBody";
 import Settings from "./Settings";
-import {ProjectProvider} from "./useProject";
 
 
 function getView(key, props) {
@@ -23,19 +21,13 @@ function getView(key, props) {
 }
 
 export default function Project() {
-    const params = useParams();
-    const projId = parseInt(params.projId);
-
     const [viewKey, setViewKey] = useState('commits');
-
     const handleViewChange = viewId => setViewKey(viewId);
 
     return (
-        <ProjectProvider projectId={projId}>
-            <LayoutBody>
-                <Sidebar viewKey={viewKey} viewChangeHandler={handleViewChange}/>
-                {getView(viewKey)}
-            </LayoutBody>
-        </ProjectProvider>
+        <LayoutBody>
+            <Sidebar viewKey={viewKey} viewChangeHandler={handleViewChange}/>
+            {getView(viewKey)}
+        </LayoutBody>
     );
 }

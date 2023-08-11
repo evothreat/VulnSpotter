@@ -10,6 +10,7 @@ import {ThemeProvider} from "@mui/material/styles";
 import {appTheme} from "./theme";
 import Account from "./pages/Home/Account";
 import Register from "./pages/Auth/Register";
+import {ProjectProvider} from "./pages/Project/useProject";
 
 
 function RequireAuth() {
@@ -23,6 +24,14 @@ function RequireAuth() {
     return <Navigate to="/login"/>;
 }
 
+function ProjectContext() {
+    return (
+        <ProjectProvider>
+            <Outlet/>
+        </ProjectProvider>
+    );
+}
+
 export default function App() {
     return (
         <ThemeProvider theme={appTheme}>
@@ -31,8 +40,10 @@ export default function App() {
                     <Route path="/home" element={<RequireAuth/>}>
                         <Route path="projects">
                             <Route index element={<Projects/>}/>
-                            <Route path=":projId" element={<Project/>}/>
-                            <Route path=":projId/explorer" element={<Explorer/>}/>
+                            <Route path=":projId" element={<ProjectContext/>}>
+                                <Route index element={<Project />} />
+                                <Route path="explorer" element={<Explorer />} />
+                            </Route>
                         </Route>
                         <Route path="account" element={<Account/>}/>
                     </Route>
