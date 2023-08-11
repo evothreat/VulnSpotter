@@ -1,9 +1,12 @@
 import {nanoid} from "nanoid";
 import Prism from "prismjs";
+import './prism-imports';
 import 'prismjs/themes/prism.css';
+
 import diffCss from "./DiffViewer.module.css";
 import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "../Icons";
 import {DiffType} from "../../../utils/diffUtils";
+
 
 let viewedCodeLanguage;
 
@@ -20,15 +23,20 @@ export function generateId() {
 }
 
 export function highlightSyntax(str) {
-    const langText = viewedCodeLanguage || 'clike';
-    const langGrammar = Prism.languages[langText] || Prism.languages.clike;
+    let langGrammar = Prism.languages[viewedCodeLanguage];
+    let langKey = viewedCodeLanguage;
+
+    if (!langGrammar) {
+        langGrammar = Prism.languages.clike;
+        langKey = 'clike';
+    }
 
     return (
         typeof str === 'string'
             ? <pre
                 className={diffCss.highlighter}
                 dangerouslySetInnerHTML={{
-                    __html: Prism.highlight(str, langGrammar, langText),
+                    __html: Prism.highlight(str, langGrammar, langKey),
                 }}
             />
             : str
