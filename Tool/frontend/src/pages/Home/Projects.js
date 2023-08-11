@@ -4,15 +4,15 @@ import Typography from "@mui/material/Typography";
 import AddIcon from '@mui/icons-material/Add';
 import Button from "@mui/material/Button";
 import ProjectsTable from "./ProjectsTable";
-import ProjectsService from "../../services/ProjectsService";
+import ProjectsService from "@services/ProjectsService";
 import {Autocomplete, Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/material";
 import TextField from "@mui/material/TextField";
-import EnhancedAlert from "../../components/EnhancedAlert";
-import MainActionButton from "../../components/MainActionButton";
-import PageHeader from "../../components/PageHeader";
-import LayoutBody from "../../layout/LayoutBody";
-import {FILE_EXTENSIONS} from "../../constants";
-import {isValidGitRepoUrl} from "../../utils/common";
+import EnhancedAlert from "@components/EnhancedAlert";
+import MainActionButton from "@components/MainActionButton";
+import PageHeader from "@components/PageHeader";
+import LayoutBody from "@layout/LayoutBody";
+import {FILE_EXTENSIONS} from "@root/constants";
+import {isValidGitRepoUrl} from "@utils/common";
 
 
 function CreateProjectDialog({closeHandler, createHandler}) {

@@ -1,16 +1,16 @@
 import {Fade, List, ListItem, ListItemIcon, ListItemText, ListSubheader, Popover} from "@mui/material";
 import Typography from "@mui/material/Typography";
-import * as Utils from "../../utils/common";
+import * as Utils from "@utils/common";
 import Box from "@mui/material/Box";
 import * as React from "react";
 import {Fragment, useEffect, useState} from "react";
-import InvitesService from "../../services/InvitesService";
+import InvitesService from "@services/InvitesService";
 import IconButton from "@mui/material/IconButton";
 import EmailIcon from "@mui/icons-material/Email";
 import ForwardToInboxIcon from '@mui/icons-material/ForwardToInbox';
 import Button from "@mui/material/Button";
 import EmptyListMsg from "./EmptyListMsg";
-import NewMessageBadge from "../../components/NewMessageBadge";
+import NewMessageBadge from "@components/NewMessageBadge";
 
 
 // put buttons in secondary

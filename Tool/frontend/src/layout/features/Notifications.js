@@ -1,17 +1,17 @@
 import {getMessage} from "./message";
 import {Fade, List, ListItem, ListItemIcon, ListItemText, ListSubheader, Popover} from "@mui/material";
 import Typography from "@mui/material/Typography";
-import * as Utils from "../../utils/common";
+import * as Utils from "@utils/common";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
 import * as React from "react";
 import {Fragment, useEffect, useState} from "react";
-import NotificationsService from "../../services/NotificationsService";
+import NotificationsService from "@services/NotificationsService";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import CircleIcon from "@mui/icons-material/Circle";
 import EmptyListMsg from "./EmptyListMsg";
-import NewMessageBadge from "../../components/NewMessageBadge";
+import NewMessageBadge from "@components/NewMessageBadge";
 
 
 // TODO: delete notifications after seeing them automatically?

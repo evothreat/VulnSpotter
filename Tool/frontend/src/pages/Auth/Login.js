@@ -10,7 +10,7 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import {Alert} from "@mui/material";
 import {useState} from "react";
-import AuthService from "../../services/AuthService";
+import AuthService from "@services/AuthService";
 import {useNavigate} from "react-router-dom";
 
 

@@ -8,18 +8,18 @@ import TableRow from '@mui/material/TableRow';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
 import {Dialog, DialogActions, DialogContent, DialogTitle, ToggleButton, ToggleButtonGroup,} from "@mui/material";
-import {SearchBar} from "../../components/SearchBar";
+import {SearchBar} from "@components/SearchBar";
 import Box from "@mui/material/Box";
-import * as Utils from "../../utils/common";
-import {fmtTimeSince} from "../../utils/common";
+import * as Utils from "@utils/common";
+import {fmtTimeSince} from "@utils/common";
 import Button from "@mui/material/Button";
-import ProjectsService from "../../services/ProjectsService";
+import ProjectsService from "@services/ProjectsService";
 import TextField from "@mui/material/TextField";
-import EnhancedTableHead from "../../components/EnhancedTableHead";
-import TokenService from "../../services/TokenService";
-import ConfirmDeleteDialog from "../../components/ConfirmDeleteDialog";
-import RouterLink from "../../components/RouterLink";
-import ActionButton from "../../components/ActionButton";
+import EnhancedTableHead from "@components/EnhancedTableHead";
+import TokenService from "@services/TokenService";
+import ConfirmDeleteDialog from "@components/ConfirmDeleteDialog";
+import RouterLink from "@components/RouterLink";
+import ActionButton from "@components/ActionButton";
 
 
 const headCells = [

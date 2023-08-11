@@ -1,14 +1,14 @@
-import PageHeader from "../../components/PageHeader";
+import PageHeader from "@components/PageHeader";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
-import LayoutBody from "../../layout/LayoutBody";
+import LayoutBody from "@layout/LayoutBody";
 import {Stack} from "@mui/material";
-import MainActionButton from "../../components/MainActionButton";
-import FormTextField from "../../components/FormTextField";
+import MainActionButton from "@components/MainActionButton";
+import FormTextField from "@components/FormTextField";
 import {useEffect, useState} from "react";
-import AuthService from "../../services/AuthService";
-import {isObjEmpty, isValidEmail} from "../../utils/common";
-import EnhancedAlert from "../../components/EnhancedAlert";
+import AuthService from "@services/AuthService";
+import {isObjEmpty, isValidEmail} from "@utils/common";
+import EnhancedAlert from "@components/EnhancedAlert";
 import {useNavigate} from "react-router-dom";
 
 

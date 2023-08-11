@@ -11,8 +11,8 @@ import MenuItem from '@mui/material/MenuItem';
 import PolicyIcon from '@mui/icons-material/Policy';
 import Notifications from "./features/Notifications";
 import Invites from "./features/Invites";
-import RouterLink from "../components/RouterLink";
-import AuthService from "../services/AuthService";
+import RouterLink from "@components/RouterLink";
+import AuthService from "@services/AuthService";
 import {useNavigate} from "react-router-dom";
 
 // define later in theme

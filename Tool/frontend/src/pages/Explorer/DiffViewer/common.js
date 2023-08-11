@@ -4,8 +4,8 @@ import './prism-imports';
 import 'prismjs/themes/prism.css';
 
 import diffCss from "./DiffViewer.module.css";
-import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "../Icons";
-import {DiffType} from "../../../utils/diffUtils";
+import {VerticalExpandLessIcon, VerticalExpandMoreIcon} from "@pages/Explorer/Icons";
+import {DiffType} from "@utils/diffUtils";
 
 
 let viewedCodeLanguage;

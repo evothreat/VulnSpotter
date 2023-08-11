@@ -12,8 +12,8 @@ import Button from "@mui/material/Button";
 import {TimelineOppositeContent} from "@mui/lab";
 import IconButton from "@mui/material/IconButton";
 import Box from "@mui/material/Box";
-import {hasNonEmptyLine, normalizeText} from "../../utils/common";
-import TextWrapper from "../../components/TextWrapper";
+import {hasNonEmptyLine, normalizeText} from "@utils/common";
+import TextWrapper from "@components/TextWrapper";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 

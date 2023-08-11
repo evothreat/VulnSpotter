@@ -1,10 +1,10 @@
 import * as React from "react";
 import {Fragment, useEffect, useRef, useState} from "react";
-import * as Utils from "../../utils/common";
+import * as Utils from "@utils/common";
 import Typography from "@mui/material/Typography";
 import TableContainer from "@mui/material/TableContainer";
 import Table from "@mui/material/Table";
-import EnhancedTableHead from "../../components/EnhancedTableHead";
+import EnhancedTableHead from "@components/EnhancedTableHead";
 import TableBody from "@mui/material/TableBody";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
@@ -12,19 +12,19 @@ import Box from "@mui/material/Box";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import Button from "@mui/material/Button";
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
-import {Role} from "../../constants";
-import ConfirmDeleteDialog from "../../components/ConfirmDeleteDialog";
+import {Role} from "@root/constants";
+import ConfirmDeleteDialog from "@components/ConfirmDeleteDialog";
 import {Autocomplete, Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/material";
-import api from "../../services/api";
+import api from "@services/api";
 import TextField from "@mui/material/TextField";
-import ProjectsService from "../../services/ProjectsService";
-import EnhancedAlert from "../../components/EnhancedAlert";
-import InvitesService from "../../services/InvitesService";
+import ProjectsService from "@services/ProjectsService";
+import EnhancedAlert from "@components/EnhancedAlert";
+import InvitesService from "@services/InvitesService";
 import {useParams} from "react-router-dom";
-import MainActionButton from "../../components/MainActionButton";
-import ActionButton from "../../components/ActionButton";
-import PageHeader from "../../components/PageHeader";
-import {fmtTimeSince} from "../../utils/common";
+import MainActionButton from "@components/MainActionButton";
+import ActionButton from "@components/ActionButton";
+import PageHeader from "@components/PageHeader";
+import {fmtTimeSince} from "@utils/common";
 
 
 const headCells = [

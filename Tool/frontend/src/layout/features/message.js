@@ -2,7 +2,7 @@ import * as React from "react";
 import Typography from "@mui/material/Typography";
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
-import RouterLink from "../../components/RouterLink";
+import RouterLink from "@components/RouterLink";
 
 const messageMap = {
     'create': createProject,

@@ -4,7 +4,7 @@ import {useState} from "react";
 import Sidebar from "./Sidebar";
 import Commits from "./Commits";
 import Members from "./Members";
-import LayoutBody from "../../layout/LayoutBody";
+import LayoutBody from "@layout/LayoutBody";
 import Settings from "./Settings";
 import {ProjectProvider} from "./useProject";
 
