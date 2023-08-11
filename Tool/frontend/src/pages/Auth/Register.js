@@ -9,7 +9,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import {Alert} from "@mui/material";
-import AuthService from "../../services/AuthService";
+import AuthService from "@services/AuthService";
 import {useNavigate} from "react-router-dom";
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 

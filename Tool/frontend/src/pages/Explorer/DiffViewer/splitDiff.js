@@ -1,5 +1,5 @@
 import {highlightSyntax, renderBiExpander, renderExpander, renderPlaceholder, renderUpdatedLine} from "./common";
-import {areHunksSequent, DiffType} from "../../../utils/diffUtils";
+import {areHunksSequent, DiffType} from "@utils/diffUtils";
 import diffCss from "./DiffViewer.module.css";
 import classnames from "classnames";
 

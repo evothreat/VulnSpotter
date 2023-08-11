@@ -1,8 +1,8 @@
 import diffCss from "./DiffViewer.module.css"
 import classnames from "classnames";
 import {Fragment, useEffect, useState} from "react";
-import {areHunksSequent, calcHunks, createLineDiff, DiffType} from "../../../utils/diffUtils";
-import useSyncScroller from "../useSyncScroller";
+import {areHunksSequent, calcHunks, createLineDiff, DiffType} from "@utils/diffUtils";
+import useSyncScroller from "@pages/Explorer/useSyncScroller";
 import {generateId, setViewedCodeLanguage} from "./common";
 import {renderSplitDiffRows} from "./splitDiff";
 import {renderUnifiedDiffRows} from "./unifiedDiff";

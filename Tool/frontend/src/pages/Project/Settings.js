@@ -1,19 +1,19 @@
-import PageHeader from "../../components/PageHeader";
+import PageHeader from "@components/PageHeader";
 import Typography from "@mui/material/Typography";
 import {Autocomplete, CircularProgress, Dialog, DialogContent, DialogTitle, Divider, Stack} from "@mui/material";
-import FormTextField from "../../components/FormTextField";
-import MainActionButton from "../../components/MainActionButton";
-import EnhancedAlert from "../../components/EnhancedAlert";
-import LayoutBody from "../../layout/LayoutBody";
+import FormTextField from "@components/FormTextField";
+import MainActionButton from "@components/MainActionButton";
+import EnhancedAlert from "@components/EnhancedAlert";
+import LayoutBody from "@layout/LayoutBody";
 import * as React from "react";
 import {useState} from "react";
-import {FILE_EXTENSIONS} from "../../constants";
+import {FILE_EXTENSIONS} from "@root/constants";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import DeleteIcon from '@mui/icons-material/Delete';
 import {useProject} from "./useProject";
-import {arrayEquals, isObjEmpty} from "../../utils/common";
-import ProjectsService from "../../services/ProjectsService";
-import ConfirmDeleteDialog from "../../components/ConfirmDeleteDialog";
+import {arrayEquals, isObjEmpty} from "@utils/common";
+import ProjectsService from "@services/ProjectsService";
+import ConfirmDeleteDialog from "@components/ConfirmDeleteDialog";
 import {useNavigate} from "react-router-dom";
 
 

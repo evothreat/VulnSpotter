@@ -7,24 +7,24 @@ import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import Typography from "@mui/material/Typography";
-import * as Utils from "../../utils/common";
-import {createComparator} from "../../utils/common";
+import * as Utils from "@utils/common";
+import {createComparator} from "@utils/common";
 import TableBody from "@mui/material/TableBody";
 import {Waypoint} from "react-waypoint";
 import TableContainer from "@mui/material/TableContainer";
 import Table from "@mui/material/Table";
-import EnhancedTableHead from "../../components/EnhancedTableHead";
-import ProjectsService from "../../services/ProjectsService";
+import EnhancedTableHead from "@components/EnhancedTableHead";
+import ProjectsService from "@services/ProjectsService";
 import {useNavigate, useParams} from "react-router-dom";
 import FindInPageIcon from "@mui/icons-material/FindInPage";
 import commitsCss from "./Commits.module.css"
-import RouterLink from "../../components/RouterLink";
+import RouterLink from "@components/RouterLink";
 import TextField from "@mui/material/TextField";
-import FastFilter from "../../utils/FastFilter";
-import SimpleCheckbox from "../../components/SimpleCheckbox";
-import MainActionButton from "../../components/MainActionButton";
-import PageHeader from "../../components/PageHeader";
-import {VULN_KEYWORDS} from "../../constants";
+import FastFilter from "@utils/FastFilter";
+import SimpleCheckbox from "@components/SimpleCheckbox";
+import MainActionButton from "@components/MainActionButton";
+import PageHeader from "@components/PageHeader";
+import {VULN_KEYWORDS} from "@root/constants";
 
 
 const headCells = [
