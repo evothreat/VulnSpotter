@@ -70,7 +70,7 @@ def last_insert_rowid(conn):
 def get_commit_diffs(repo, commit_hash):
     patch = repo.git.diff(commit_hash + '~', commit_hash,
                           ignore_all_space=True, ignore_blank_lines=True,
-                          diff_filter='MA', no_prefix=True)
+                          diff_filter='MA', no_prefix=True, binary=False)
     return split_on_startswith(patch, 'diff')
 
 
