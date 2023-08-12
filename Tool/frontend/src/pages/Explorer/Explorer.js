@@ -26,9 +26,9 @@ import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import Modal from '@mui/material/Modal';
 import HelpIcon from '@mui/icons-material/Help';
-import Link from "@mui/material/Link";
 import {useProject} from "@pages/Project/useProject";
 import {getIssueBaseUrl} from "@utils/common";
+import linkify from "./linkifier";
 
 const SHORTCUTS = [
     { hotkey: 'Q', description: 'Show shortcuts help.' },
@@ -57,32 +57,6 @@ const RATE_KEYS = ['v', 'b', 'n'];
     const regex = new RegExp(`\\b(${kws.join('|')})\\b`, 'gi');
     return text.replace(regex, '<span style="background-color: yellow;">$1</span>');
 }*/
-
-function linkifyMUI(text) {
-    const urlRegex = /https?:\/\/[^\s]+/g;
-    const parts = [];
-    let lastIndex = 0;
-
-    text.replace(urlRegex, (url, index) => {
-        // Add text leading up to the URL.
-        parts.push(text.substring(lastIndex, index));
-
-        // Add the linkified URL.
-        parts.push(
-            <Link href={url} key={url} target="_blank" rel="noopener noreferrer">
-                {url}
-            </Link>
-        );
-
-        // Update the last index.
-        lastIndex = index + url.length;
-    });
-
-    // Add any remaining text.
-    parts.push(text.substring(lastIndex));
-
-    return parts;
-}
 
 function ShortcutsHelpModal({closeHandler}) {
     return (
@@ -132,13 +106,13 @@ function InfoHeader({children}) {
     );
 }
 
-function MessageWindow({message, setWinRef}) {
+function MessageWindow({message, setWinRef, repository}) {
     return (
         <Box sx={{flex: '1 1 0', display: 'flex', flexDirection: 'column'}}>
             <WindowTitle title="Message"/>
             <Box ref={setWinRef} tabIndex="1" sx={{flex: '1 1 0', overflowY: 'auto', m: '1px'}}>
                 <TextWrapper sx={{padding: '10px 15px', fontSize: '14px'}}>
-                    {linkifyMUI(normalizeText(message))}
+                    {linkify(normalizeText(message), getIssueBaseUrl(repository))}
                 </TextWrapper>
             </Box>
         </Box>
@@ -260,7 +234,7 @@ function FileInfoHeader({
 }
 
 export default function Explorer() {
-    //const [project,] = useProject();
+    const [project,] = useProject();
 
     const navigate = useNavigate();
     const {state: locState} = useLocation();
@@ -546,7 +520,8 @@ export default function Explorer() {
                         {
                             // render message
                             curCommit &&
-                            <MessageWindow message={curCommit.message} setWinRef={el => windowRefs[0].current = el}/>
+                            <MessageWindow message={curCommit.message} repository={project.repository}
+                                           setWinRef={el => windowRefs[0].current = el}/>
                         }
                         {
                             // render cve-list
