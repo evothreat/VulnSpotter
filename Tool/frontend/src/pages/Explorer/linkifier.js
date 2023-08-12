@@ -10,31 +10,20 @@ const REF_TYPE = Object.freeze({
 const HTTPS_URL_REGEX = /https?:\/\/[^\s]+/g;
 const ISSUE_REGEX = /#\d+/g;
 
-function extractURLs(text) {
+function extractRefs(text, refRegex, refType) {
     const parts = [];
     let match;
 
-    while ((match = HTTPS_URL_REGEX.exec(text)) !== null) {
-        parts.push({ type: REF_TYPE.URL, value: match[0], offset: match.index });
-    }
-
-    return parts;
-}
-
-function extractIssues(text) {
-    const parts = [];
-    let match;
-
-    while ((match = ISSUE_REGEX.exec(text)) !== null) {
-        parts.push({ type: REF_TYPE.ISSUE, value: match[0].substring(1), offset: match.index });
+    while ((match = refRegex.exec(text)) !== null) {
+        parts.push({ type: refType, value: match[0], offset: match.index });
     }
 
     return parts;
 }
 
 function linkify(text, issueBaseUrl) {
-    const urls = extractURLs(text);
-    const issues = extractIssues(text);
+    const urls = extractRefs(text, HTTPS_URL_REGEX, REF_TYPE.URL);
+    const issues = extractRefs(text, ISSUE_REGEX, REF_TYPE.ISSUE);
 
     // Combine and sort by offset
     const combinedParts = urls.concat(issues).sort((a, b) => a.offset - b.offset);
@@ -47,23 +36,15 @@ function linkify(text, issueBaseUrl) {
         if (lastIndex !== part.offset) {
             renderedParts.push(text.substring(lastIndex, part.offset));
         }
+        const {type, value, offset} = part;
+        const href = type === REF_TYPE.URL ? value : `${issueBaseUrl}${value.substring(1)}`;
 
-        if (part.type === REF_TYPE.URL) {
-            renderedParts.push(
-                <Link href={part.value} key={part.offset} target="_blank" rel="noopener noreferrer">
-                    {part.value}
-                </Link>
-            );
-            lastIndex = part.offset + part.value.length;
-        }
-        else if (part.type === REF_TYPE.ISSUE && issueBaseUrl) {
-            renderedParts.push(
-                <Link href={`${issueBaseUrl}${part.value}`} key={part.offset} target="_blank" rel="noopener noreferrer">
-                    {`#${part.value}`}
-                </Link>
-            );
-            lastIndex = part.offset + part.value.length + 1; // Account for the # character
-        }
+        renderedParts.push(
+            <Link href={href} key={offset} target="_blank" rel="noopener noreferrer">
+                {value}
+            </Link>
+        );
+        lastIndex = offset + value.length;
     });
 
     if (lastIndex !== text.length) {
