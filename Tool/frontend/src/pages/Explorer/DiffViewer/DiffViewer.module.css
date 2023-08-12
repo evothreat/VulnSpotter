@@ -1,6 +1,6 @@
 
 .removed {
-    background-color: #ffeef0 !important;
+    background: #ffeef0 none !important;
 }
 
 .content {
@@ -16,7 +16,7 @@
 }
 
 .added {
-    background-color: #e6ffed !important;
+    background: #e6ffed none !important;
 }
 
 .content.removed::before {
@@ -28,11 +28,11 @@
 }
 
 .removedWord {
-    background-color: #fdb8c0 !important;
+    background: #fdb8c0 none !important;
 }
 
 .addedWord {
-    background-color: #acf2bd !important;
+    background: #acf2bd none !important;
 }
 
 .linenoBox {
