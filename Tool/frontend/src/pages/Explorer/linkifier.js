@@ -2,25 +2,31 @@ import Link from "@mui/material/Link";
 import React from "react";
 
 
+const REF_TYPE = Object.freeze({
+    URL: 0,
+    ISSUE: 1
+});
+
+const HTTPS_URL_REGEX = /https?:\/\/[^\s]+/g;
+const ISSUE_REGEX = /#\d+/g;
+
 function extractURLs(text) {
-    const urlRegex = /https?:\/\/[^\s]+/g;
     const parts = [];
     let match;
 
-    while ((match = urlRegex.exec(text)) !== null) {
-        parts.push({ type: 'url', value: match[0], offset: match.index });
+    while ((match = HTTPS_URL_REGEX.exec(text)) !== null) {
+        parts.push({ type: REF_TYPE.URL, value: match[0], offset: match.index });
     }
 
     return parts;
 }
 
 function extractIssues(text) {
-    const issueRegex = /#\d+/g;
     const parts = [];
     let match;
 
-    while ((match = issueRegex.exec(text)) !== null) {
-        parts.push({ type: 'issue', value: match[0].substring(1), offset: match.index });
+    while ((match = ISSUE_REGEX.exec(text)) !== null) {
+        parts.push({ type: REF_TYPE.ISSUE, value: match[0].substring(1), offset: match.index });
     }
 
     return parts;
@@ -42,14 +48,15 @@ function linkify(text, issueBaseUrl) {
             renderedParts.push(text.substring(lastIndex, part.offset));
         }
 
-        if (part.type === 'url') {
+        if (part.type === REF_TYPE.URL) {
             renderedParts.push(
                 <Link href={part.value} key={part.offset} target="_blank" rel="noopener noreferrer">
                     {part.value}
                 </Link>
             );
             lastIndex = part.offset + part.value.length;
-        } else if (part.type === 'issue' && issueBaseUrl) {
+        }
+        else if (part.type === REF_TYPE.ISSUE && issueBaseUrl) {
             renderedParts.push(
                 <Link href={`${issueBaseUrl}${part.value}`} key={part.offset} target="_blank" rel="noopener noreferrer">
                     {`#${part.value}`}
