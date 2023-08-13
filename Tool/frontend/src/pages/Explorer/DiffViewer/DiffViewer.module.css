@@ -76,6 +76,8 @@
 
 /*
 https://stackoverflow.com/questions/52085162/flexbox-full-width-table
+https://stackoverflow.com/questions/25048236/css-displayblock-vs-displaytable
+TODO: maybe remove table wrapper if we using 'display: block' anyway (for scrolling)
 */
 .diffTable {
     border-spacing: 0;
