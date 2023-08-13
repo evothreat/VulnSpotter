@@ -74,6 +74,9 @@
     border: 0;
 }
 
+/*
+https://stackoverflow.com/questions/52085162/flexbox-full-width-table
+*/
 .diffTable {
     border-spacing: 0;
     border: 0;
@@ -83,6 +86,11 @@
     table-layout: fixed;
     position: absolute;
     inset: 0;
+    display: block;
+}
+
+.diffTable > tbody {
+    display: table;
 }
 
 .diffTable > tbody > tr > td {
