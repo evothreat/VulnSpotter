@@ -1,6 +1,6 @@
 
 .removed {
-    background: #ffeef0 none !important;
+    background: #ffeef0 !important;
 }
 
 .content {
@@ -16,7 +16,7 @@
 }
 
 .added {
-    background: #e6ffed none !important;
+    background: #e6ffed !important;
 }
 
 .content.removed::before {
@@ -28,11 +28,11 @@
 }
 
 .removedWord {
-    background: #fdb8c0 none !important;
+    background: #fdb8c0 !important;
 }
 
 .addedWord {
-    background: #acf2bd none !important;
+    background: #acf2bd !important;
 }
 
 .linenoBox {
@@ -145,5 +145,5 @@ TODO: maybe remove table wrapper if we using 'display: block' anyway (for scroll
 }
 
 :global(.token.operator) {
-    background: none;
+    background: none !important;
 }
