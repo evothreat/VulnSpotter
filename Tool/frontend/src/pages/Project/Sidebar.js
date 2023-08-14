@@ -21,21 +21,26 @@ import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import {useProject} from "./useProject";
 
 
+const VIEW_TYPE = Object.freeze({
+    COMMITS: 1,
+    MEMBERS: 2,
+    SETTINGS: 3
+});
 
 const sidebarItems = [
     {
         label: 'Commits',
-        key: 'commits',
+        key: VIEW_TYPE.COMMITS,
         Icon: DescriptionOutlinedIcon
     },
     {
         label: 'Members',
-        key: 'members',
+        key: VIEW_TYPE.MEMBERS,
         Icon: PeopleAltOutlinedIcon
     },
     {
         label: 'Settings',
-        key: 'settings',
+        key: VIEW_TYPE.SETTINGS,
         Icon: SettingsOutlinedIcon
     }
 ];
@@ -51,7 +56,7 @@ const sidebarItemStyle = {
 };
 
 
-export default function Sidebar({viewKey, viewChangeHandler}) {
+function Sidebar({viewKey, viewChangeHandler}) {
     const [project,] = useProject();
     const [open, setOpen] = useState(false);
 
@@ -99,4 +104,9 @@ export default function Sidebar({viewKey, viewChangeHandler}) {
             </List>
         </Drawer>
     );
+}
+
+export {
+    VIEW_TYPE,
+    Sidebar
 }

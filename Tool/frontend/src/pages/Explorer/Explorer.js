@@ -51,13 +51,6 @@ const SHORTCUTS = [
 const SWITCH_KEYS = ['1', '2', '3', '4'];
 const RATE_KEYS = ['v', 'b', 'n'];
 
-
-/*function highlightSecTerms(text) {
-    const kws = ['CVE-\\d{4}-\\d{4,7}'].concat(VULN_KEYWORDS);
-    const regex = new RegExp(`\\b(${kws.join('|')})\\b`, 'gi');
-    return text.replace(regex, '<span style="background-color: yellow;">$1</span>');
-}*/
-
 function ShortcutsHelpModal({closeHandler}) {
     return (
         <Modal open={true} onClose={closeHandler}>

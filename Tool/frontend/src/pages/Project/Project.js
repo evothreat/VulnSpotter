@@ -1,6 +1,6 @@
 import * as React from "react";
 import {useState} from "react";
-import Sidebar from "./Sidebar";
+import {Sidebar, VIEW_TYPE} from "./Sidebar";
 import Commits from "./Commits";
 import Members from "./Members";
 import LayoutBody from "@layout/LayoutBody";
@@ -9,11 +9,11 @@ import Settings from "./Settings";
 
 function getView(key, props) {
     switch (key) {
-        case 'commits':
+        case VIEW_TYPE.COMMITS:
             return <Commits {...props}/>;
-        case 'members':
+        case VIEW_TYPE.MEMBERS:
             return <Members {...props}/>            // bad approach, pass only children & required parameters
-        case 'settings':
+        case VIEW_TYPE.SETTINGS:
             return <Settings {...props}/>
         default:
             return null;
@@ -21,7 +21,7 @@ function getView(key, props) {
 }
 
 export default function Project() {
-    const [viewKey, setViewKey] = useState('commits');
+    const [viewKey, setViewKey] = useState(VIEW_TYPE.COMMITS);
     const handleViewChange = viewId => setViewKey(viewId);
 
     return (
