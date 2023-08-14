@@ -3,8 +3,8 @@ import React from "react";
 
 
 const REF_TYPE = Object.freeze({
-    URL: 0,
-    ISSUE: 1
+    URL: 1,
+    ISSUE: 2
 });
 
 const HTTPS_URL_REGEX = /https?:\/\/[^\s]+/g;
