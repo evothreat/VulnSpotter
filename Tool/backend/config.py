@@ -1,4 +1,4 @@
-DB_PATH = r'test_data\data.db'
+DATA_DIR = r'test_data\db'
 
 JWT_SECRET_KEY = 'super_secret_key'
 

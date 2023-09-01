@@ -10,6 +10,7 @@ from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
 
 import config
+import constants
 import schemas as schemas
 import views as views
 from enums import *
@@ -22,8 +23,6 @@ from utils import pathjoin, unix_time, pad_list
 IN_CLAUSE_BINDVAR_N = 25
 IN_CLAUSE_BINDVARS = ('?,' * IN_CLAUSE_BINDVAR_N).rstrip(',')
 
-SQL_SCHEMA_PATH = r'db_schema.sql'
-
 app = Flask(__name__)
 jwt = JWTManager(app)
 
@@ -31,20 +30,17 @@ app.config['JWT_SECRET_KEY'] = config.JWT_SECRET_KEY
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = config.JWT_ACCESS_TOKEN_EXPIRES
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = config.JWT_REFRESH_TOKEN_EXPIRES
 
-db_conn = None
+# initialize because of warnings
+db_conn: sqlite3.Connection
 
 exports_map = {}
 
 
 def setup_db():
-    # size of pages which are loaded into memory (maybe increase to 32768)
-    db_conn.execute('PRAGMA page_size=16384')
     # to speed up database transactions
     db_conn.execute('PRAGMA journal_mode=WAL')
-    # to speed up row-deletions
-    db_conn.execute('PRAGMA secure_delete=OFF')
 
-    with open(SQL_SCHEMA_PATH) as f:
+    with open(constants.MASTER_SQL_PATH) as f:
         db_conn.executescript(f.read())
 
     # TEST DATA
@@ -77,7 +73,7 @@ def connect_db():
     register_boolean_type()
 
     global db_conn
-    db_conn = sqlite3.connect(config.DB_PATH,
+    db_conn = sqlite3.connect(constants.MASTER_DB_PATH,
                               check_same_thread=False, isolation_level=None,
                               detect_types=sqlite3.PARSE_DECLTYPES, factory=SqliteGuard)
     db_conn.row_factory = sqlite3.Row
@@ -717,20 +713,19 @@ def get_commit_history(commit_id):
 
 
 def setup_dirs():
+    if not path_exists(config.DATA_DIR):
+        makedirs(config.DATA_DIR)
+
     if not path_exists(config.REPOS_DIR):
         makedirs(config.REPOS_DIR)
 
     if not path_exists(config.EXPORTS_DIR):
         makedirs(config.EXPORTS_DIR)
 
-    db_dir = dirname(config.DB_PATH)
-    if not path_exists(db_dir):
-        makedirs(db_dir)
-
 
 if __name__ == '__main__':
     setup_dirs()
-    if not path_exists(config.DB_PATH):
+    if not path_exists(constants.MASTER_DB_PATH):
         connect_db()
         setup_db()
     else:

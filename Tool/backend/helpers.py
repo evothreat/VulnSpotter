@@ -12,6 +12,7 @@ from jsonschema.exceptions import ValidationError
 from jsonschema.validators import validate
 
 import config
+import constants
 from cve_lookup import get_cve_info
 from enums import Role
 from diff_parser import parse_diff_file_ext
@@ -44,8 +45,8 @@ def register_boolean_type():
 
 
 @contextmanager
-def open_db_transaction():
-    conn = sqlite3.connect(config.DB_PATH, isolation_level=None, detect_types=sqlite3.PARSE_DECLTYPES)
+def open_db_transaction(db_path):
+    conn = sqlite3.connect(db_path, isolation_level=None, detect_types=sqlite3.PARSE_DECLTYPES)
     conn.execute('PRAGMA foreign_keys=ON')
     conn.execute('PRAGMA synchronous=NORMAL')
     # conn.row_factory = sqlite3.Row
@@ -78,14 +79,51 @@ def get_commit_diffs(repo, commit_hash):
     ]
 
 
-def create_cve_records(repo_name, cve_list):
-    # NOTE: maybe check with IN-clause which cve's already exist/not exist
+def create_pvc_db(db_path):
+    conn = sqlite3.connect(db_path, isolation_level=None, detect_types=sqlite3.PARSE_DECLTYPES)
+    with open(constants.PVC_SQL_PATH) as f:
+        conn.executescript(f.read())
+    conn.commit()
+    conn.close()
+
+
+def create_cve_records(db_conn, repo_name, cve_list):
     cve_info = get_cve_info(repo_name, list(cve_list))
     rows = ((k, v['summary'], v['description'], v['score'], ','.join(v['cwe_list'])) for k, v in cve_info.items())
 
-    with open_db_transaction() as conn:
-        conn.executemany('INSERT OR IGNORE INTO cve_info(cve_id,summary,description,cvss_score,cwe_list) '
-                         'VALUES (?,?,?,?,?)', rows)
+    db_conn.executemany('INSERT INTO cve_info(cve_id,summary,description,cvss_score,cwe_list) '
+                        'VALUES (?,?,?,?,?)', rows)
+
+
+def create_commit_records(db_conn, commits):
+    cur = db_conn.executemany(
+        'INSERT INTO commits(hash,message,author,created_at) VALUES (?,?,?,?)',
+        ((c['hash'], c['message'], c['author'], c['created_at']) for c in commits)
+    )
+    if cur.rowcount > 0:
+        last_id = last_insert_rowid(db_conn)
+
+        commit_cve = []
+        commit_diff = []
+        contents = []
+
+        for commit_id, commit in zip(range(last_id - cur.rowcount + 1, last_id + 1), commits):
+            for ext, content in commit['diffs']:
+                commit_diff.append((commit_id, ext))
+                contents.append(content)
+
+            commit_cve.extend((commit_id, cve) for cve in commit['cves'])
+
+        db_conn.executemany('INSERT INTO commit_cve(commit_id,cve_id) SELECT ?,id FROM cve_info WHERE cve_id=?',
+                            commit_cve)
+
+        cur = db_conn.executemany('INSERT INTO commit_diffs(commit_id,file_ext) VALUES (?,?)', commit_diff)
+        if cur.rowcount > 0:
+            last_id = last_insert_rowid(db_conn)
+            diff_content = (
+                (diff_id, content) for diff_id, content in zip(range(last_id - cur.rowcount + 1, last_id + 1), contents)
+            )
+            db_conn.executemany('INSERT INTO diff_content(diff_id,content) VALUES (?,?)', diff_content)
 
 
 def create_project_from_repo(user_id, repo_url, proj_name, extensions):
@@ -112,20 +150,17 @@ def create_project_from_repo(user_id, repo_url, proj_name, extensions):
                     'hash': chash,
                     'message': c['message'],
                     'diffs': tuple(
-                        (ext, zlib.compress(d.encode(errors='replace')), not extensions or ext in extensions)
-                        for d in diffs
+                        (ext, d) for d in diffs
                         # or True, because ext can be empty string
                         if (ext := parse_diff_file_ext(d).lstrip('.')) or True
                     ),
                     'cves': set(c.get('cve', [])),
+                    'author': c['author'],
                     'created_at': c['authored_date']
                 }
             )
 
-    # cve-information doesn't depend on commits & so can be inserted independently
-    create_cve_records(repo_name, found_cve_list)
-
-    with open_db_transaction() as conn:
+    with open_db_transaction(constants.MASTER_DB_PATH) as conn:
         proj_id = conn.execute(
             'INSERT INTO projects(owner_id,name,repository,extensions,created_at) VALUES (?,?,?,?,?)',
             (user_id, proj_name, repo_loc, ','.join(extensions), unix_time())).lastrowid
@@ -133,40 +168,19 @@ def create_project_from_repo(user_id, repo_url, proj_name, extensions):
         conn.execute('INSERT INTO membership(user_id,project_id,role,joined_at) VALUES (?,?,?,?)',
                      (user_id, proj_id, Role.OWNER, unix_time()))
 
-        create_commit_records(conn, proj_id, commits)
+    db_path = constants.PVC_DB_PATH.format(proj_id)
+    try:
+        create_pvc_db(db_path)
+        with open_db_transaction(db_path) as conn:
+            create_cve_records(conn, repo_name, found_cve_list)
+            create_commit_records(conn, commits)
+    except BaseException:
+        with open_db_transaction(constants.MASTER_DB_PATH) as conn:
+            conn.execute('DELETE FROM projects WHERE id=?', (proj_id,))
+        # delete repo and db file?
+        raise
 
     return proj_id
-
-
-def create_commit_records(conn, proj_id, commits):
-    cur = conn.executemany(
-        'INSERT INTO commits(project_id,hash,message,created_at) VALUES (?,?,?,?)',
-        ((proj_id, c['hash'], c['message'], c['created_at']) for c in commits)
-    )
-    if cur.rowcount > 0:
-        last_id = last_insert_rowid(conn)
-
-        commit_cve = []
-        commit_diff = []
-        contents = []
-
-        for commit_id, commit in zip(range(last_id - cur.rowcount + 1, last_id + 1), commits):
-            for ext, content, suit in commit['diffs']:
-                commit_diff.append((commit_id, ext, suit))
-                contents.append(content)
-
-            commit_cve.extend((commit_id, cve) for cve in commit['cves'])
-
-        conn.executemany('INSERT INTO commit_cve(commit_id,cve_id) SELECT ?,id FROM cve_info WHERE cve_id=?',
-                         commit_cve)
-
-        cur = conn.executemany('INSERT INTO commit_diffs(commit_id,file_ext,suitable) VALUES (?,?,?)', commit_diff)
-        if cur.rowcount > 0:
-            last_id = last_insert_rowid(conn)
-            diff_content = (
-                (diff_id, content) for diff_id, content in zip(range(last_id - cur.rowcount + 1, last_id + 1), contents)
-            )
-            conn.executemany('INSERT INTO diff_content(diff_id,content) VALUES (?,?)', diff_content)
 
 
 def extract_commit_info(c):
