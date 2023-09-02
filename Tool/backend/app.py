@@ -5,7 +5,8 @@ from threading import Thread, Timer
 from uuid import uuid4
 
 import git
-from flask import Flask, request, send_file, url_for
+from flask import Flask, request, send_file
+from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, create_refresh_token
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -25,6 +26,7 @@ IN_CLAUSE_BINDVARS = ('?,' * IN_CLAUSE_BINDVAR_N).rstrip(',')
 SQL_SCHEMA_PATH = r'db_schema.sql'
 
 app = Flask(__name__)
+CORS(app)
 jwt = JWTManager(app)
 
 app.config['JWT_SECRET_KEY'] = config.JWT_SECRET_KEY
@@ -122,7 +124,7 @@ def register():
                 (data['full_name'], data['email'], data['username'], generate_password_hash(data['password']))
             ).lastrowid
 
-            return {'resource_id': record_id}, 201
+            return {'res_id': record_id}, 201
 
     except sqlite3.IntegrityError:
         return '', 409
@@ -445,7 +447,7 @@ def create_diff_vote():
         if record_id is None:
             return '', 404
 
-    return {'resource_id': record_id}, 201
+    return {'res_id': record_id}, 201
 
 
 @app.route('/api/users/me/diff_votes/<int:vote_id>', methods=['GET'])
@@ -504,7 +506,7 @@ def send_invite():
         if record_id is None:
             return '', 404
 
-    return {'resource_id': record_id}, 201
+    return {'res_id': record_id}, 201
 
 
 @app.route('/api/users/me/sent-invites/<int:invite_id>', methods=['GET'])
@@ -627,7 +629,7 @@ def create_export():
     cleaner.daemon = True  # to run even if current thread exits
     cleaner.start()
 
-    return {'download_url': url_for('get_export', export_id=export_id, _external=True)}, 201
+    return {'res_id': export_id}, 201
 
 
 @app.route('/api/exports/<export_id>')
