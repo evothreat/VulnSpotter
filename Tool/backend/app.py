@@ -694,7 +694,7 @@ def get_commit_file(commit_id):
         }
 
 
-# NOTE: check whether correct branch accessed
+# TODO: verify that correct branch is accessed
 @app.route('/api/users/me/projects/commits/<int:commit_id>/history')
 def get_commit_history(commit_id):
     data = db_conn.execute('SELECT c.hash,p.repository FROM commits c '
