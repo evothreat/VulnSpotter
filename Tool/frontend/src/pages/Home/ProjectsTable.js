@@ -198,7 +198,7 @@ export default function ProjectsTable() {
                 <SearchBar width="260px" placeholder="Search by name" changeHandler={kw => setSearchKw(kw)}/>
             </Box>
 
-            <TableContainer sx={{height: '465px', borderBottom: 'thin solid lightgray'}}>
+            <TableContainer sx={{height: '465px'}}>
                 <Table size="small" stickyHeader sx={{tableLayout: 'fixed'}}>
                     <EnhancedTableHead
                         headCells={headCells}

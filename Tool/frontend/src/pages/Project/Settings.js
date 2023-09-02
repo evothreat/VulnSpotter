@@ -4,9 +4,8 @@ import {Autocomplete, CircularProgress, Dialog, DialogContent, DialogTitle, Divi
 import FormTextField from "@components/FormTextField";
 import MainActionButton from "@components/MainActionButton";
 import EnhancedAlert from "@components/EnhancedAlert";
-import LayoutBody from "@layout/LayoutBody";
 import * as React from "react";
-import {useState} from "react";
+import {Fragment, useState} from "react";
 import {FILE_EXTENSIONS} from "@root/constants";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -111,13 +110,13 @@ export default function Settings() {
     };
 
     return (
-        <LayoutBody>
+        <Fragment>
             <PageHeader>
                 <Typography variant="h6">
                     Settings
                 </Typography>
             </PageHeader>
-            <Stack sx={{gap: '30px'}}>
+            <Stack sx={{gap: '30px', margin: 0}}>
                 <Stack sx={{gap: '10px', width: '350px'}}>
                     <FormTextField required label="Project name" name="projName"
                                    value={projName} onChange={e => setProjName(e.target.value)}
@@ -186,6 +185,6 @@ export default function Settings() {
             {
                 showPrepareExport && <PrepareExportDialog/>
             }
-        </LayoutBody>
+        </Fragment>
     );
 }
