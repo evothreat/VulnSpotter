@@ -1,6 +1,6 @@
-from os.path import exists as path_exists, dirname
-from os import makedirs, remove as remove_file
 import traceback
+from os import makedirs, remove as remove_file
+from os.path import exists as path_exists, dirname
 from threading import Thread, Timer
 from uuid import uuid4
 
@@ -13,9 +13,9 @@ import config
 import schemas as schemas
 import views as views
 from enums import *
+from exporter import gen_export_file
 from helpers import validate_request_json, register_boolean_type, assign_bindvars, \
     create_project_from_repo, extract_commit_info
-from exporter import gen_export_file
 from sqlite_guard import SqliteGuard
 from utils import pathjoin, unix_time, pad_list
 
@@ -31,7 +31,7 @@ app.config['JWT_SECRET_KEY'] = config.JWT_SECRET_KEY
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = config.JWT_ACCESS_TOKEN_EXPIRES
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = config.JWT_REFRESH_TOKEN_EXPIRES
 
-db_conn = None
+db_conn: sqlite3.Connection
 
 exports_map = {}
 
@@ -692,7 +692,7 @@ def get_commit_file(commit_id):
         }
 
 
-# TODO: put all constants into separate file/variables
+# NOTE: check whether correct branch accessed
 @app.route('/api/users/me/commits/<int:commit_id>/history')
 def get_commit_history(commit_id):
     data = db_conn.execute('SELECT c.hash,p.repository FROM commits c '
