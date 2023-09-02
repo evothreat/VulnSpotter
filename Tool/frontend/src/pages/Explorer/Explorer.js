@@ -440,7 +440,7 @@ export default function Explorer() {
             VotesService.create(diffId, choice)
                 .then(data => {
                     voteUpdates.current[diffId] = {
-                        id: data.resource_id,
+                        id: data.res_id,
                         choice: choice
                     };
                     if (commitId === commitIdsIt.curr() && reachedEnd()) {

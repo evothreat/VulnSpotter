@@ -59,6 +59,10 @@ class ProjectsService {
     export(id) {
         return api.post('/exports',  {'project_id': id});
     }
+
+    getExportUrl(id) {
+        return `${api.defaults.baseURL}/exports/${id}`;
+    }
 }
 
 export default new ProjectsService();

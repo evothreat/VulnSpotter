@@ -244,7 +244,7 @@ export default function Members() {
                         role: Role.CONTRIBUTOR,
                         active: false,
                         joined_at: Date.now() / 1000 | 0,
-                        invite_id: data[i].resource_id
+                        invite_id: data[i].res_id
                     }
                 });
                 setProjMembers(prevMembers => prevMembers.concat(invitees));

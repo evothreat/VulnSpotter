@@ -106,7 +106,7 @@ export default function Settings() {
         ProjectsService.export(project.id)
             .then(data => {
                 setShowPrepareExport(false);
-                window.location.assign(data.download_url);
+                window.location.assign(ProjectsService.getExportUrl(data.res_id));
             });
     };
 

@@ -1,6 +1,7 @@
 import TokenService from './TokenService';
 import axios from 'axios';
 
+const API_URL = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const onRequest = conf => {
     conf.headers['Authorization'] = 'Bearer ' + TokenService.getAccessToken();
@@ -21,7 +22,7 @@ const onResponseError = async err => {
     if (origReq.url !== '/auth' && err.response?.status === 401 && !origReq._retry) {
         origReq._retry = true;
         try {
-            const resp = await axios.post('/api/refresh', {}, {
+            const resp = await axios.post(`${API_URL}/refresh`, {}, {
                     headers: {
                         Authorization: 'Bearer ' + TokenService.getRefreshToken()
                     }
@@ -39,7 +40,7 @@ const onResponseError = async err => {
 };
 
 const api = axios.create({
-    baseURL: '/api',
+    baseURL: API_URL,
     headers: {
         'Content-Type': 'application/json',
     },
