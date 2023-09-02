@@ -388,7 +388,7 @@ def get_commits(proj_id):
     return [views.commit(d) for d in data]
 
 
-@app.route('/api/users/me/commits/<int:commit_id>/full_info', methods=['GET'])
+@app.route('/api/users/me/projects/commits/<int:commit_id>/full_info', methods=['GET'])
 @jwt_required()
 def get_commit_full_info(commit_id):
     user_id = get_jwt_identity()
@@ -416,7 +416,7 @@ def get_commit_full_info(commit_id):
     }
 
 
-@app.route('/api/users/me/commits/<int:commit_id>/cve', methods=['GET'])
+@app.route('/api/users/me/projects/commits/<int:commit_id>/cve', methods=['GET'])
 @jwt_required()
 def get_cve_list(commit_id):
     ismember = db_conn.execute('SELECT 1 FROM commits c WHERE c.id=? '
@@ -642,7 +642,7 @@ def get_export(export_id):
 
 
 # NOTE: maybe return whole file if no args specified; maybe return lines in JSON-Format
-@app.route('/api/users/me/commits/<int:commit_id>/file', methods=['GET'])
+@app.route('/api/users/me/projects/commits/<int:commit_id>/file', methods=['GET'])
 @jwt_required()
 def get_commit_file(commit_id):
     query = request.args
@@ -695,7 +695,7 @@ def get_commit_file(commit_id):
 
 
 # NOTE: check whether correct branch accessed
-@app.route('/api/users/me/commits/<int:commit_id>/history')
+@app.route('/api/users/me/projects/commits/<int:commit_id>/history')
 def get_commit_history(commit_id):
     data = db_conn.execute('SELECT c.hash,p.repository FROM commits c '
                            'JOIN projects p ON c.id=? AND p.id=c.project_id LIMIT 1', (commit_id,)).fetchone()
