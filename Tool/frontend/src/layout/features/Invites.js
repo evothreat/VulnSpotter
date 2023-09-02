@@ -90,7 +90,7 @@ export default function Invites() {
                 });
         };
         updateInvites();
-        let interval = setInterval(updateInvites, 300000);  // every 5 minutes, 300000
+        let interval = setInterval(updateInvites, 40000);  // every 40 seconds
         return () => {
             isMounted = false;
             clearInterval(interval);

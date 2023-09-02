@@ -87,7 +87,7 @@ export default function Notifications() {
                     }
                 });
         };
-        let interval = setInterval(updateNotifs, 180000);       // every 3 minutes
+        let interval = setInterval(updateNotifs, 35000);       // every 35 seconds
         return () => {
             isMounted = false;
             clearInterval(interval);
