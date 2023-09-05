@@ -85,39 +85,41 @@ function BasicProjectSettings() {
     };
 
     return (
-        <Stack sx={{gap: '30px', width: '300px'}}>
-            <Stack sx={{gap: '10px'}}>
-                <FormTextField required label="Project name" name="projName"
-                               value={projName} onChange={e => setProjName(e.target.value)}
-                               error={inputErrors.projName}/>
-                <Autocomplete
-                    freeSolo
-                    fullWidth
-                    multiple
-                    disableCloseOnSelect
-                    value={extensions}
-                    options={FILE_EXTENSIONS}
-                    renderInput={params => (
-                        <FormTextField {...params}
-                                       label="Extensions"
-                                       size="small"
-                                       variant="outlined"/>
-                    )}
-                    onChange={(e, val) => setExtensions(val)}
-                />
-            </Stack>
-            <Stack direction="row" sx={{gap: '10px'}}>
-                <MainActionButton onClick={handleUpdateProject}>
-                    Save
-                </MainActionButton>
-                <MainActionButton variant="outlined" onClick={resetInput}>
-                    Reset
-                </MainActionButton>
+        <Fragment>
+            <Stack sx={{gap: '30px', width: '300px'}}>
+                <Stack sx={{gap: '10px'}}>
+                    <FormTextField required label="Project name" name="projName"
+                                   value={projName} onChange={e => setProjName(e.target.value)}
+                                   error={inputErrors.projName}/>
+                    <Autocomplete
+                        freeSolo
+                        fullWidth
+                        multiple
+                        disableCloseOnSelect
+                        value={extensions}
+                        options={FILE_EXTENSIONS}
+                        renderInput={params => (
+                            <FormTextField {...params}
+                                           label="Extensions"
+                                           size="small"
+                                           variant="outlined"/>
+                        )}
+                        onChange={(e, val) => setExtensions(val)}
+                    />
+                </Stack>
+                <Stack direction="row" sx={{gap: '10px'}}>
+                    <MainActionButton onClick={handleUpdateProject}>
+                        Save
+                    </MainActionButton>
+                    <MainActionButton variant="outlined" onClick={resetInput}>
+                        Reset
+                    </MainActionButton>
+                </Stack>
             </Stack>
             {
                 alertMsg && <EnhancedAlert msg={alertMsg} severity="success" closeHandler={() => setAlertMsg('')}/>
             }
-        </Stack>
+        </Fragment>
     );
 }
 
