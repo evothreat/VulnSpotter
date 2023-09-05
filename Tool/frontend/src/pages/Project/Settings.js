@@ -19,6 +19,8 @@ import {Fragment, useState} from "react";
 import {FILE_EXTENSIONS} from "@root/constants";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import DeleteIcon from '@mui/icons-material/Delete';
+import SaveIcon from '@mui/icons-material/Save';
+import RotateLeftIcon from '@mui/icons-material/RotateLeft';
 import {useProject} from "./useProject";
 import {arrayEquals, isObjEmpty} from "@utils/common";
 import ProjectsService from "@services/ProjectsService";
@@ -108,10 +110,10 @@ function BasicProjectSettings() {
                     />
                 </Stack>
                 <Stack direction="row" sx={{gap: '10px'}}>
-                    <MainActionButton onClick={handleUpdateProject}>
+                    <MainActionButton onClick={handleUpdateProject} startIcon={<SaveIcon/>} >
                         Save
                     </MainActionButton>
-                    <MainActionButton variant="outlined" onClick={resetInput}>
+                    <MainActionButton variant="outlined" onClick={resetInput} startIcon={<RotateLeftIcon/>} >
                         Reset
                     </MainActionButton>
                 </Stack>
