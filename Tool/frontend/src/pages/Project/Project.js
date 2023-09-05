@@ -1,10 +1,11 @@
 import * as React from "react";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {Sidebar, VIEW_TYPE} from "./Sidebar";
 import Commits from "./Commits";
 import Members from "./Members";
 import LayoutBody from "@layout/LayoutBody";
 import Settings from "./Settings";
+import {useSearchParams} from "react-router-dom";
 
 
 function getView(key, props) {
@@ -21,8 +22,22 @@ function getView(key, props) {
 }
 
 export default function Project() {
-    const [viewKey, setViewKey] = useState(VIEW_TYPE.COMMITS);
-    const handleViewChange = viewId => setViewKey(viewId);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [viewKey, setViewKey] = useState(null);
+
+    useEffect(() => {
+        const viewId = searchParams.get('view');
+        if (viewId) {
+            setViewKey(viewId);
+        }
+        else {
+            setViewKey(VIEW_TYPE.COMMITS);  // default view
+        }
+    }, [searchParams]);
+
+    const handleViewChange = viewId => {
+        setSearchParams({view: viewId});
+    };
 
     return (
         <LayoutBody>

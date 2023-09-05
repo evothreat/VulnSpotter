@@ -22,9 +22,9 @@ import {useProject} from "./useProject";
 
 
 const VIEW_TYPE = Object.freeze({
-    COMMITS: 1,
-    MEMBERS: 2,
-    SETTINGS: 3
+    COMMITS: 'commits',
+    MEMBERS: 'members',
+    SETTINGS: 'settings'
 });
 
 const sidebarItems = [
