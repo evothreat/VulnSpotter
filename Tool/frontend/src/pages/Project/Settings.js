@@ -165,7 +165,12 @@ function ExportSettings() {
                                 </Grid>
                                 <Grid item xs={1}>
                                     <TextField type="number" variant="outlined" size="small" disabled={!isAdvanced}
-                                               defaultValue={0}/>
+                                               defaultValue={0}
+                                               InputProps={{
+                                                   inputProps: {
+                                                       min: 0
+                                                   }
+                                               }}/>
                                 </Grid>
                                 <Grid item xs={1}>
                                     <TextField type="number" variant="outlined" size="small" disabled={!isAdvanced}
