@@ -122,7 +122,7 @@ function MembersTable({items, setItems}) {
     const orderedItems = getItems();
     return (
         <Fragment>
-            <TableContainer sx={{height: '520px', borderBottom: 'thin solid lightgray'}}>
+            <TableContainer sx={{height: '520px'}}>
                 <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
                     <EnhancedTableHead headCells={headCells}
                                        order={sorter.order}
