@@ -19,8 +19,7 @@ REGISTER = {
             'minLength': 6
         }
     },
-    'minProperties': 4,
-    'additionalProperties': False
+    'minProperties': 4
 }
 
 AUTHENTICATE = {
@@ -33,8 +32,7 @@ AUTHENTICATE = {
             'type': 'string'
         }
     },
-    'minProperties': 2,
-    'additionalProperties': False
+    'minProperties': 2
 }
 
 CREATE_PROJECT = {
@@ -50,8 +48,7 @@ CREATE_PROJECT = {
             'type': 'array'
         }
     },
-    'required': ['repository', 'project_name'],
-    'additionalProperties': False
+    'required': ['repository', 'project_name']
 }
 
 UPDATE_PROJECT = {
@@ -64,8 +61,7 @@ UPDATE_PROJECT = {
             'type': 'array'
         }
     },
-    'minProperties': 1,
-    'additionalProperties': False
+    'minProperties': 1
 }
 
 UPDATE_NOTIFS = {
@@ -75,8 +71,7 @@ UPDATE_NOTIFS = {
             'type': 'boolean'
         }
     },
-    'minProperties': 1,
-    'additionalProperties': False
+    'minProperties': 1
 }
 
 CREATE_DIFF_VOTE = {
@@ -89,8 +84,7 @@ CREATE_DIFF_VOTE = {
             'type': 'integer'
         },
     },
-    'minProperties': 2,
-    'additionalProperties': False
+    'minProperties': 2
 }
 
 UPDATE_DIFF_VOTE = {
@@ -100,8 +94,7 @@ UPDATE_DIFF_VOTE = {
             'type': 'integer'
         },
     },
-    'minProperties': 1,
-    'additionalProperties': False
+    'minProperties': 1
 }
 
 SEND_INVITE = {
@@ -114,8 +107,7 @@ SEND_INVITE = {
             'type': 'integer'
         },
     },
-    'minProperties': 2,
-    'additionalProperties': False
+    'minProperties': 2
 }
 
 UPDATE_CURR_USER = {
@@ -133,8 +125,7 @@ UPDATE_CURR_USER = {
             'minLength': 6
         }
     },
-    'minProperties': 1,
-    'additionalProperties': False
+    'minProperties': 1
 }
 
 CREATE_EXPORT = {
@@ -142,8 +133,32 @@ CREATE_EXPORT = {
     'properties': {
         'project_id': {
             'type': 'integer'
+        },
+        'rules': {
+            'type': 'object',
+            'properties': {
+                'positive': {
+                    '$ref': '#/definitions/range'
+                },
+                'negative': {
+                    '$ref': '#/definitions/range'
+                },
+                'neutral': {
+                    '$ref': '#/definitions/range'
+                }
+            },
+            'minProperties': 1,
         }
     },
-    'minProperties': 1,
-    'additionalProperties': False
+    'required': ['project_id'],
+    'definitions': {
+        'range': {
+            'type': 'array',
+            'items': {
+                'type': 'integer'
+            },
+            'minItems': 2,
+            'maxItems': 2
+        }
+    }
 }
