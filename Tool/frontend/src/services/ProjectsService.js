@@ -56,8 +56,11 @@ class ProjectsService {
         return api.get(`${this.basePath}/${id}/commits?${queryArgs.join('&')}`);
     }
 
-    export(id) {
-        return api.post('/exports',  {'project_id': id});
+    export(id, opts) {
+        return api.post('/exports',  {
+            'project_id': id,
+            'options': opts
+        });
     }
 
     getExportUrl(id) {

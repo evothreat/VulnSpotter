@@ -2,13 +2,7 @@ import PageHeader from "@components/PageHeader";
 import Typography from "@mui/material/Typography";
 import {
     Autocomplete,
-    Checkbox,
-    CircularProgress,
-    Dialog,
-    DialogContent,
-    DialogTitle, Divider,
-    FormControlLabel,
-    Grid,
+    Divider,
     Stack
 } from "@mui/material";
 import FormTextField from "@components/FormTextField";
@@ -17,7 +11,6 @@ import EnhancedAlert from "@components/EnhancedAlert";
 import * as React from "react";
 import {Fragment, useState} from "react";
 import {FILE_EXTENSIONS} from "@root/constants";
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 import RotateLeftIcon from '@mui/icons-material/RotateLeft';
@@ -26,22 +19,8 @@ import {arrayEquals, isObjEmpty} from "@utils/common";
 import ProjectsService from "@services/ProjectsService";
 import ConfirmDeleteDialog from "@components/ConfirmDeleteDialog";
 import {useNavigate} from "react-router-dom";
-import TextField from "@mui/material/TextField";
+import ExportSettings from "./ExportSettings";
 
-
-function PrepareExportDialog() {
-    return (
-        <Dialog open={true} maxWidth="xs" fullWidth>
-            <DialogTitle>Please wait</DialogTitle>
-            <DialogContent>
-                <Stack direction="row" sx={{padding: '5px 0 5px 30px', gap: '30px', alignItems: 'center'}}>
-                    <CircularProgress/>
-                    <Typography>Preparing to download ...</Typography>
-                </Stack>
-            </DialogContent>
-        </Dialog>
-    );
-}
 
 function BasicProjectSettings() {
     const [inputErrors, setInputErrors] = useState({});
@@ -120,89 +99,6 @@ function BasicProjectSettings() {
             </Stack>
             {
                 alertMsg && <EnhancedAlert msg={alertMsg} severity="success" closeHandler={() => setAlertMsg('')}/>
-            }
-        </Fragment>
-    );
-}
-
-function ExportSettings() {
-    const [project,] = useProject();
-    const [isAdvanced, setIsAdvanced] = useState(false);
-    const [isCheckboxed, setIsCheckboxed] = useState([false, false, false]);
-    const [inputValues, setInputValues] = useState([[0, 0, 0], [100000, 100000, 100000]]);
-    const [showPrepareExport, setShowPrepareExport] = useState(false);
-
-    const handleExport = () => {
-        setShowPrepareExport(true);
-        ProjectsService.export(project.id)
-            .then(data => {
-                setShowPrepareExport(false);
-                window.location.assign(ProjectsService.getExportUrl(data.res_id));
-            });
-    };
-
-    const updateIfValid = (input, i, j) => {
-        if (input === '' || /^\d+$/.test(input)) {
-            setInputValues(prevState => {
-                prevState[i][j] = input;
-                return [...prevState];
-            })
-        }
-    };
-
-    return (
-        <Fragment>
-            <Stack sx={{alignItems: 'flex-start', gap: '25px'}}>
-                <Stack direction="row" sx={{gap: '25px'}}>
-                    <FormControlLabel
-                        control={<Checkbox checked={isAdvanced} onChange={() => setIsAdvanced(!isAdvanced)}/>}
-                        label={<Typography variant="subtitle2">Advanced</Typography>}
-                    />
-                    <Grid container columns={3} sx={{width: '400px'}}>
-                        <Grid item xs={1}/>
-                        <Grid item xs={1}>
-                            <Typography variant="subtitle2">Min.</Typography>
-                        </Grid>
-                        <Grid item xs={1}>
-                            <Typography variant="subtitle2">Max.</Typography>
-                        </Grid>
-
-                        {['Positive', 'Neutral', 'Negative'].map((label, i) => (
-                            <Fragment key={label}>
-                                <Grid item xs={1}>
-                                    <FormControlLabel
-                                        control={<Checkbox disabled={!isAdvanced}/>}
-                                        label={<Typography variant="subtitle2">{label}</Typography>}
-                                        onChange={() => {
-                                            setIsCheckboxed(prevState => {
-                                                prevState[i] = !prevState[i];
-                                                return [...prevState];
-                                            })
-                                        }}
-                                    />
-                                </Grid>
-                                <Grid item xs={1}>
-                                    <TextField variant="outlined" size="small" disabled={!isCheckboxed[i]}
-                                               value={inputValues[0][i]}
-                                               onChange={e => updateIfValid(e.target.value, 0, i)}
-                                    />
-                                </Grid>
-                                <Grid item xs={1}>
-                                    <TextField variant="outlined" size="small" disabled={!isCheckboxed[i]}
-                                               value={inputValues[1][i]}
-                                               onChange={e => updateIfValid(e.target.value, 1, i)}
-                                    />
-                                </Grid>
-                            </Fragment>
-                        ))}
-                    </Grid>
-                </Stack>
-                <MainActionButton startIcon={<FileDownloadIcon/>} onClick={handleExport}>
-                    Export
-                </MainActionButton>
-            </Stack>
-            {
-                showPrepareExport && <PrepareExportDialog/>
             }
         </Fragment>
     );

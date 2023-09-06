@@ -156,7 +156,7 @@ function nextNonSpace(str) {
     return '';
 }
 
-function normalizeText(text, factor=0.9) {
+function normalizeText(text, factor = 0.9) {
     const parts = text.split('\n');
     const rowSize = Math.max(...parts.map(p => p.length));
     const minSize = rowSize * factor;
@@ -189,7 +189,7 @@ function isValidEmail(s) {
 function checkUrlExists(url) {
     return new Promise(resolve => {
         const xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = function() {
+        xhr.onreadystatechange = function () {
             if (this.readyState === 4) {
                 if (this.status === 200) {
                     resolve(true);
@@ -265,6 +265,15 @@ function getIssueBaseUrl(urn) {
     }
 }
 
+function objectMap(obj, fn) {
+    return Object.fromEntries(
+        Object.entries(obj)
+            .map(
+                ([k, v], i) => [k, fn(v, k, i)]
+            )
+    )
+}
+
 export {
     fmtTimeSince,
     createComparator,
@@ -292,5 +301,6 @@ export {
     getFileExt,
     fileExtToCodeLang,
     getFileCodeLang,
-    getIssueBaseUrl
+    getIssueBaseUrl,
+    objectMap
 };
