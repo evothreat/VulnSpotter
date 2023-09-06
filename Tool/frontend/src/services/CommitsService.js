@@ -18,8 +18,8 @@ class CommitsService {
         return api.get(urlPath);
     }
 
-    getHistory(id, start) {
-        if (start != null) {
+    getHistory(id, start=null) {
+        if (start) {
             return api.get(`${this.basePath}/${id}/history?start=${start}`);
         }
         return api.get(`${this.basePath}/${id}/history`);

@@ -15,7 +15,7 @@ class ProjectsService {
         return api.get(`${this.basePath}/${id}`);
     }
 
-    create(repoUrl, projName, extensions) {
+    create(repoUrl, projName, extensions=null) {
         const body = {
             'repository': repoUrl,
             'project_name': projName
@@ -46,7 +46,7 @@ class ProjectsService {
         return api.get(`${this.basePath}/${id}/invites`);
     }
 
-    getCommits(id, opts) {
+    getCommits(id, opts=null) {
         let queryArgs = [];
         if (opts) {
             if (opts.rated != null) {
@@ -56,11 +56,12 @@ class ProjectsService {
         return api.get(`${this.basePath}/${id}/commits?${queryArgs.join('&')}`);
     }
 
-    export(id, opts) {
-        return api.post('/exports',  {
-            'project_id': id,
-            'options': opts
-        });
+    export(id, rules=null) {
+        const data = {'project_id': id};
+        if (rules) {
+            data['rules'] = rules;
+        }
+        return api.post('/exports',  data);
     }
 
     getExportUrl(id) {

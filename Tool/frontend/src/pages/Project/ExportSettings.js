@@ -17,6 +17,7 @@ import * as React from "react";
 import {objectMap} from "@utils/common";
 import ProjectsService from "@services/ProjectsService";
 import MainActionButton from "@components/MainActionButton";
+import {isObjEmpty} from "@utils/common";
 
 
 const VOTE_KEY_LABEL_MAP = Object.freeze({
@@ -43,29 +44,31 @@ export default function ExportSettings() {
     const [project,] = useProject();
     const [isAdvanced, setIsAdvanced] = useState(false);
     const [isCheckboxed, setIsCheckboxed] = useState(objectMap(VOTE_KEY_LABEL_MAP, () => false));
-    const [inputValues, setInputValues] = useState(objectMap(VOTE_KEY_LABEL_MAP, () => [0, 100000]));
+    const [ratingRanges, setRatingRanges] = useState(objectMap(VOTE_KEY_LABEL_MAP, () => [0, 100000]));
     const [showPrepareExport, setShowPrepareExport] = useState(false);
 
     const handleExport = () => {
-        const options = {};
+        const rules = {};
         if (isAdvanced) {
             for (const k in VOTE_KEY_LABEL_MAP) {
                 if (isCheckboxed[k]) {
-                    options[k] = inputValues[k];
+                    rules[k] = ratingRanges[k];
                 }
             }
         }
         setShowPrepareExport(true);
-        ProjectsService.export(project.id, options)
+        ProjectsService.export(project.id, isObjEmpty(rules) ? null : rules)
             .then(data => {
-                setShowPrepareExport(false);
                 window.location.assign(ProjectsService.getExportUrl(data.res_id));
+            })
+            .finally(() => {
+                setShowPrepareExport(false);
             });
     };
 
     const updateIfValid = (input, key, i) => {
         if (input === '' || /^\d+$/.test(input)) {
-            setInputValues(prevState => {
+            setRatingRanges(prevState => {
                 prevState[key][i] = input;
                 return {...prevState};
             })
@@ -105,13 +108,13 @@ export default function ExportSettings() {
                                     </Grid>
                                     <Grid item xs={1}>
                                         <TextField variant="outlined" size="small" disabled={!isCheckboxed[key]}
-                                                   value={inputValues[key][0]}
+                                                   value={ratingRanges[key][0]}
                                                    onChange={e => updateIfValid(e.target.value, key, 0)}
                                         />
                                     </Grid>
                                     <Grid item xs={1}>
                                         <TextField variant="outlined" size="small" disabled={!isCheckboxed[key]}
-                                                   value={inputValues[key][1]}
+                                                   value={ratingRanges[key][1]}
                                                    onChange={e => updateIfValid(e.target.value, key, 1)}
                                         />
                                     </Grid>
