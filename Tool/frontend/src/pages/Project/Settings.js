@@ -110,10 +110,10 @@ function BasicProjectSettings() {
                     />
                 </Stack>
                 <Stack direction="row" sx={{gap: '10px'}}>
-                    <MainActionButton onClick={handleUpdateProject} startIcon={<SaveIcon/>} >
+                    <MainActionButton onClick={handleUpdateProject} startIcon={<SaveIcon/>}>
                         Save
                     </MainActionButton>
-                    <MainActionButton variant="outlined" onClick={resetInput} startIcon={<RotateLeftIcon/>} >
+                    <MainActionButton variant="outlined" onClick={resetInput} startIcon={<RotateLeftIcon/>}>
                         Reset
                     </MainActionButton>
                 </Stack>
@@ -128,16 +128,26 @@ function BasicProjectSettings() {
 function ExportSettings() {
     const [project,] = useProject();
     const [isAdvanced, setIsAdvanced] = useState(false);
+    const [isCheckboxed, setIsCheckboxed] = useState([false, false, false]);
+    const [inputValues, setInputValues] = useState([[0, 0, 0], [100000, 100000, 100000]]);
     const [showPrepareExport, setShowPrepareExport] = useState(false);
 
     const handleExport = () => {
         setShowPrepareExport(true);
-
         ProjectsService.export(project.id)
             .then(data => {
                 setShowPrepareExport(false);
                 window.location.assign(ProjectsService.getExportUrl(data.res_id));
             });
+    };
+
+    const updateIfValid = (input, i, j) => {
+        if (input === '' || /^\d+$/.test(input)) {
+            setInputValues(prevState => {
+                prevState[i][j] = input;
+                return [...prevState];
+            })
+        }
     };
 
     return (
@@ -149,9 +159,7 @@ function ExportSettings() {
                         label={<Typography variant="subtitle2">Advanced</Typography>}
                     />
                     <Grid container columns={3} sx={{width: '400px'}}>
-                        <Grid item xs={1}>
-                            {/* This is just a placeholder for the "Min." & "Max." labels at the top */}
-                        </Grid>
+                        <Grid item xs={1}/>
                         <Grid item xs={1}>
                             <Typography variant="subtitle2">Min.</Typography>
                         </Grid>
@@ -159,26 +167,31 @@ function ExportSettings() {
                             <Typography variant="subtitle2">Max.</Typography>
                         </Grid>
 
-                        {["Positive", "Neutral", "Negative"].map((label) => (
+                        {['Positive', 'Neutral', 'Negative'].map((label, i) => (
                             <Fragment key={label}>
                                 <Grid item xs={1}>
                                     <FormControlLabel
                                         control={<Checkbox disabled={!isAdvanced}/>}
                                         label={<Typography variant="subtitle2">{label}</Typography>}
+                                        onChange={() => {
+                                            setIsCheckboxed(prevState => {
+                                                prevState[i] = !prevState[i];
+                                                return [...prevState];
+                                            })
+                                        }}
                                     />
                                 </Grid>
                                 <Grid item xs={1}>
-                                    <TextField type="number" variant="outlined" size="small" disabled={!isAdvanced}
-                                               defaultValue={0}
-                                               InputProps={{
-                                                   inputProps: {
-                                                       min: 0
-                                                   }
-                                               }}/>
+                                    <TextField variant="outlined" size="small" disabled={!isCheckboxed[i]}
+                                               value={inputValues[0][i]}
+                                               onChange={e => updateIfValid(e.target.value, 0, i)}
+                                    />
                                 </Grid>
                                 <Grid item xs={1}>
-                                    <TextField type="number" variant="outlined" size="small" disabled={!isAdvanced}
-                                               defaultValue={100000}/>
+                                    <TextField variant="outlined" size="small" disabled={!isCheckboxed[i]}
+                                               value={inputValues[1][i]}
+                                               onChange={e => updateIfValid(e.target.value, 1, i)}
+                                    />
                                 </Grid>
                             </Fragment>
                         ))}
