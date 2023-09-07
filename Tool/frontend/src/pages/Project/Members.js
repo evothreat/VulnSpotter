@@ -13,7 +13,7 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import Button from "@mui/material/Button";
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import {Role} from "@root/constants";
-import ConfirmDeleteDialog from "@components/ConfirmDeleteDialog";
+import ConfirmActDialog from "@components/ConfirmActDialog";
 import {Autocomplete, Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/material";
 import api from "@services/api";
 import TextField from "@mui/material/TextField";
@@ -62,19 +62,30 @@ const headCells = [
 
 const cmpByFullNameAsc = Utils.createComparator('full_name', 'asc');
 
-function renderMemberRow(item, deleteHandler) {
+function roleToLabel(role) {
+    switch (role) {
+        case Role.OWNER:
+            return 'Owner';
+        case Role.CONTRIBUTOR:
+            return 'Contributor';
+        default:
+            return 'Unknown';
+    }
+}
+
+function MemberRow({member, deleteHandler}) {
     return (
-        <TableRow key={item.id} hover sx={{'& td': {height: '30px'}}}>
-            <TableCell>{item.full_name}</TableCell>
-            <TableCell>{item.username}</TableCell>
-            <TableCell>{Utils.capitalize(item.role)}</TableCell>
-            <TableCell>{item.active ? fmtTimeSince(item.joined_at) + ' ago' : '-'}</TableCell>
+        <TableRow key={member.id} hover sx={{'& td': {height: '30px'}}}>
+            <TableCell>{member.full_name}</TableCell>
+            <TableCell>{member.username}</TableCell>
+            <TableCell>{roleToLabel(member.role)}</TableCell>
+            <TableCell>{member.active ? fmtTimeSince(member.joined_at) + ' ago' : '-'}</TableCell>
             <TableCell align="right">
                 {
-                    item.role !== Role.OWNER
+                    member.role !== Role.OWNER
                         ? (
                             <Box sx={{display: 'flex', justifyContent: 'right'}}>
-                                <ActionButton onClick={() => deleteHandler(item)}>
+                                <ActionButton onClick={() => deleteHandler(member)}>
                                     <DeleteForeverIcon fontSize="inherit"/>
                                 </ActionButton>
                             </Box>
@@ -86,16 +97,16 @@ function renderMemberRow(item, deleteHandler) {
     );
 }
 
-function MembersTable({items, setItems}) {
+function MembersTable({members, setMembers}) {
     const [project,] = useProject();
 
     const [sorter, setSorter] = useState({
         order: 'asc',
         orderBy: 'joined_at'
     });
-    const [itemToDelete, setItemToDelete] = useState(null);
+    const [memberToDelete, setMemberToDelete] = useState(null);
 
-    const sortItems = key => {
+    const sortMembers = key => {
         const isAsc = sorter.orderBy === key && sorter.order === 'asc';
 
         setSorter({
@@ -104,22 +115,22 @@ function MembersTable({items, setItems}) {
         });
     };
 
-    const getItems = () => {
-        return items.sort(Utils.createComparator(sorter.orderBy, sorter.order)).slice();
+    const getMembers = () => {
+        return members.sort(Utils.createComparator(sorter.orderBy, sorter.order)).slice();
     };
 
     const handleDelete = () => {
-        const item = itemToDelete;
-        setItemToDelete(null);
+        const member = memberToDelete;
+        setMemberToDelete(null);
 
-        const req = item.active
-            ? ProjectsService.removeMember(project.id, item.id)
-            : InvitesService.deleteSent(item.invite_id);
+        const req = member.active
+            ? ProjectsService.removeMember(project.id, member.id)
+            : InvitesService.deleteSent(member.invite_id);
 
-        req.then(() => setItems(curItems => Utils.remove(curItems, item.id)));
+        req.then(() => setMembers(curMembers => Utils.remove(curMembers, member.id)));
     };
 
-    const orderedItems = getItems();
+    const orderedMembers = getMembers();
     return (
         <Fragment>
             <TableContainer sx={{height: '520px'}}>
@@ -127,16 +138,18 @@ function MembersTable({items, setItems}) {
                     <EnhancedTableHead headCells={headCells}
                                        order={sorter.order}
                                        orderBy={sorter.orderBy}
-                                       sortReqHandler={sortItems}/>
+                                       sortReqHandler={sortMembers}/>
                     {
-                        orderedItems && (
+                        orderedMembers && (
                             <TableBody>
                                 {
-                                    orderedItems.length > 0
-                                        ? orderedItems.map(it => renderMemberRow(it, m => setItemToDelete(m)))
+                                    orderedMembers.length > 0
+                                        ? orderedMembers.map(m =>
+                                            <MemberRow member={m} deleteHandler={m => setMemberToDelete(m)}/>
+                                        )
                                         : <TableRow>
                                             <TableCell colSpan="100%" sx={{border: 0, color: '#606060'}}>
-                                                There are no items to display
+                                                There are no members to display
                                             </TableCell>
                                         </TableRow>
                                 }
@@ -146,11 +159,12 @@ function MembersTable({items, setItems}) {
                 </Table>
             </TableContainer>
             {
-                itemToDelete &&
-                <ConfirmDeleteDialog title="Remove Member" closeHandler={() => setItemToDelete(null)}
-                                     deleteHandler={handleDelete}>
-                    Are you sure you want to remove <b>{itemToDelete.full_name}</b> from project?
-                </ConfirmDeleteDialog>
+                memberToDelete &&
+                <ConfirmActDialog title="Remove Member" confirmTitle="Remove"
+                                  closeHandler={() => setMemberToDelete(null)}
+                                  confirmHandler={handleDelete}>
+                    Are you sure you want to remove <b>{memberToDelete.full_name}</b> from project?
+                </ConfirmActDialog>
             }
         </Fragment>
     );
@@ -262,7 +276,7 @@ export default function Members() {
                 </MainActionButton>
             </PageHeader>
             {
-                projMembers && <MembersTable items={projMembers} setItems={setProjMembers}/>
+                projMembers && <MembersTable members={projMembers} setMembers={setProjMembers}/>
             }
             {
                 openInviteDlg &&

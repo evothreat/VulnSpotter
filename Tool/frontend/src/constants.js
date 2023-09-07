@@ -1,9 +1,8 @@
-
+// NOTE: declaration on backend should be same
 const Role = Object.freeze({
-    OWNER: 'owner',
-    CONTRIBUTOR: 'contributor'
+    OWNER: 'O',
+    CONTRIBUTOR: 'C'
 });
-
 
 const FILE_EXTENSIONS = [
     'c',

@@ -17,7 +17,7 @@ import ProjectsService from "@services/ProjectsService";
 import TextField from "@mui/material/TextField";
 import EnhancedTableHead from "@components/EnhancedTableHead";
 import TokenService from "@services/TokenService";
-import ConfirmDeleteDialog from "@components/ConfirmDeleteDialog";
+import ConfirmActDialog from "@components/ConfirmActDialog";
 import RouterLink from "@components/RouterLink";
 import ActionButton from "@components/ActionButton";
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -125,6 +125,7 @@ export default function ProjectsTable() {
     const [searchKw, setSearchKw] = useState('');
     const [projToDelete, setProjToDelete] = useState(null);
     const [projToRename, setProjToRename] = useState(null);
+    const [projToLeave, setProjToLeave] = useState(null);
 
     useEffect(() => {
         ProjectsService.getAll()
@@ -187,10 +188,13 @@ export default function ProjectsTable() {
             });
     };
     
-    const handleLeave = (proj) => {
-        ProjectsService.removeMember(proj.id, TokenService.getUserId())
+    const handleLeave = () => {
+        const projId = projToLeave.id;
+        setProjToLeave(null);
+
+        ProjectsService.removeMember(projId, TokenService.getUserId())
             .then(() => {
-                setProjects(curProjects => Utils.remove(curProjects, proj.id));
+                setProjects(curProjects => Utils.remove(curProjects, projId));
             });
     }
 
@@ -228,7 +232,7 @@ export default function ProjectsTable() {
                                             <ProjectRow proj={it} 
                                                         deleteHandler={setProjToDelete}
                                                         renameHandler={setProjToRename}
-                                                        leaveHandler={handleLeave}
+                                                        leaveHandler={setProjToLeave}
                                             />
                                         )
                                         : <TableRow>
@@ -243,15 +247,25 @@ export default function ProjectsTable() {
                 </Table>
             </TableContainer>
             {
-                projToRename && <RenameProjectDialog proj={projToRename} renameHandler={handleRename}
-                                                     closeHandler={() => setProjToRename(null)}/>
+                projToRename &&
+                <RenameProjectDialog proj={projToRename} renameHandler={handleRename}
+                                     closeHandler={() => setProjToRename(null)}/>
             }
             {
                 projToDelete &&
-                <ConfirmDeleteDialog title="Delete Project" closeHandler={() => setProjToDelete(null)}
-                                     deleteHandler={handleDelete}>
+                <ConfirmActDialog title="Delete Project" confirmTitle="Delete"
+                                     closeHandler={() => setProjToDelete(null)}
+                                     confirmHandler={handleDelete}>
                     Are you sure you want to permanently delete the <b>{projToDelete.name}</b>-Project?
-                </ConfirmDeleteDialog>
+                </ConfirmActDialog>
+            }
+            {
+                projToLeave &&
+                <ConfirmActDialog title="Leave Project" confirmTitle="Leave"
+                                     closeHandler={() => setProjToLeave(null)}
+                                     confirmHandler={handleLeave}>
+                    Are you sure you want to leave the <b>{projToLeave.name}</b>-Project?
+                </ConfirmActDialog>
             }
         </Fragment>
     );

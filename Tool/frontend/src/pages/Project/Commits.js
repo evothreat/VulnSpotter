@@ -47,7 +47,7 @@ const headCells = [
     }
 ];
 
-const MAX_ITEMS = 20;
+const MAX_COMMITS = 20;
 
 const TABLE_HEIGHT = '420px';
 const BOTTOM_OFFSET = '-40px';
@@ -63,12 +63,12 @@ const autocompleteInputStyle = {
 };
 
 
-function CommitRow({item, checkHandler, checked}) {
+function CommitRow({commit, checkHandler, checked}) {
     const [detailsOpen, setDetailsOpen] = useState(false);
 
     const toggleDetails = () => setDetailsOpen(prevState => !prevState);
 
-    const handleCheck = e => checkHandler(item.id, e.target.checked);
+    const handleCheck = e => checkHandler(commit.id, e.target.checked);
 
     return (
         <Fragment>
@@ -79,15 +79,16 @@ function CommitRow({item, checkHandler, checked}) {
                 <TableCell>
                     {
                         <Box sx={{display: 'flex', alignItems: 'flex-end'}}>
-                            <RouterLink to={`./explorer?commitId=${item.id}`} underline="hover" color="inherit">
+                            <RouterLink to={`./explorer?commitId=${commit.id}`} underline="hover" color="inherit">
                                 {
-                                    item.message.substring(0, 65).replace('\n', ' ⤶ ')
+                                    commit.message.substring(0, 65).replace('\n', ' ⤶ ')
                                 }
                             </RouterLink>
                             {
-                                item.message.length > 60
+                                commit.message.length > 60
                                     ? (
-                                        <IconButton onClick={toggleDetails} sx={{padding: 0, borderRadius: 0, height: '14px'}}>
+                                        <IconButton onClick={toggleDetails}
+                                                    sx={{padding: 0, borderRadius: 0, height: '14px'}}>
                                             <MoreHorizIcon/>
                                         </IconButton>
                                     )
@@ -97,10 +98,10 @@ function CommitRow({item, checkHandler, checked}) {
                     }
                 </TableCell>
                 <TableCell align="center">
-                    {item.cve.length}
+                    {commit.cve.length}
                 </TableCell>
                 <TableCell>
-                    {Utils.fmtTimeSince(item.created_at) + ' ago'}
+                    {Utils.fmtTimeSince(commit.created_at) + ' ago'}
                 </TableCell>
             </TableRow>
             <TableRow>
@@ -108,7 +109,7 @@ function CommitRow({item, checkHandler, checked}) {
                     <Collapse in={detailsOpen} timeout="auto" unmountOnExit>
                         <Box>
                             <pre className={commitsCss.commitMessage}>
-                                {item.message}
+                                {commit.message}
                             </pre>
                         </Box>
                     </Collapse>
@@ -119,14 +120,14 @@ function CommitRow({item, checkHandler, checked}) {
 }
 
 const PureCommitRow = React.memo(CommitRow, (prev, curr) =>
-    prev.item.id === curr.item.id &&
+    prev.commit.id === curr.commit.id &&
     prev.checked === curr.checked &&
     prev.checkHandler === curr.checkHandler
 );
 
 function CommitsTable({commits, selectedIds, checkHandler, sortReqHandler, order, orderBy}) {
 
-    const [endIx, setEndIx] = useState(MAX_ITEMS);
+    const [endIx, setEndIx] = useState(MAX_COMMITS);
 
     const containerRef = useRef(null);
     const commitsRef = useRef(commits);
@@ -137,28 +138,28 @@ function CommitsTable({commits, selectedIds, checkHandler, sortReqHandler, order
         }
         commitsRef.current = commits;
 
-        setEndIx(MAX_ITEMS);
+        setEndIx(MAX_COMMITS);
     }
 
-    const showNextItems = () => {
+    const showNextCommits = () => {
         setEndIx(curIx => {
             if (curIx === commits.length) {
                 return curIx;
             }
-            return Math.min(commits.length, curIx + MAX_ITEMS);
+            return Math.min(commits.length, curIx + MAX_COMMITS);
         });
     };
 
     const handleSelectAll = checked => {
         if (checked) {
-            checkHandler(commits.map(it => it.id), checked);
+            checkHandler(commits.map(c => c.id), checked);
         } else {
             checkHandler([], checked);
         }
     };
 
-    const orderedItems = commits?.slice(0, endIx);
-    return orderedItems && (
+    const orderedCommits = commits?.slice(0, endIx);
+    return orderedCommits && (
         <Box>
             <TableContainer ref={containerRef} sx={{height: TABLE_HEIGHT, borderBottom: 'thin solid lightgray'}}>
                 <Table size="small" sx={{tableLayout: 'fixed'}} stickyHeader>
@@ -169,23 +170,23 @@ function CommitsTable({commits, selectedIds, checkHandler, sortReqHandler, order
                                        selectAllChecked={commits.length > 0 && commits.length === selectedIds.size}/>
                     <TableBody>
                         {
-                            orderedItems.length > 0
+                            orderedCommits.length > 0
                                 ? <Fragment>
                                     {
-                                        orderedItems.map(it =>
-                                            <PureCommitRow item={it} key={it.id} checked={selectedIds.has(it.id)}
+                                        orderedCommits.map(c =>
+                                            <PureCommitRow commit={c} key={c.id} checked={selectedIds.has(c.id)}
                                                            checkHandler={checkHandler}/>
                                         )
                                     }
                                     <TableRow key="012345">
                                         <TableCell colSpan="100%" sx={{border: 'none'}}>
-                                            <Waypoint bottomOffset={BOTTOM_OFFSET} onEnter={showNextItems}/>
+                                            <Waypoint bottomOffset={BOTTOM_OFFSET} onEnter={showNextCommits}/>
                                         </TableCell>
                                     </TableRow>
                                 </Fragment>
                                 : <TableRow>
                                     <TableCell colSpan="100%" sx={{border: 0, color: '#606060'}}>
-                                        There are no items to display
+                                        There are no commits to display
                                     </TableCell>
                                 </TableRow>
                         }

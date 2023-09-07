@@ -17,7 +17,7 @@ import RotateLeftIcon from '@mui/icons-material/RotateLeft';
 import {useProject} from "./useProject";
 import {arrayEquals, isObjEmpty} from "@utils/common";
 import ProjectsService from "@services/ProjectsService";
-import ConfirmDeleteDialog from "@components/ConfirmDeleteDialog";
+import ConfirmActDialog from "@components/ConfirmActDialog";
 import {useNavigate} from "react-router-dom";
 import ExportSettings from "./ExportSettings";
 
@@ -128,11 +128,12 @@ function DeleteProjectSetting() {
             </Stack>
             {
                 showConfirmDelete &&
-                <ConfirmDeleteDialog title="Delete Project"
-                                     closeHandler={() => setShowConfirmDelete(false)}
-                                     deleteHandler={handleDelProject}>
+                <ConfirmActDialog title="Delete Project"
+                                  confirmTitle="Delete"
+                                  closeHandler={() => setShowConfirmDelete(false)}
+                                  confirmHandler={handleDelProject}>
                     Are you sure you want to permanently delete the <b>{project.name}</b>-Project?
-                </ConfirmDeleteDialog>
+                </ConfirmActDialog>
             }
         </Fragment>
     );

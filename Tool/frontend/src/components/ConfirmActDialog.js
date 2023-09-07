@@ -5,7 +5,7 @@ import Button from "@mui/material/Button";
 import * as React from "react";
 
 
-export default function ConfirmDeleteDialog({title, children, closeHandler, deleteHandler}) {
+export default function ConfirmActDialog({title, confirmTitle, children, closeHandler, confirmHandler}) {
     return (
         <Dialog open={true} onClose={closeHandler} maxWidth="xs" fullWidth>
             <DialogTitle>
@@ -21,8 +21,8 @@ export default function ConfirmDeleteDialog({title, children, closeHandler, dele
             </DialogContent>
             <DialogActions>
                 <Button variant="outlined" onClick={closeHandler}>Cancel</Button>
-                <Button variant="contained" onClick={deleteHandler} autoFocus>
-                    Delete
+                <Button variant="contained" onClick={confirmHandler} autoFocus>
+                    {confirmTitle}
                 </Button>
             </DialogActions>
         </Dialog>
