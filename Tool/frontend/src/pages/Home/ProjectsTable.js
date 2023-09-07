@@ -115,7 +115,7 @@ function ProjectRow({proj, deleteHandler, renameHandler, leaveHandler}) {
     );
 }
 
-export default function ProjectsTable() {
+export default function ProjectsTable({refreshIssuer}) {
     const [projects, setProjects] = useState(null);
     const [group, setGroup] = useState('all');
     const [sorter, setSorter] = useState({
@@ -138,7 +138,7 @@ export default function ProjectsTable() {
                 });
                 setProjects(data);
             });
-    }, []);
+    }, [refreshIssuer]);
 
     const handleGroupChange = (e, val) => {
         // If the user presses the same button twice (i.e. deselects option), do nothing (replace later with radio buttons).

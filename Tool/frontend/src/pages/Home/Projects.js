@@ -13,6 +13,9 @@ import PageHeader from "@components/PageHeader";
 import LayoutBody from "@layout/LayoutBody";
 import {FILE_EXTENSIONS} from "@root/constants";
 import {isValidGitRepoUrl} from "@utils/common";
+import Box from "@mui/material/Box";
+import CachedIcon from '@mui/icons-material/Cached';
+import IconButton from "@mui/material/IconButton";
 
 
 function CreateProjectDialog({closeHandler, createHandler}) {
@@ -70,6 +73,7 @@ export default function Projects() {
 
     const [openCreateDlg, setOpenCreateDlg] = useState(false);
     const [alertMsg, setAlertMsg] = useState('');
+    const [refreshIssuer, setRefreshIssuer] = useState(false);
 
     const handleCreateProject = (repoUrl, projName, extensions) => {
         setOpenCreateDlg(false);
@@ -81,18 +85,24 @@ export default function Projects() {
     return (
         <LayoutBody>
             <PageHeader>
-                <Typography variant="h6">
-                    Projects
-                </Typography>
+                <Box sx={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+                    <Typography variant="h6">
+                        Projects
+                    </Typography>
+                    <IconButton size="small" onClick={() => setRefreshIssuer(state => !state)}>
+                        <CachedIcon/>
+                    </IconButton>
+                </Box>
                 <MainActionButton startIcon={<AddIcon/>} onClick={() => setOpenCreateDlg(true)}>
                     New
                 </MainActionButton>
             </PageHeader>
 
-            <ProjectsTable/>
+            <ProjectsTable refreshIssuer={refreshIssuer}/>
             {
                 openCreateDlg
-                    ? <CreateProjectDialog closeHandler={() => setOpenCreateDlg(false)} createHandler={handleCreateProject}/>
+                    ? <CreateProjectDialog closeHandler={() => setOpenCreateDlg(false)}
+                                           createHandler={handleCreateProject}/>
                     : null
             }
             {
