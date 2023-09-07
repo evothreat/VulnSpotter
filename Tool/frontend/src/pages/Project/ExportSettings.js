@@ -69,7 +69,7 @@ export default function ExportSettings() {
     const updateIfValid = (input, key, i) => {
         if (input === '' || /^\d+$/.test(input)) {
             setRatingRanges(prevState => {
-                prevState[key][i] = input;
+                prevState[key][i] = parseInt(input);
                 return {...prevState};
             })
         }
