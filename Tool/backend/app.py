@@ -591,18 +591,22 @@ def get_members(proj_id):
 @app.route('/api/users/me/projects/<int:proj_id>/members/<int:member_id>', methods=['DELETE'])
 @jwt_required()
 def delete_member(proj_id, member_id):
-    owner_id = get_jwt_identity()
-    # trying to delete self
-    if owner_id == member_id:
+    user_id = get_jwt_identity()
+
+    is_user_owner = is_owner(user_id, proj_id)
+    if is_user_owner and user_id == member_id:
         return '', 422
 
+    if not is_user_owner and user_id != member_id:
+        return '', 403
+
     with db_conn:
-        deleted = db_conn.execute('DELETE FROM membership WHERE project_id=? AND user_id=? '
-                                  'AND EXISTS(SELECT * FROM projects p WHERE p.id=project_id AND p.owner_id=?)',
-                                  (proj_id, member_id, owner_id)).rowcount
+        deleted = db_conn.execute('DELETE FROM membership WHERE project_id=? AND user_id=?',
+                                  (proj_id, member_id)).rowcount
         if deleted == 0:
             return '', 404
-    # TODO: notify deleted user
+
+    # TODO: notify owner/deleted user
 
     return '', 204
 

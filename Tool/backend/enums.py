@@ -18,5 +18,5 @@ class Action(SQLiteEnum):
 
 
 class Role(SQLiteEnum):
-    OWNER = 'owner'
-    CONTRIBUTOR = 'contributor'
+    OWNER = 'O'
+    CONTRIBUTOR = 'C'
