@@ -27,9 +27,11 @@ const VIEW_TYPE = Object.freeze({
     SETTINGS: 'settings'
 });
 
+// role of user in project
+// less value - less permissions
 const USER_ROLE = Object.freeze({
-    OWNER: 1,
-    MEMBER: 2,
+    MEMBER: 1,
+    OWNER: 2,
 });
 
 const sidebarItems = [
@@ -97,7 +99,7 @@ function Sidebar({viewKey, viewChangeHandler, curUserRole}) {
                 <Divider sx={{mt: '20px'}}/>
                 {
                     sidebarItems.map(({label, key, role, Icon}, i) => (
-                            curUserRole === role || curUserRole === USER_ROLE.OWNER
+                            curUserRole >= role
                                 ? (
                                     <ListItem key={i} disablePadding>
                                         <ListItemButton selected={key === viewKey}
