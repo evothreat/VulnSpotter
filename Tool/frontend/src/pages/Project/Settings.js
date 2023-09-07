@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import FormTextField from "@components/FormTextField";
 import MainActionButton from "@components/MainActionButton";
-import EnhancedAlert from "@components/EnhancedAlert";
+import TemporaryAlert from "@components/TemporaryAlert";
 import * as React from "react";
 import {Fragment, useState} from "react";
 import {FILE_EXTENSIONS} from "@root/constants";
@@ -98,7 +98,10 @@ function BasicProjectSettings() {
                 </Stack>
             </Stack>
             {
-                alertMsg && <EnhancedAlert msg={alertMsg} severity="success" closeHandler={() => setAlertMsg('')}/>
+                alertMsg &&
+                <TemporaryAlert severity="success" closeHandler={() => setAlertMsg('')}>
+                    {alertMsg}
+                </TemporaryAlert>
             }
         </Fragment>
     );

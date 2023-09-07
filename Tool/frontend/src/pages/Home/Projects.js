@@ -7,7 +7,7 @@ import ProjectsTable from "./ProjectsTable";
 import ProjectsService from "@services/ProjectsService";
 import {Autocomplete, Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/material";
 import TextField from "@mui/material/TextField";
-import EnhancedAlert from "@components/EnhancedAlert";
+import TemporaryAlert from "@components/TemporaryAlert";
 import MainActionButton from "@components/MainActionButton";
 import PageHeader from "@components/PageHeader";
 import LayoutBody from "@layout/LayoutBody";
@@ -79,7 +79,7 @@ export default function Projects() {
         setOpenCreateDlg(false);
 
         ProjectsService.create(repoUrl, projName, extensions)
-            .then(() => setAlertMsg('Once the project is created, you will be notified'));
+            .then(() => setAlertMsg('Once the project is created, you will be notified.'));
     };
 
     return (
@@ -106,7 +106,10 @@ export default function Projects() {
                     : null
             }
             {
-                alertMsg && <EnhancedAlert msg={alertMsg} severity="info" closeHandler={() => setAlertMsg('')}/>
+                alertMsg &&
+                <TemporaryAlert severity="info" closeHandler={() => setAlertMsg('')}>
+                    {alertMsg}
+                </TemporaryAlert>
             }
         </LayoutBody>
     )

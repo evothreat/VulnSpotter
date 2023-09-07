@@ -26,6 +26,7 @@ import MainActionButton from "@components/MainActionButton";
 import PageHeader from "@components/PageHeader";
 import {VULN_KEYWORDS} from "@root/constants";
 import {useProject} from "./useProject";
+import TemporaryAlert from "@components/TemporaryAlert";
 
 
 const headCells = [
@@ -218,16 +219,14 @@ export default function Commits() {
     const [project,] = useProject();
 
     const [commits, setCommits] = useState(null);
-
     const searchOpts = useMemo(() => restoreFilterOpts(project.id), [project.id]);
     const [group, setGroup] = useState(searchOpts.group);
     const [keywords, setKeywords] = useState(searchOpts.keywords);
     const [logicalOp, setLogicalOp] = useState(searchOpts.logicalOp);
     const [sorter, setSorter] = useState(searchOpts.sorter);
-
     const filterRef = useRef(null);
-
     const [selectedIds, setSelectedIds] = useState(new Set());
+    const [alertNoSelection, setAlertNoSelection] = useState(false);
 
     useEffect(() => {
         const groupCp = group;    // need this to avoid race conditions
@@ -318,6 +317,9 @@ export default function Commits() {
                 }
             });
         }
+        else {
+            setAlertNoSelection(true);
+        }
     };
 
     const filteredCommits = useMemo(() => {
@@ -376,6 +378,12 @@ export default function Commits() {
                 filteredCommits &&
                 <CommitsTable commits={filteredCommits} selectedIds={selectedIds} checkHandler={handleCheck}
                               sortReqHandler={handleSortRequest} order={sorter.order} orderBy={sorter.orderBy}/>
+            }
+            {
+                alertNoSelection &&
+                <TemporaryAlert severity="info" closeHandler={() => setAlertNoSelection(false)}>
+                    Please select at least one commit.
+                </TemporaryAlert>
             }
         </Fragment>
     );

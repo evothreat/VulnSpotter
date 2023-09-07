@@ -18,7 +18,7 @@ import {Autocomplete, Dialog, DialogActions, DialogContent, DialogTitle} from "@
 import api from "@services/api";
 import TextField from "@mui/material/TextField";
 import ProjectsService from "@services/ProjectsService";
-import EnhancedAlert from "@components/EnhancedAlert";
+import TemporaryAlert from "@components/TemporaryAlert";
 import InvitesService from "@services/InvitesService";
 import MainActionButton from "@components/MainActionButton";
 import ActionButton from "@components/ActionButton";
@@ -284,8 +284,10 @@ export default function Members() {
                                    closeHandler={() => setOpenInviteDlg(false)}/>
             }
             {
-                alertMsg && <EnhancedAlert msg={alertMsg} severity="success"
-                                           closeHandler={() => setAlertMsg('')}/>
+                alertMsg &&
+                <TemporaryAlert severity="success" closeHandler={() => setAlertMsg('')}>
+                    {alertMsg}
+                </TemporaryAlert>
             }
         </Fragment>
     );

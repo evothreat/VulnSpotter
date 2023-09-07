@@ -8,7 +8,7 @@ import FormTextField from "@components/FormTextField";
 import {useEffect, useState} from "react";
 import AuthService from "@services/AuthService";
 import {isObjEmpty, isValidEmail} from "@utils/common";
-import EnhancedAlert from "@components/EnhancedAlert";
+import TemporaryAlert from "@components/TemporaryAlert";
 import {useNavigate} from "react-router-dom";
 
 
@@ -128,7 +128,10 @@ export default function Account() {
                 </MainActionButton>
             </Stack>
             {
-                alertMsg && <EnhancedAlert msg={alertMsg} severity="success" closeHandler={() => setAlertMsg('')}/>
+                alertMsg &&
+                <TemporaryAlert severity="success" closeHandler={() => setAlertMsg('')}>
+                    {alertMsg}
+                </TemporaryAlert>
             }
         </LayoutBody>
     );
