@@ -620,7 +620,7 @@ def create_export():
     if not is_member(get_jwt_identity(), proj_id):
         return '', 404
 
-    export_fpath = gen_export_file(proj_id)
+    export_fpath = gen_export_file(proj_id, request.json.get('rules'))
 
     export_id = str(uuid4())
     exports_map[export_id] = export_fpath

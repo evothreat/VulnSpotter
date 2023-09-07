@@ -14,12 +14,29 @@ GET_CONTENT_STMT = \
     f"SELECT diff_id,content FROM diff_content cd WHERE diff_id IN ({(GET_CONTENT_BINDVAR_N * '?,').rstrip(',')})"
 
 
-def gen_export_file(proj_id):
+def create_range_constraints(rules):
+    conditions = []
+    params = []
+    for key, rg in rules.items():
+        conditions.append(f'{key} BETWEEN ? AND ?')
+        params.extend(rg)
+
+    having_clause = ' AND '.join(conditions)
+
+    if conditions:
+        having_clause = 'HAVING ' + having_clause
+
+    return having_clause, params
+
+
+def gen_export_file(proj_id, rules):
     conn = sqlite3.connect(config.DB_PATH, isolation_level=None, detect_types=sqlite3.PARSE_DECLTYPES)
     conn.row_factory = sqlite3.Row
 
     proj_info = conn.execute('SELECT name,repository FROM projects WHERE id=?', (proj_id,)).fetchone()
     repo_dir = pathjoin(config.REPOS_DIR, proj_info['repository'])
+
+    having_clause, params = create_range_constraints(rules) if rules else ('', [])
 
     diffs_info = conn.execute('SELECT c.hash AS commit_hash,dv.diff_id,'
                               'SUM(CASE WHEN dv.choice=0 THEN 1 ELSE 0 END) neutral,'
@@ -27,8 +44,10 @@ def gen_export_file(proj_id):
                               'SUM(CASE WHEN dv.choice=-1 THEN 1 ELSE 0 END ) negative FROM commits c '
                               'JOIN commit_diffs cd ON c.project_id=? AND cd.commit_id=c.id '
                               'JOIN diff_votes dv ON dv.diff_id=cd.id '
-                              'GROUP BY dv.diff_id ORDER BY dv.diff_id',  # maybe sort on application-side?
-                              (proj_id,)).fetchall()
+                              'GROUP BY dv.diff_id '
+                              f'{having_clause} '
+                              'ORDER BY dv.diff_id',  # maybe sort on application-side?
+                              [proj_id] + params).fetchall()
 
     diff_ids = []
     diffs_info_map = {}
@@ -50,7 +69,7 @@ def gen_export_file(proj_id):
 
     with open(export_fpath, 'w') as f:
         f.write('{\n')
-        f.write('    "repository": "{}",\n'.format(proj_info['repository']))    # NOTE: maybe refactor later
+        f.write('    "repository": "{}",\n'.format(proj_info['repository']))  # NOTE: maybe refactor later
         f.write('    "commits": [\n')
         commit_obj = {}
 
