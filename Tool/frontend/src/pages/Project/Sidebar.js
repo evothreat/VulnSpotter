@@ -27,20 +27,28 @@ const VIEW_TYPE = Object.freeze({
     SETTINGS: 'settings'
 });
 
+const USER_ROLE = Object.freeze({
+    OWNER: 1,
+    MEMBER: 2,
+});
+
 const sidebarItems = [
     {
-        label: 'Commits',
         key: VIEW_TYPE.COMMITS,
+        role: USER_ROLE.MEMBER,
+        label: 'Commits',
         Icon: DescriptionOutlinedIcon
     },
     {
-        label: 'Members',
         key: VIEW_TYPE.MEMBERS,
+        role: USER_ROLE.OWNER,
+        label: 'Members',
         Icon: PeopleAltOutlinedIcon
     },
     {
-        label: 'Settings',
         key: VIEW_TYPE.SETTINGS,
+        role: USER_ROLE.OWNER,
+        label: 'Settings',
         Icon: SettingsOutlinedIcon
     }
 ];
@@ -56,7 +64,7 @@ const sidebarItemStyle = {
 };
 
 
-function Sidebar({viewKey, viewChangeHandler}) {
+function Sidebar({viewKey, viewChangeHandler, curUserRole}) {
     const [project,] = useProject();
     const [open, setOpen] = useState(false);
 
@@ -83,21 +91,26 @@ function Sidebar({viewKey, viewChangeHandler}) {
                             {project.name.charAt(0) /* only first char*/}
                         </Avatar>
                     </ListItemAvatar>
-                    <ListItemText primary={project.name} primaryTypographyProps={{sx: {fontWeight: 'bold', whiteSpace: 'nowrap'}}}/>
+                    <ListItemText primary={project.name}
+                                  primaryTypographyProps={{sx: {fontWeight: 'bold', whiteSpace: 'nowrap'}}}/>
                 </ListItem>
                 <Divider sx={{mt: '20px'}}/>
                 {
-                    sidebarItems.map(({label, key, Icon}, i) => (
-                            <ListItem key={i} disablePadding>
-                                <ListItemButton selected={key === viewKey}
-                                                sx={sidebarItemStyle}
-                                                onClick={() => viewChangeHandler(key)}>
-                                    <ListItemIcon sx={{minWidth: 0, mr: '18px'}}>
-                                        <Icon sx={{width: '20px', height: '20px'}}/>
-                                    </ListItemIcon>
-                                    <ListItemText primary={label}/>
-                                </ListItemButton>
-                            </ListItem>
+                    sidebarItems.map(({label, key, role, Icon}, i) => (
+                            curUserRole === role || curUserRole === USER_ROLE.OWNER
+                                ? (
+                                    <ListItem key={i} disablePadding>
+                                        <ListItemButton selected={key === viewKey}
+                                                        sx={sidebarItemStyle}
+                                                        onClick={() => viewChangeHandler(key)}>
+                                            <ListItemIcon sx={{minWidth: 0, mr: '18px'}}>
+                                                <Icon sx={{width: '20px', height: '20px'}}/>
+                                            </ListItemIcon>
+                                            <ListItemText primary={label}/>
+                                        </ListItemButton>
+                                    </ListItem>
+                                )
+                                : null
                         )
                     )
                 }
@@ -108,5 +121,6 @@ function Sidebar({viewKey, viewChangeHandler}) {
 
 export {
     VIEW_TYPE,
+    USER_ROLE,
     Sidebar
 }

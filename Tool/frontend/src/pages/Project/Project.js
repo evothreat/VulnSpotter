@@ -1,11 +1,13 @@
 import * as React from "react";
 import {useEffect, useState} from "react";
-import {Sidebar, VIEW_TYPE} from "./Sidebar";
+import {Sidebar, VIEW_TYPE, USER_ROLE} from "./Sidebar";
 import Commits from "./Commits";
 import Members from "./Members";
 import LayoutBody from "@layout/LayoutBody";
 import Settings from "./Settings";
 import {useSearchParams} from "react-router-dom";
+import {useProject} from "./useProject";
+import TokenService from "@services/TokenService";
 
 
 function getView(key, props) {
@@ -22,6 +24,7 @@ function getView(key, props) {
 }
 
 export default function Project() {
+    const [project,] = useProject();
     const [searchParams, setSearchParams] = useSearchParams();
     const [viewKey, setViewKey] = useState(null);
 
@@ -41,7 +44,9 @@ export default function Project() {
 
     return (
         <LayoutBody>
-            <Sidebar viewKey={viewKey} viewChangeHandler={handleViewChange}/>
+            <Sidebar viewKey={viewKey} viewChangeHandler={handleViewChange}
+                     curUserRole={project.owner.id === TokenService.getUserId() ? USER_ROLE.OWNER : USER_ROLE.MEMBER}
+            />
             {getView(viewKey)}
         </LayoutBody>
     );
