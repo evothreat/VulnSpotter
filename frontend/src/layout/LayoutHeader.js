@@ -80,7 +80,7 @@ export default function LayoutHeader() {
                                     textDecoration: 'none',
                                 }}
                     >
-                        VulnTector
+                        VulnSpotter
                     </RouterLink>
                 </Box>
                 <Box>
