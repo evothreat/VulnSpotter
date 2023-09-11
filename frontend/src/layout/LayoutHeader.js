@@ -75,7 +75,7 @@ export default function LayoutHeader() {
                                 sx={{
                                     fontFamily: 'monospace',
                                     fontWeight: 'bolder',
-                                    letterSpacing: '.2rem',
+                                    letterSpacing: '.1rem',
                                     color: 'inherit',
                                     textDecoration: 'none',
                                 }}
