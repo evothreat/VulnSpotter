@@ -33,6 +33,17 @@ A comprehensive tool designed to identify and analyze commits that address secur
 - **Collaborative Review**: 
   - Invite other team members to your project, allowing them to review and classify commits.
 
+## Installation
+
+The project is split into server-side and client-side components. For a smooth setup:
+
+### Server-Side
+Please refer to [SERVER-INSTALLATION](backend/README.md) for detailed server setup instructions.
+
+### Client-Side
+For client setup and configuration, see [CLIENT-INSTALLATION](frontend/README.md).
+
+Follow the guides accordingly to ensure both components are correctly set up and integrated.
 
 ## License
 
