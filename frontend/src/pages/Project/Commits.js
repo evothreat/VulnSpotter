@@ -80,7 +80,7 @@ function CommitRow({commit, checkHandler, checked}) {
                 <TableCell>
                     {
                         <Box sx={{display: 'flex', alignItems: 'flex-end'}}>
-                            <RouterLink to={`./explorer?commitId=${commit.id}`} underline="hover" color="inherit">
+                            <RouterLink to={`./inspector?commitId=${commit.id}`} underline="hover" color="inherit">
                                 {
                                     commit.message.substring(0, 65).replace('\n', ' ⤶ ')
                                 }
@@ -308,10 +308,10 @@ export default function Commits() {
         }
     }, []);
 
-    const gotoExplorer = () => {
+    const gotoInspector = () => {
         // NOTE: first check whether any selected
         if (selectedIds.size > 0) {
-            navigate('./explorer', {
+            navigate('./inspector', {
                 state: {
                     commitIds: Array.from(selectedIds)
                 }
@@ -340,8 +340,8 @@ export default function Commits() {
                     Commits
                 </Typography>
 
-                <MainActionButton startIcon={<FindInPageIcon/>} onClick={gotoExplorer}>
-                    Explore
+                <MainActionButton startIcon={<FindInPageIcon/>} onClick={gotoInspector}>
+                    Inspect
                 </MainActionButton>
             </PageHeader>
             <Box sx={{display: 'flex', gap: '10px', flexDirection: 'column', mb: '5px'}}>

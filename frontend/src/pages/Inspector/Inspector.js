@@ -226,7 +226,7 @@ function FileInfoHeader({
     );
 }
 
-export default function Explorer() {
+export default function Inspector() {
     const [project,] = useProject();
 
     const navigate = useNavigate();

@@ -5,7 +5,7 @@ import Login from "./pages/Auth/Login";
 import NotFound from "./pages/NotFound";
 import Layout from "./layout/Layout";
 import TokenService from "./services/TokenService";
-import Explorer from "./pages/Explorer/Explorer";
+import Inspector from "./pages/Inspector/Inspector";
 import {ThemeProvider} from "@mui/material/styles";
 import {appTheme} from "./theme";
 import Account from "./pages/Home/Account";
@@ -42,7 +42,7 @@ export default function App() {
                             <Route index element={<Projects/>}/>
                             <Route path=":projId" element={<ProjectContext/>}>
                                 <Route index element={<Project />} />
-                                <Route path="explorer" element={<Explorer />} />
+                                <Route path="inspector" element={<Inspector />} />
                             </Route>
                         </Route>
                         <Route path="account" element={<Account/>}/>
