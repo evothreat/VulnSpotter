@@ -36,4 +36,7 @@ A comprehensive tool designed to identify and analyze commits that address secur
 
 ## License
 
-[MIT License](LICENSE) - Use, modify, and distribute as you deem fit.
+This project is licensed under the GNU Affero General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+
+The AGPLv3 is similar to the GPLv3, but additionally ensures that the software running over a network provides the source code to its users. This promotes sharing and modification of the software, even in web-based tools and applications.
+
