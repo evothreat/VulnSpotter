@@ -33,7 +33,21 @@ A comprehensive tool designed to identify and analyze commits that address secur
 - **Collaborative Review**: 
   - Invite other team members to your project, allowing them to review and classify commits.
 
+## Installation
+
+The project is split into server-side and client-side components. For a smooth setup:
+
+### Server-Side
+Please refer to [SERVER-INSTALLATION](backend/README.md) for detailed server setup instructions.
+
+### Client-Side
+For client setup and configuration, see [CLIENT-INSTALLATION](frontend/README.md).
+
+Follow the guides accordingly to ensure both components are correctly set up and integrated.
 
 ## License
 
-[MIT License](LICENSE) - Use, modify, and distribute as you deem fit.
+This project is licensed under the GNU Affero General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+
+The AGPLv3 is similar to the GPLv3, but additionally ensures that the software running over a network provides the source code to its users. This promotes sharing and modification of the software, even in web-based tools and applications.
+
