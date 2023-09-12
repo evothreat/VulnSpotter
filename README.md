@@ -5,13 +5,14 @@ A comprehensive tool designed to identify and analyze commits that address secur
 ## Features
 
 - **Vulnerability Parsing**: 
-  - Scans the repository for potentially vulnerable commits using `git-vuln-finder` and categorizes them into projects for further review.
+  - Scans the repository for potentially vulnerable commits using [git-vuln-finder](https://github.com/cve-search/git-vuln-finder) and categorizes them into projects for further review.
   
 - **Clear Display of Results**: 
   - The tool presents identified commits in an easy-to-digest manner, detailing:
     - Referenced CVE entries
-    - Commit messages
+    - Commit message
     - Commit changes with syntax highlighting
+    - Commit history
 
 - **Display Modes**: 
   - View commit changes in two distinct styles:
@@ -33,17 +34,26 @@ A comprehensive tool designed to identify and analyze commits that address secur
 - **Collaborative Review**: 
   - Invite other team members to your project, allowing them to review and classify commits.
 
+## Screenshots
+
+![Commit view](screenshots/commit_view.png)
+![commit history](screenshots/commit_history.png)
+
 ## Installation
 
 The project is split into server-side and client-side components. For a smooth setup:
 
 ### Server-Side
-Please refer to [SERVER-INSTALLATION](backend/README.md) for detailed server setup instructions.
+Please refer to [SERVER-INSTALL](backend/README.md) for detailed server setup instructions.
 
 ### Client-Side
-For client setup and configuration, see [CLIENT-INSTALLATION](frontend/README.md).
+For client setup and configuration, see [CLIENT-INSTALL](frontend/README.md).
 
 Follow the guides accordingly to ensure both components are correctly set up and integrated.
+
+## Acknowledgements
+
+This project is made possible thanks to a myriad of third-party tools and libraries from the open-source community. I extend my heartfelt gratitude to all the developers and contributors whose work has been instrumental in shaping my software.
 
 ## License
 
